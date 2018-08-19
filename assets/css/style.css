@@ -1,11 +1,44 @@
+*{
+    margin: 0;
+    padding: 0;
+    font-family: 'Comfortaa', cursive;
+}
+
+header{
+    background-color: rgb(151, 151, 197, 80%);
+    margin:0;
+    padding: 20px;
+    text-align: center;
+    border-bottom-style: outset;
+    border-bottom-width: 2px;
+    border-bottom-color: rgba(173, 185, 206, 0.8);
+
+}
+.grid{
+    display: grid;
+    grid-template-columns: 40% 1fr;
+}
+
 body{
     background-image:url("../images/geobackground.png");
     
 }
 
+#instructions{
+    grid-column: 1/2;
+    padding: 20px;
+}
+
+#score{
+    grid-column: 2/3;
+    grid-row: 1/5;
+    padding: 20px 20px 20px 20px;
+}
 .crystal-icon{
     height: 80px;
     width: 80px;
+    padding-top: 20px;
+    padding: 10px;
     background-color: 0;
     background-repeat: no-repeat;
     background-position: center;

@@ -5,13 +5,16 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>Crystals Collector</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/css?family=Comfortaa" rel="stylesheet">
     <link rel="stylesheet" type="text/css" media="screen" href="assets/css/style.css" />
-    <link rel="stylesheet" type="text/css" media="screen" href="assets/css/reset.css" />
+    
     <script src="assets/javascript/game.js"></script>
 </head>
 <body>
     <header><h1>Crystals Collector!</h1></header> 
-    <div>
+    <div class="grid">
+
+    <div id="instructions">    
     <p>You will be given a randomn number at the beginning of the game!</p>
     <br>
     <p>There are four crystals below.By clicking on a crystal you will add a specific amount of points to your total score.</p>
@@ -24,9 +27,11 @@
     <br>   
     </div>
 
+    <div id="score">
     <div id="computer-num"></div>
     <h4 id="wins-text">Wins: </h4>
     <h4 id="losses-text">Losses: </h4>
+    
 
     <ul id="crystals-li">
         <button id="button-1" class="crystal-icon"><a href=""></a></button>
@@ -36,7 +41,8 @@
     </ul>
     
     <h5 id="user-total">Your total score is: </h5>
-    <br>
+    </div>
+</div>
 
 
 
