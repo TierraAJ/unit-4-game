@@ -6,7 +6,19 @@ var lossesText = document.getElementById("losses-text");
 var wins = 0;
 var losses = 0;
 var yourTotal = 0;
-var crystalsRandom = [1, 3, 5, 10, 12, 20]
+var crystalsRandom = [ 1, 3, 5, 10,]
+var crystal1 = Math.floor(Math.random() * crystalsRandom.length);
+var crystal2 = Math.floor(Math.random() * crystalsRandom.length);
+var crystal3 = Math.floor(Math.random() * crystalsRandom.length);
+var crystal4 = Math.floor(Math.random() * crystalsRandom.length);
+
+
+console.log("Crystal 1: " + crystal1);
+console.log("Crystal 2: " + crystal2);
+console.log("Crystal 3: " + crystal3);
+console.log("Crystal 4: " + crystal4);
+
+
 
 //Generate computer's random number.
 function computerRandom() {
@@ -15,18 +27,16 @@ function computerRandom() {
 }
 
 computerNumText = computerRandom();
-console.log(computerNumText);
+console.log("Computer Target Number: " + computerNumText);
 
 $("#computer-num").text();
 
 //Assign crystals a random number.
-function crystal1Random() {
-    var random = Math.floor((Math.random() * crystalsRandom.length));
+function crystal1Num() {
+    var random = Math.floor(Math.random() * crystalsRandom);
     return crystalsRandom[random];
 }
-
-$("#button-1").text() = crystal1Random();
-console.log(crystal1Random);
+console.log("Crystal 1: " + crystal1Num());
 
 
 
