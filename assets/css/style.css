@@ -1,0 +1,25 @@
+body{
+    background-image:url("../images/geobackground.png");
+    
+}
+
+.crystal-icon{
+    height: 80px;
+    width: 80px;
+    background-color: 0;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+#button-1{
+    background-image: url("../images/crystal4.png")
+}
+#button-2{
+    background-image: url("../images/crystal5.png")
+}
+#button-3{
+    background-image: url("../images/crystal7.png")
+}
+#button-4{
+    background-image: url("../images/crystal11.png")
+}
