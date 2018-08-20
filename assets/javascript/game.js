@@ -1,3 +1,5 @@
+$(document).ready(function() {
+
 //Set initial variables.
 var computerNumText = document.getElementById("computer-num")
 var userTotalText = document.getElementById("user-total")   
@@ -19,6 +21,8 @@ console.log("Crystal 3: " + crystal3);
 console.log("Crystal 4: " + crystal4);
 
 
+    
+
 
 //Generate computer's random number.
 function computerRandom() {
@@ -30,14 +34,15 @@ computerNumText = computerRandom();
 console.log("Computer Target Number: " + computerNumText);
 
 $("#computer-num").text();
+$(computerNumText).text("#computer-num");
 
 //Assign crystals a random number.
 
 
 //Crystal Onclick Function.
-$(this).onkeyup = function(event) {
+$("#button-1").onclick = function(event) {
     // Prints key that user selects.
-    $(yourTotal).text(crystal1) = event.key;
+    $(computerNumText).append(yourTotal);
     
   }; 
 
@@ -48,4 +53,4 @@ $(this).onkeyup = function(event) {
 //Set up if statements to define wins an losses.
 
 
-//
+})
