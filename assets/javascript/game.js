@@ -9,44 +9,41 @@ var wins = 0;
 var losses = 0;
 var yourTotal = 0;
 
-var crystal1 = Math.floor((Math.random() * 3) + 1);
-var crystal2 = Math.floor((Math.random() * 5) + 1);
-var crystal3 = Math.floor((Math.random() * 10) + 2);
-var crystal4 = Math.floor((Math.random() * 10) + 2);
-
-
-console.log("Crystal 1: " + crystal1);
-console.log("Crystal 2: " + crystal2);
-console.log("Crystal 3: " + crystal3);
-console.log("Crystal 4: " + crystal4);
-
-
-    
-
-
 //Generate computer's random number.
 function computerRandom() {
     var random = Math.floor((Math.random() * 100) + 10);
-    $("#computer-num").html(random);
+    $("#computer-num").html("<h1>Target: <h1>" + random);
     return random;
 }
 
 computerNumText = computerRandom();
 console.log("Computer Target Number: " + computerNumText);
 
-
-
-
-
 //Assign crystals a random number.
+function crysRandom() {
+    var crystal1 = Math.floor((Math.random() * 3) + 1);
+    var crystal2 = Math.floor((Math.random() * 5) + 1);
+    var crystal3 = Math.floor((Math.random() * 10) + 2);
+    var crystal4 = Math.floor((Math.random() * 10) + 2);
+    }
+    crysRandom();
+    //Log out random crystal values in Console.
+    console.log("Crystal 1: " + crystal1);
+    console.log("Crystal 2: " + crystal2);
+    console.log("Crystal 3: " + crystal3);
+    console.log("Crystal 4: " + crystal4);
+
+userTotalText = yourTotal; 
+$(userTotalText).text("#user-total");    
+
 
 
 //Crystal Onclick Function.
-$("#button-1").onclick = function(event) {
+$(".crystal-icon").click(function(event){
     // Prints key that user selects.
-    $(computerNumText).append(yourTotal);
+    $(userTotalText).text("#user-total");
     
-  }; 
+  }); 
 
 
 //Add additional Clicks to value of first.
