@@ -27,14 +27,16 @@ console.log("Crystal 4: " + crystal4);
 //Generate computer's random number.
 function computerRandom() {
     var random = Math.floor((Math.random() * 100) + 10);
+    $("#computer-num").html(random);
     return random;
 }
 
 computerNumText = computerRandom();
 console.log("Computer Target Number: " + computerNumText);
 
-$("#computer-num").text();
-$(computerNumText).text("#computer-num");
+
+
+
 
 //Assign crystals a random number.
 
