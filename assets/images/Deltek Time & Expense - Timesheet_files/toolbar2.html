@@ -1,0 +1,324 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!-- saved from url=(0068)https://te.sysplus.com/DeltekTC/com/deltek/tc/framework/toolbar2.jsp -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta http-equiv="Content-Type" content="text/html">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Style-Type" content="text/css">
+
+<link rel="stylesheet" type="text/css" href="./toolbar.css">
+<script src="./NavigateTo.js.download"></script>
+<script type="text/javascript" src="./ErrMessageDisplay.js.download"></script>
+<script type="text/javascript" src="./CommonXB.js.download"></script>
+
+<script>
+function focusEventHandler() {
+	try {
+		if(top.popupWindow && !top.popupWindow.closed) {  /* if popup window times out and user closes it */
+			top.popupWindow.focus();
+		}
+	}
+	catch(e) {}
+}
+window.onfocus = focusEventHandler;
+
+function handleMouseDown() {
+	try{
+		if(top.popupWindow && !top.popupWindow.closed){
+			top.popupWindow.focus();
+			//event.returnValue = false;
+			return false;
+		}
+	}
+	catch(e){}
+}
+
+document.onmousedown = handleMouseDown;
+document.ondblclick = handleMouseDown;
+
+function goToDesktop(){
+	if (isModalFrameVisible()) return;
+
+	
+		show();
+		top.minimize();
+	
+
+	if (top.getNavigationFrame() && (typeof top.getNavigationFrame().closeEntireMenu == "function")){
+		top.getNavigationFrame().closeEntireMenu();
+	}
+	navigateTo('DESKTOP','MyDesktop', false);
+}
+
+function logoff(){
+	if (isModalFrameVisible()) return;
+	top.stopSystemTimeout();
+	nextAction = "doLogoff()";
+	navigateHandler("OK");
+}
+
+function doLogoff(){
+	for(var i = 0; i < top.printWindows.length; i++){
+		try{
+			top.printWindows[i].close();
+		}catch(e){}
+	}
+	top.loggingOff=true;
+	document.getElementById('logoutForm').submit();
+}
+
+function showHourGlass(){
+	document.getElementById('hourGlass').style.display = 'block';
+}
+
+function hideHourGlass(){
+	document.getElementById('hourGlass').style.display = 'none';
+}
+
+
+var timeoutAlertShown = false;
+
+function showTimeout(mins, secs){
+	if(mins < 0) mins = 0;
+	if(secs < 0) secs = 0;
+	timeoutAlertShown = true;
+	var padZero = secs < 10 ? '0' : '';
+	document.getElementById('timeout').style.display = 'block';
+	document.getElementById('timeoutMsg').innerHTML = 'This page will timeout in&nbsp;'+mins+':'+padZero+secs;
+	if(mins < 2){
+		document.getElementById('timeoutMsg').className = 'blinkingTimeout';
+	} else {
+		document.getElementById('timeoutMsg').className = 'applicationName';
+	}
+}
+
+function hideTimeout(){
+	timeoutAlertShown = false;
+	document.getElementById('timeout').style.display = 'none';
+}
+
+
+</script>
+
+</head>
+
+<body style="padding:0px;margin:0px;background-image:url(/DeltekTC/com/deltek/tc/framework/images/TC_branding_Area.jpg);background-repeat:no-repeat;" marginwidth="0" marginheight="0">
+
+
+<form target="unitFrame" id="globalTopForm" name="globalTopForm" method="post" action="https://te.sysplus.com/DeltekTC/TimeCollection.msv">
+<input type="hidden" name="unit" id="unit" value="desktop">
+<input type="hidden" name="event" id="event" value="load">
+<input type="hidden" id="year" name="year" value="">
+<input type="hidden" id="month" name="month" value="">
+<input type="hidden" id="date" name="date" value="">
+<input id="recordIndex" name="recordIndex" type="hidden" value="0">
+<input id="period" name="period" type="hidden">
+<input type="hidden" id="screenWidth" name="screenWidth" value="1366">
+<input type="hidden" id="screenHeight" name="screenHeight">
+<input type="hidden" id="runMode" name="runMode">
+<input type="hidden" id="showmenu" name="showmenu" value="">
+</form>
+
+<form id="logoutForm" name="logoutForm" method="post" target="_top" action="https://te.sysplus.com/DeltekTC/welcome.msv">
+<input type="hidden" id="fl" name="fl" value="">
+</form>
+
+<table id="toolbarMainTable" height="50" width="100%" cellpadding="0" cellspacing="0">
+
+<tbody><tr>
+
+<td valign="bottom">
+
+<table id="globalOptionsTable" class="globalOptions" border="0" cellpadding="0" cellspacing="0" width="100%" height="20">
+
+<tbody><tr>
+	<td width="25" id="firstCell" align="left" valign="top" class="transparentBG">
+		<div id="showImg" class="showImg" style="display:none;" onclick="showHide()">
+		</div>
+	</td>
+
+	<td width="75" id="secondCell" class="transparentBG" style="white-space:nowrap;">
+		<nobr>&nbsp;<span id="appName1" class="applicationName" style="display:none;">Timesheet</span>&nbsp;</nobr>
+	</td>
+
+	<td id="thirdCell" align="left" class="showHide" valign="top" width="24">
+		<div id="hideImg" class="hideImg" style="" onclick="showHide()">
+		</div>
+	</td>
+
+	<td align="left" valign="center" class="coloredBG">
+		&nbsp;<span id="appName2" class="applicationName" style="">Timesheet</span>&nbsp;
+	</td>
+
+	<td align="center" valign="center" class="coloredBG">
+		<table id="hourGlass" cellspacing="0" cellpadding="0" border="0" style="display: none;">
+		<tbody><tr><td>
+			<div class="waitImg">&nbsp;</div>
+		</td><td>
+			&nbsp;<span class="applicationName">Please Wait ...</span>
+		</td></tr>
+		</tbody></table>
+		<table id="timeout" cellspacing="0" cellpadding="0" border="0" style="display:none;">
+		<tbody><tr><td>
+			<span id="timeoutMsg" class="applicationName"></span>
+		</td></tr>
+		</tbody></table>
+
+	</td>
+
+	<td align="right" valign="bottom" class="coloredBG">
+		<table height="20px" style="margin-left:auto;">
+		<tbody><tr>
+		<td valign="bottom">
+			
+			<div id="homeImg" class="homeImg" title="MyDesktop" onclick="goToDesktop()"></div>
+		</td>
+		<td valign="bottom">
+			
+			<div id="helpImg" class="helpImg" title="Help" onclick="openOnlineHelp();return false;"></div>
+		</td>
+		<td valign="bottom">
+			
+			<div id="aboutImg" class="aboutImg" title="About" onclick="top.popupWindow=window.open(&#39;/DeltekTC/com/deltek/tc/framework/AboutDlg.jsp&#39;, &#39;_blank&#39;,&#39;scrollbars=yes,resizable=yes,width=700px,height=650px,left=&#39; + (screen.availWidth-700 )/2 + &#39;px,top=&#39; + (screen.availHeight-680 )/2 + &#39;px&#39;);return false;">
+			</div>
+		</td>
+		<td valign="bottom">
+			
+			<div id="logoffImg" class="logoffImg" title="Logout" onclick="logoff()"></div>
+		</td>
+		</tr>
+		</tbody></table>
+
+
+	</td>
+
+</tr>
+
+</tbody></table>
+
+<input type="hidden" id="helpContext" value="timesheet_overall">
+<input type="hidden" id="detailHelpContext" value="">
+
+</td>
+</tr>
+</tbody></table>
+
+
+<script language="JavaScript">
+var filePath;
+var customFilePath;
+
+var company = "SYSPLUSTE";
+var language = "en";
+var helpWindow = null;
+var udtArray = new Array;
+var helpContext = document.getElementById("helpContext");
+var detailHelpContext=document.getElementById("detailHelpContext");
+var appName1 = document.getElementById("appName1");
+var appName2 = document.getElementById("appName2");
+
+udtArray[1] = "Account";
+udtArray[2] = "Project";
+udtArray[3] = "Lab Category";
+udtArray[4] = "UDT04";
+udtArray[5] = "UDT05";
+udtArray[6] = "UDT06";
+udtArray[7] = "PLC";
+udtArray[8] = "UDT08";
+udtArray[9] = "Org";
+udtArray[10] = "Pay Type";
+
+
+function openOnlineHelp() {
+	if (helpWindow) {
+	//	helpWindow.focus();
+	//	return;
+	}
+	var w = screen.availWidth;
+	var h = screen.availHeight;
+	var popW = 760;
+	var popH = 460;
+	var leftPos = (w-popW)/2;
+	var topPos = (h-popH)/2;
+	helpWindow = window.open("/DeltekTC/com/deltek/tc/framework/helpWindow.jsp", null, "top=" + topPos + ",left=" + leftPos + ",titlebar=0,height=460,width=760,status=no,resizable=no,scrollbars=no");
+}
+
+function getFilePath() {
+	var screenCd = helpContext.value;
+	if(detailHelpContext.value=="")
+//		filePath = "/DeltekTC/com/deltek/tc/framework/help/" + language + "/" + screenCd +"/" + screenCd + ".htm";
+		filePath = "/DeltekTC/com/deltek/tc/framework/help/" + language + "/" + screenCd + ".htm";
+	else
+//		filePath = "/DeltekTC/com/deltek/tc/framework/help/" + language + "/" + screenCd +"/" +detailHelpContext.value+ ".htm";
+		filePath = "/DeltekTC/com/deltek/tc/framework/help/" + language + "/"+detailHelpContext.value+ ".htm";
+	return filePath;
+}
+function getCustomFilePath() {
+	var screenCd = helpContext.value;
+	var base="/com/deltek/tc/framework/help/" + language + "/custom/" + company+"/"+ "custom_";
+	if(detailHelpContext.value=="")
+		customFilePath = base+screenCd+ ".htm";
+	else
+		customFilePath = base+detailHelpContext.value+ ".htm";
+	customFilePath="/DeltekTC"+customFilePath+"";
+	return customFilePath;
+}
+
+var firstCell = document.getElementById("firstCell");
+var secondCell = document.getElementById("secondCell");
+var thirdCell = document.getElementById("thirdCell");
+
+function showHide() {
+	if(document.getElementById("showImg").style.display == 'none') {
+		//if(top.is_ie){
+			hide();
+		//}
+		top.maximize();
+	}
+	else {
+		//if(top.is_ie){
+			show();
+		//}
+		top.minimize();
+	}
+	return false;
+}
+
+function show(){
+	document.getElementById("showImg").style.display ='none';
+	document.getElementById("hideImg").style.display ='';
+	firstCell.className = "transparentBG";
+	secondCell.className = "transparentBG";
+
+	thirdCell.className = "showHide";
+	appName1.style.display = "none";
+	appName2.style.display = "";
+}
+
+function hide(){
+	document.getElementById("hideImg").style.display ='none';
+	document.getElementById("showImg").style.display ='';
+	firstCell.className = "showHide";
+	secondCell.className = "coloredBG";
+	thirdCell.className = "coloredBG";
+
+	appName2.style.display = "none";
+	appName1.style.display = "";
+}
+
+window.onload = function() {
+	if (parent.showMenu) {
+		show();
+	}
+	else {
+		hide();
+	}
+	document.getElementById("screenWidth").value = screen.width;
+}
+
+
+</script>
+
+
+
+
+</body></html>

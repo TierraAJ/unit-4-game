@@ -1,0 +1,1401 @@
+
+<!--*** ROW OBJECT ***-->
+function RowObject(lineNo, hourArray, udtArray) {
+
+	this.lineNumber = lineNo; //Display line number
+	this.pkLineNumber = null; //This is line number that's the part of TS_LINE primary key
+	this.rowPosition = 0;
+	this.hrs = hourArray;
+	this.udts = udtArray;
+	this.typ = new Array();
+	this.typ[1] = "";
+	this.typ[2] = "";
+	this.typ[3] = "";
+	this.typ[4] = "";
+	this.typ[5] = "";
+	this.typ[6] = "";
+	this.typ[7] = "";
+	this.typ[8] = "";
+	this.typ[9] = "";
+	this.typ[10] = "";
+	this.typ[11] = "";
+	this.typ[12] = "";
+	this.typ[13] = "";
+	this.typ[14] = "";
+	this.typ[15] = "";
+	this.src = new Array();
+	this.isDefaultArray = new Array();
+	this.isDefaultArray[1] = "";
+	this.isDefaultArray[2] = "";
+	this.isDefaultArray[3] = "";
+	this.isDefaultArray[7] = "";
+	this.isDefaultArray[9] = "";
+	this.readOnly = false;
+	this.overtime = false;
+	this.costonly = false;
+	this.regular = false;
+	this.currentPayType = "none";
+	this.udt01_link_fl = false;
+	this.udt02LinkFlag = false;
+	this.billable_fl = "N";         // to be implemented later
+	this.isDefaultBillableFl = false;
+	this.etc_hrs = 1;               // to be implemented later
+	this.commentStatus = "hidden";
+	this.rowTotal = 0.0;
+	this.rowProratedTotal = 0.0;
+	this.previouslySaved = false;
+	this.deleted = false;
+	this.classname = "rownum1";
+	this.hasComment = null;
+	this.hadCommentWhenLoaded = null;
+	this.commentTextWhenLoaded = null;
+	this.short_line_text = "";
+	this.line_desc = "";
+	this.charge_tree_cd = "";
+	this.charge_branch_cd = "";
+	this.charge_cd = "";
+	this.getRowTotal = f_getRowTotal;
+	this.setRowTotal = f_setRowTotal;
+	this.isComplete = false;
+	this.reversed = "N";
+	this.llaStatusCode = null;
+	this.suppressLLAIcon = f_suppressLLAIcon;
+	this.interim_fl = false;
+	this.startStopTimeFl = false;
+	return this;
+}
+
+function f_suppressLLAIcon(){
+	if(this.llaStatusCode != 'APPROVED') return false;
+	for(var i = 0; i < this.hrs.length; i++){
+		if((this.hrs[i].entered_hrs != null && this.hrs[i].entered_hrs != 0.0) ||
+			(this.hrs[i].approved_hrs != null && this.hrs[i].approved_hrs != 0.0)){
+			return false;
+		}
+	}
+	return true;
+}
+
+<!--*** DAY COLUMN OBJECT ***-->
+function ColumnObject(colNum) {
+	this.columnNumber = colNum;
+	this.regularTotal = 0.0;
+	this.overtimeTotal = 0.0;
+	this.columnTotal = 0.0;
+	this.regularProratedTotal = 0.0;
+	this.overtimeProratedTotal = 0.0;
+	this.columnProratedTotal = 0.0;
+	this.getRegularColumnTotal = f_getRegularColumnTotal;
+	this.setRegularColumnTotal = f_setRegularColumnTotal;
+	this.getOvertimeColumnTotal = f_getOvertimeColumnTotal;
+	this.setOvertimeColumnTotal = f_setOvertimeColumnTotal;
+	this.getColumnTotal = f_getColumnTotal;
+	this.setColumnTotal = f_setColumnTotal;
+	return this;
+}
+function f_getRegularColumnTotal() {
+	return this.regularTotal;
+}
+function f_setRegularColumnTotal(_newTotal) {
+	this.regularTotal = _newTotal;
+}
+function f_getOvertimeColumnTotal() {
+	return this.overtimeTotal;
+}
+function f_setOvertimeColumnTotal(_newTotal) {
+	this.overtimeTotal = _newTotal;
+}
+function f_getColumnTotal() {
+	return this.columnTotal;
+}
+function f_setColumnTotal(_newTotal) {
+	this.columnTotal = _newTotal;
+}
+function f_getRowTotal() {
+	return this.rowTotal;
+}
+function f_setRowTotal(_newTotal) {
+	this.rowTotal = _newTotal;
+}
+
+function storeTsDayInfo(daysArray) {
+	var h = 0;
+	var matchFound = false;
+
+		for (h = 0; h < tsDayObjectArray.length; h++) {
+			var tempArray = tsDayObjectArray[h];
+		if (daysArray[0] == tempArray[0]) {
+			matchFound = true;
+			break;
+		}
+	}
+	var tmpArray = new Array();
+	tmpArray[0] = daysArray[0];
+	tmpArray[1] = daysArray[1];
+	tmpArray[2] = daysArray[2];
+	tmpArray[3] = daysArray[3];
+	tmpArray[4] = daysArray[4];
+	tmpArray[5] = daysArray[5];
+	tmpArray[6] = daysArray[6];
+	tmpArray[7] = daysArray[7];
+
+	if (matchFound) {
+		tsDayObjectArray[h] = tmpArray;
+	}
+	else {
+		tsDayObjectArray[tsDayObjectArray.length] = tmpArray;
+	}
+	setUnsavedChanges();
+}
+
+<!--****** ADD LINE ******-->
+function addLine() {
+	var rowNo = grid.numberOfCompleteTsLines;
+	if (rowNo < numberOfRows) {
+		ROA[rowNo].pkLineNumber = grid.numberOfCompleteTsLines + 1;
+		var innerUdtElements = ROA[rowNo].udts;
+		for (n = 0; n < innerUdtElements.length; n++) {
+			if (! innerUdtElements[n].readOnlyAlways) {
+				innerUdtElements[n].readOnly = false;
+			}
+			if (innerUdtElements[n].typ == "0"){
+				innerUdtElements[n].readOnly = true;
+			}
+		}
+		innerHourElements = ROA[rowNo].hrs;
+		for (t = 0; t < innerHourElements.length; t++) {
+			if (! innerHourElements[t].readOnlyAlways) {
+				innerHourElements[t].readOnly = false;
+			}
+		}
+	}
+	else {
+		createNewRow();
+	}
+}
+<!--*** CHECK FOR EMPTY LINE ***-->
+function udtLineIsEmpty(rowNumber) {
+	var innerUdtInputs = ROA[rowNumber].udts;
+	var noCharges = true;
+	for (var n = 0; n < innerUdtInputs.length; n++) {
+		var udtInput = innerUdtInputs[n];
+		if (!(udtInput.cv == null) && (udtInput.cv != "")) {
+			noCharges = false;
+			break;
+		}
+	}
+	return noCharges;
+}
+<!--*** CHECK FOR LINE COMPLETION ***-->
+function checkLineCompletion(rowNumber) {
+	var rowObject = ROA[rowNumber];
+	if (rowObject.line_desc == "") return false;
+
+	for(var i = 1; i < udtRequiredArray.length; i++){
+		if (udtRequiredArray[i] && rowObject.typ[i] == ""){
+			return false;
+		}
+	}
+	if ((rowObject.udt02LinkFlag) && (rowObject.typ[2] == "")){
+		return false;
+	}
+	if (((link17Fl  && rowObject.udt17RequiredFlag && udtValidatedArray[7]) || (link27Fl && rowObject.udt27RequiredFlag && udtValidatedArray[7])) && (rowObject.typ[7] == "")){
+		return false;
+	}
+	if (((link19Fl  && rowObject.udt19LinkFlag && udtValidatedArray[9]) || (link29Fl && rowObject.udt29LinkFlag && udtValidatedArray[9])) && (rowObject.typ[9] == "")){
+		return false;
+	}
+	return true;
+}
+
+<!--*** SET LINE IS INCOMPLETE ***-->
+function setLineIsIncomplete(rowNumber) {
+	grid.aLineIsIncomplete = true;
+
+	grid.incompleteLineNumber = rowNumber;
+}
+
+<!--*** SET LINE IS COMPLETE WITH UDT10 RETRIEVAL ***-->
+function setLineIsComplete(rowNumber) {
+	var rowObject = ROA[rowNumber];
+	rowObject.isComplete = true;
+	grid.aLineIsIncomplete = false;
+	grid.incompleteLineNumber = -1;
+	if (rowNumber == grid.numberOfCompleteTsLines) {
+		grid.numberOfCompleteTsLines++;
+		addLine();
+	}
+	/*if (grid.numberOfCompleteTsLines == 0) {
+		for (var r = 0; r < timeInIconArray.length; r++) {
+			timeInIconArray[r].disabled = false;
+		}
+	}*/
+	//udt10RowNums = new Array();
+	//udt10RowNums[0] = rowNumber;
+	//self.frames[0].document.getElementById("udt10Id").value = ROA[rowNumber].typ[10];
+	//self.frames[0].document.forms["udt10Form"].submit();
+	setUnsavedChanges();
+}
+<!--*** UNDO INCOMPLETE LINE STATUS ***-->
+function undoIncompleteLineStatus(){
+	grid.aLineIsIncomplete = false;
+	grid.incompleteLineNumber = -1;
+}
+<!--*** SET LINE IS COMPLETE NO UDT10 RETRIEVAL ***-->
+function setLineIsCompleteNoUdt10(rowNumber) {
+	var rowObject = ROA[rowNumber];
+	rowObject.isComplete = true;
+	grid.aLineIsIncomplete = false;
+	grid.incompleteLineNumber = 0;
+	if (rowNumber == grid.numberOfCompleteTsLines) {
+		grid.numberOfCompleteTsLines++;
+		addLine();
+	}
+	/*if (grid.numberOfCompleteTsLines == 0) {
+		for (var r = 0; r < timeInIconArray.length; r++) {
+			timeInIconArray[r].disabled = false;
+		}
+	}*/
+	setUnsavedChanges();
+}
+<!--*** SAVE TIMESHEET ***-->
+function saveTimesheet() {
+	if (browseOnly){
+		return;
+	}
+	selectAllRows(false);
+	returnFalse  = false;
+	if (!submitActive("save")){
+		return;
+	}
+	saveHandler1("OK");
+}
+
+function saveHandler1(result){
+	if (result != "OK") return;
+	if (grid.aLineIsIncomplete) {
+		incompleteLineMessage2(saveHandler2);
+		return;
+	}
+	saveTS();
+}
+
+function saveHandler2(result){
+	messageHandler2(result);
+	if (returnFalse) {
+		returnFalse = false;
+		return;
+	}
+
+	saveTS();
+}
+
+
+function onSaveCancel(){
+	top.clearFormSubmitted();
+}
+
+<!--*** PRINT TIMESHEET ***-->
+function printTimesheet() {
+	openTsPrintWindow();
+}
+
+<!--*** AUDIT TIMESHEET ***-->
+function auditTimesheet() {
+	if (grid.aLineIsIncomplete) {
+		incompleteLineMessage();
+		return false;
+	}
+	auditTS();
+}
+
+<!--*** TIMESHEET LEAVE ***-->
+function getLeaveInfo() {
+	if (grid.aLineIsIncomplete) {
+		incompleteLineMessage();
+		return false;
+	}
+	getTsLeaveInfo();
+}
+
+
+<!--*** TIMESHEET LINE APPROVE ***-->
+function openLineApprove(ev) {
+	if (grid.aLineIsIncomplete) {
+		incompleteLineMessage();
+		return false;
+	}
+	var target;
+	if (ev == null){
+		target = event.srcElement;
+	} else {
+		target = ev.target;
+	}
+	getLineApprove(getLineApproveRow(target));
+}
+
+<!--*** CHECK FOR UNSAVED CHANGES ***-->
+function checkForUnsavedChanges() {
+	if (browseOnly){
+		return false;
+	}
+	if(grid.unsavedChanges == true) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+<!--*** SET UNSAVED CHANGES ***-->
+function setUnsavedChanges() {
+	grid.unsavedChanges = true;
+	enablePrintTS(false);
+	if (! grid.timesheetIsClosed) {
+		enableSaveTS(true);
+	}
+	if (checkIfAnyHourCells()) {
+		enableSignButton(true);
+	}
+	else {
+		enableSignButton(false);
+	}
+	var approveImage = document.getElementById("approveImage");
+	approveImage.className = "approveDisabled";
+	var rejectImage = document.getElementById("rejectImage");
+	rejectImage.className = "rejectDisabled";
+	if (document.getElementById('hourViewTable').style.visibility == 'visible'){
+		document.getElementById('hourViewToggle').disabled = true;
+	}
+	enableOfflineTimesheet(false);
+	enableTotalLink(false);
+	enableNotes(false);
+}
+
+<!--*** SET TS READONLY ***-->
+function changeTsReadOnlyStatus(booleanValue) {
+	var chargeObjects;
+	var hourObjects;
+	var x;
+	for (z = 1; z < numberOfRows; z++) {
+		chargeObjects = ROA[z].udts;
+		for (x = 0; x < chargeObjects.length; x++) {
+			chargeObjects[x].readOnly = booleanValue;
+		}
+		hourObjects = ROA[z].hrs;
+		for (x = 0; x < hourObjects.length; x++) {
+			hourObjects[x].readOnly = booleanValue;
+		}
+	}
+}
+
+<!--**************************************** ENABLE LINKS *****************************************-->
+
+<!--*** ENABLE OPEN TS LINK ***-->
+function enableOpenTS(booleanValue) {
+	var openTS = document.getElementById("openTS");
+	if(booleanValue) {
+		openTS.className = "navFunctionEnabled";
+	}
+	else {
+		openTS.className = "navFunctionDisabled";
+	}
+}
+<!--*** ENABLE SAVE TS LINK ***-->
+function enableSaveTS(booleanValue) {
+	var saveTS = document.getElementById("saveTS");
+	if(booleanValue) {
+		saveTS.className = "navFunctionEnabled";
+	}
+	else {
+		saveTS.className = "navFunctionDisabled";
+	}
+}
+<!--*** ENABLE SEARCH TS LINK ***-->
+function enableSearchTS(booleanValue) {
+	var searchTS = document.getElementById("searchTS");
+	if(booleanValue) {
+		searchTS.className = "navFunctionEnabled";
+	}
+	else {
+		searchTS.className = "navFunctionDisabled";
+	}
+}
+<!--*** ENABLE PRINT TS LINK ***-->
+function enablePrintTS(booleanValue) {
+	var printTS = document.getElementById("printTS");
+	if(booleanValue) {
+		printTS.className = "navFunctionEnabled";
+	}
+	else {
+		printTS.className = "navFunctionDisabled";
+	}
+}
+<!--*** ENABLE AUDIT TS LINK ***-->
+function enableAuditTS(booleanValue) {
+	var auditTS = document.getElementById("auditTS");
+	if(booleanValue) {
+		auditTS.className = "navFunctionEnabled";
+	}
+	else {
+		auditTS.className = "navFunctionDisabled";
+	}
+
+}
+<!--*** ENABLE LEAVE LINK ***-->
+function enableLeaveTS(booleanValue) {
+	var leaveTS = document.getElementById("leaveTS");
+	if(booleanValue) {
+		leaveTS.className = "navFunctionEnabled";
+	}
+	else {
+		leaveTS.className = "navFunctionDisabled";
+	}
+
+}
+
+<!--*** REVERSE TIMESHEET LINK ***-->
+var reverseTimesheetEnabled = false;
+function enableReverseTimesheet(booleanValue) {
+	var reverseTimesheet = document.getElementById("reverseTimesheet");
+	if(booleanValue) {
+		reverseTimesheet.className = "navFunctionEnabled";
+		reverseTimesheetEnabled = true;
+		enableReverseLine(false);
+		enableCopyLine(false);
+		enableDeleteLine(false);
+		enableResetLine(false);
+		browseOnly = true;
+	}
+	else {
+		reverseTimesheet.className = "navFunctionDisabled";
+		reverseTimesheetEnabled = false;
+	}
+}
+
+function enableOfflineTimesheet(booleanValue){
+	var offlineTimesheet = document.getElementById("offlineTimesheet");
+	if(!offlineTimesheet) return;
+	var canEnable = (!grid.tsHasRejectedCells && !grid.tsHasProcessedCells && !grid.tsHasSentCells && !grid.unsavedChanges);
+
+	if(booleanValue && canEnable) {
+		offlineTimesheet.className = "navFunctionEnabled";
+	} else {
+		offlineTimesheet.className = "navFunctionDisabled";
+	}
+}
+
+function enableNotes(booleanValue){
+	var notes = document.getElementById("notes");
+	if(!notes) return;
+	var canEnable = true;
+	if(grid.emplId != grid.loginEmplId){
+		canEnable = !(grid.unsavedChanges || noSuperModifyRights);
+	}
+
+	if(booleanValue && canEnable) {
+		notes.className = "navFunctionEnabled";
+	} else {
+		notes.className = "navFunctionDisabled";
+	}
+}
+
+<!--*** ENABLE COPY-LINE LINK ***-->
+function enableCopyLine(booleanValue) {
+		if (booleanValue && (browseOnly || grid.aLineIsIncomplete || reverseTimesheetEnabled)){
+			return;
+		}
+	var copyLine = document.getElementById("copyLine");
+	if(booleanValue) {
+		copyLine.className = "lineFunctionEnabled";
+	}
+	else {
+		copyLine.className = "lineFunctionDisabled";
+	}
+}
+<!--*** ENABLE DELETE-LINE LINK ***-->
+function enableDeleteLine(booleanValue) {
+		if (booleanValue && (browseOnly || reverseTimesheetEnabled)){
+			return;
+		}
+	var deleteLine = document.getElementById("deleteLine");
+	if(booleanValue) {
+		deleteLine.className = "lineFunctionEnabled";
+	}
+	else {
+		deleteLine.className = "lineFunctionDisabled";
+	}
+}
+
+<!--*** ENABLE RESET-LINE LINK ***-->
+function enableResetLine(booleanValue) {
+	if (booleanValue && (browseOnly || reverseTimesheetEnabled)){
+		return;
+	}
+	if(grid.startStopTimeMode == 'DETAIL') return;
+	var resetLine = document.getElementById("resetLine");
+	if(booleanValue) {
+		resetLine.className = "lineFunctionEnabled";
+	}
+	else {
+		resetLine.className = "lineFunctionDisabled";
+	}
+}
+
+<!--*** ENABLE REVERSE-LINE LINK ***-->
+function enableReverseLine(booleanValue) {
+		if (booleanValue && (browseOnly || grid.aLineIsIncomplete || reverseTimesheetEnabled)){
+			return;
+		}
+	var reverseLine = document.getElementById("reverseLine");
+	if(booleanValue) {
+		reverseLine.className = "lineFunctionEnabled";
+	}
+	else {
+		reverseLine.className = "lineFunctionDisabled";
+	}
+}
+
+<!--*** ENABLE ADD FAVORITES LINK ***-->
+function enableAddFavorites(booleanValue) {
+	if((grid.loginEmplId != grid.emplId && noSuperModifyRights) || grid.aLineIsIncomplete) {
+		return;
+	}
+	var addToFavorites = document.getElementById("addToFavorites");
+	if(booleanValue) {
+		addToFavorites.className = "lineFunctionEnabled";
+	}
+	else {
+		addToFavorites.className = "lineFunctionDisabled";
+	}
+}
+
+<!--*** ENABLE LINE FUNCTIONS ***-->
+function enableAllLineFunctions(booleanValue) {
+	if (booleanValue) {
+		if (grid.numberOfCompleteTsLines < 1) {
+			return;
+		}
+		enableCopyLine(true);
+		enableDeleteLine(true);
+		enableReverseLine(true);
+		enableAddFavorites(true);
+		enableResetLine(true);
+	}
+	else {
+		enableCopyLine(false);
+		enableDeleteLine(false);
+		enableReverseLine(false);
+		enableAddFavorites(false);
+		enableResetLine(false);
+	}
+}
+
+function enableSignButton(booleanValue) {
+	var signImage = document.getElementById("signImage");
+	if (booleanValue) {
+		if (checkIfAnyHourCells()) {
+			signImage.className = "signEnabled";
+		}
+	}
+	else {
+
+		signImage.className = "signDisabled";
+	}
+}
+
+function enableTotalLink(booleanValue){
+	var totalDiv = document.getElementById('grandTotal2');
+	if(booleanValue && !grid.unsavedChanges){
+		totalDiv.className = 'totalLink';
+		totalDiv.onclick = showUdt10Summary;
+	} else {
+		totalDiv.className = 'rowTotalFooterText';
+		totalDiv.onclick = null;
+	}
+}
+
+
+<!--*********************************************************************************************-->
+
+<!--*** CHECK IF ANY HOUR CELLS ***-->
+function checkIfAnyHourCells() {
+	var tsHasHourCells = false;
+	for (var t = 0; t < grid.numberOfCompleteTsLines; t++) {
+		var hourCells = ROA[t].hrs;
+		for (x = 0; x < hourCells.length; x++) {
+			if (hourCells[x].hrs && hourCells[x].hrs != " " && hourCells[x].hrs != "") {
+				tsHasHourCells = true;
+				break;
+			}
+		}
+	}
+	return tsHasHourCells;
+}
+
+<!--*** ADD DECIMAL AND ZERO ***-->
+function addDecimalAndZero(numberToBeFormatted, proratedView) {
+	if(proratedView){
+		return numberToBeFormatted;
+	}
+	var precision = 2;
+	if(grid.hoursIncrement == 'TENTH' || grid.hoursIncrement == 'HALF'){
+		precision = 1;
+	} else if(grid.hoursIncrement == 'WHOLE'){
+		precision = 0;
+	}
+	return formatToLocaleAndFractionDigits(numberToBeFormatted, precision, grid.decimalSymbol);
+}
+var selectedRowNum;
+
+<!--*** CHANGE ROW SELECTED STATUS ***-->
+function changeRowSelectedStatus(rowNum) {
+	if (rowNum == null || rowNum.target != null){
+		if (rowNum == null){
+			rowNum = getSelectorRow(event.srcElement);
+		} else if (rowNum.target != null){
+			rowNum = getSelectorRow(rowNum.target);
+		} else {
+			alert("Can't select/unselect row");
+		}
+	}
+	selectedRowNum = rowNum;
+	var selectorBox = document.getElementById('rowSelector'+rowNum);
+	selectorBox.checked = false;
+    if ((! grid.timesheetIsClosed) && (! browseOnly)) {
+	var currentCell = editor.currentCell;
+	if (editor.value != editor.originalValue){
+		if (currentCell.className != "d"){
+			if (trim(editor.value) == "") {
+				putCellValue(currentCell);
+				setUnsavedChanges();
+				if (checkLineCompletion(currentCell.row)) {
+					setLineIsCompleteNoUdt10(currentCell.row);
+				}
+				else {
+					if (!udtLineIsEmpty(currentCell.row)) {
+						setLineIsIncomplete(currentCell.row);
+					}
+					else {
+						undoIncompleteLineStatus();
+					}
+				}
+			}
+			else {
+				editor.value = editor.value.toUpperCase();
+				validatedValue = editor.value;
+
+				actionAfterValid = "selectline";
+
+				validateUdt(currentCell);
+				return false;
+			}
+		}
+	}
+    }
+	rowSelected();
+}
+
+function rowSelected() {
+	var rowNum = selectedRowNum;
+	var selectorBox = document.getElementById('rowSelector'+rowNum);
+	if (rowNum == null || rowNum.target != null){
+		var target;
+		if (rowNum == null){
+			target = event.srcElement;
+		} else if (rowNum.target != null){
+			target = rowNum.target;
+		}
+		rowNum = getSelectorRow(target);
+	}
+	var rowObject = ROA[rowNum];
+	if ((rowNum > grid.numberOfCompleteTsLines) && (rowObject.selector.selected == "N")) {
+		return;
+	}
+	if (grid.aLineIsIncomplete) {
+		if (rowNum != grid.incompleteLineNumber) {
+			incompleteLineMessage();
+			return false;
+		}
+	}
+	if(udtLineIsEmpty(rowNum)){
+		return;
+	}
+	var tmpUdtArray = rowObject.udts;
+	var tmpDayArray = rowObject.hrs;
+	if (rowObject.selector.selected == "N") {
+		rowObject.selector.selected = "Y"
+		selectorBox.checked = true;
+		if ((! grid.timesheetIsClosed) && (! browseOnly)) {
+                        if (grid.aLineIsIncomplete) {
+				enableDeleteLine(true);
+				enableResetLine(true);
+			} else {
+				enableAllLineFunctions(true);
+			}
+		} else {
+			enableAddFavorites(true);
+		}
+	}
+	else if (rowObject.selector.selected == "Y") {
+		rowObject.selector.selected = "N"
+		selectorBox.checked = false;
+
+		var selectedLinesArray = findSelectedLines();
+		if (selectedLinesArray.length == 0) {
+			enableAllLineFunctions(false);
+		}
+	}
+}
+
+<!--*** SET ACTIVE ROW ***-->
+function setActiveRow(rowNum) {
+	if (rowNum > grid.numberOfCompleteTsLines) {
+		return;
+	}
+	var rowObject;
+	for (var f = 0; f <= grid.numberOfCompleteTsLines; f++) {
+		rowObject = ROA[f];
+		rowObject.active = "N";
+		if (!lineCommentsDisabled && !rowObject.hasComment) {
+			rowObject.commentIcon.style.visibility = "hidden";
+		}
+	}
+	rowObject = ROA[rowNum];
+	rowObject.active = "Y";
+	if (!lineCommentsDisabled && checkLineCompletion(rowNum) ) {
+		rowObject.commentIcon.style.visibility = "visible";
+	}
+}
+
+<!--*** SELECT ALL ROWS ***-->
+function selectAllRows(booleanValue) {
+	if (booleanValue) {
+		document.getElementById('allRowSelector').checked = true;
+		for (var f = 0; f < grid.numberOfCompleteTsLines; f++) {
+			if (ROA[f].selector.selected == "N") {
+				changeRowSelectedStatus(f);
+			}
+		}
+	}
+	else {
+		document.getElementById('allRowSelector').checked = false;
+		for (var f = 0; f < grid.numberOfCompleteTsLines+1; f++) {
+			if (ROA[f].selector.selected == "Y") {
+				changeRowSelectedStatus(f);
+			}
+		}
+	}
+}
+
+<!--*** FIND SELECTED LINES ***-->
+function findSelectedLines() {
+	var selectedLines = new Array();
+	var j = 0;
+	for (var k = 0; k < grid.numberOfCompleteTsLines; k++) {
+		if (ROA[k].selector.selected == "Y") {
+			selectedLines[j] = k;
+			j++;
+		}
+	}
+	return selectedLines;
+}
+<!--****** DETERMINE LOOKUP TYPE ******-->
+function determineLookupType(udtElemId, udttype) {
+	var elem = document.getElementById(udtElemId);
+	var lineNum = elem.lineNumber;
+	var rowObject = ROA[lineNum];
+	if (udttype == "01") {
+		if (grid.udts1And2AreLinked) {
+			if (rowObject.typ[2] != "") {
+				openUdtLookup(udtElemId, udttype);
+				return false;
+			}
+		}
+	}
+	else if (udttype == "02") {
+		if (! grid.udts1And2AreLinked) {
+			openUdtLookup(udtElemId, udttype);
+			return false;
+		}
+	}
+	openChargeLookup(udtElemId, udttype);
+}
+<!--****** SET ROW PAY TYPE ******-->
+function setRowPayType(rowNum, boolOvertime, boolCostonly) {
+	var rowObject = ROA[rowNum];
+	var ot = rowObject.overtime;
+	var reg = rowObject.regular;
+	var cost = rowObject.costonly;
+	rowObject.costonly = boolCostonly;
+	rowObject.overtime = boolOvertime;
+	rowObject.regular = boolOvertime ? false : true;
+	var hourCells;
+	var needToRecalcTotals = false;
+	if (boolCostonly) {
+		hourCells = rowObject.hrs;
+		for (var h = 0; h < hourCells.length; h++) {
+			hourCells[h].style.backgroundColor = "#cccccc";
+		}
+		if (reg) {
+			for (var n = 0; n < grid.numberOfDays; n++) {
+				amount = parseFloat(ROA[rowNum].hrs[n].hrs);
+				if (! isNaN(amount)) {
+					COA[n].regularTotal -= amount;
+					COA[n].columnTotal -= amount;
+					needToRecalcTotals = true;
+				}
+			}
+		}
+		if (ot) {
+			for (var n = 0; n < grid.numberOfDays; n++) {
+				amount = parseFloat(ROA[rowNum].hrs[n].hrs);
+				if (! isNaN(amount)) {
+					COA[n].overtimeTotal -= amount;
+					COA[n].columnTotal -= amount;
+					needToRecalcTotals = true;
+				 }
+			}
+		}
+	}
+	else {
+		if (boolOvertime && cost) {
+			hourCells = ROA[rowNum].hrs;
+			for (var n = 0; n < hourCells.length; n++) {
+				if ((hourCells[n].nonWorkDay != "true") && (hourCells[n].holiday != "true") && (hourCells[n].vacation != "true")) {
+					hourCells[n].style.backgroundColor = "#ffffff";
+				}
+				if (hourCells[n].vacation == "true") {
+					hourCells[n].style.backgroundColor = "#00ff00";
+				}
+				if (hourCells[n].holiday == "true") {
+					hourCells[n].style.backgroundColor = "yellow";
+				}
+				amount = parseFloat(hourCells[n].hrs);
+				if (! isNaN(amount)) {
+					COA[n].overtimeTotal += amount;
+					COA[n].columnTotal += amount;
+					needToRecalcTotals = true;
+				}
+			}
+		}
+		else if (rowObject.regular && cost) {
+			hourCells = ROA[rowNum].hrs;
+			for (var n = 0; n < hourCells.length; n++) {
+				if ((hourCells[n].nonWorkDay != "true") && (hourCells[n].holiday != "true") && (hourCells[n].vacation != "true")) {
+					hourCells[n].style.backgroundColor = "#ffffff";
+				}
+				if (hourCells[n].vacation == "true") {
+					hourCells[n].style.backgroundColor = "#00ff00";
+				}
+				if (hourCells[n].holiday == "true") {
+					hourCells[n].style.backgroundColor = "yellow";
+				}
+				amount = parseFloat(hourCells[n].hrs);
+				if (! isNaN(amount)) {
+					COA[n].regularTotal += amount;
+					COA[n].columnTotal += amount;
+					needToRecalcTotals = true;
+				}
+			}
+		}
+		else if (boolOvertime && reg) {
+			for (var n = 0; n < grid.numberOfDays; n++) {
+				amount = parseFloat(ROA[rowNum].hrs[n].hrs);
+				if (! isNaN(amount)) {
+					COA[n].regularTotal -= amount;
+					COA[n].overtimeTotal += amount;
+					needToRecalcTotals = true;
+				}
+			}
+		}
+		else if (rowObject.regular && ot) {
+			for (var n = 0; n < grid.numberOfDays; n++) {
+				amount = parseFloat(ROA[rowNum].hrs[n].hrs);
+				if (! isNaN(amount)) {
+					COA[n].regularTotal += amount;
+					COA[n].overtimeTotal -= amount;
+					needToRecalcTotals = true;
+				}
+			}
+		}
+
+	}
+	if (needToRecalcTotals) {
+		 calculateTotals();
+	}
+}
+<!--****** DETERMINE IF ITS A PRIMARY CHARGE ******-->
+function isPrimaryCharge(elem) {
+	var udttype = getUdtType(elem);
+	var rowNum = getCellRow(elem);
+	var rowObject = ROA[rowNum];
+	if (!((udttype == "01") || (udttype == "02"))) {
+		return false;
+	}
+	if (udttype == "01") {
+		if (! grid.udts1And2AreLinked) {
+			return true;
+		}
+		else {
+			if (rowObject.typ[2] == "") {
+				if (! rowObject.udt02LinkFlag) {
+					return true;
+				}
+			}
+		}
+	}
+	else if (udttype == "02") {
+		if (grid.udts1And2AreLinked) {
+			return true;
+		}
+	}
+	return false;
+}
+
+function getPrimeUdtValue(rowNum){
+	var rowObject = ROA[rowNum];
+	if(grid.udts1And2AreLinked && (rowObject.typ[2] != "" || rowObject.udt02LinkFlag)){
+		return rowObject.udts[getUdtOrder("02")].cv;
+	}
+	return rowObject.udts[getUdtOrder("01")].cv;
+}
+
+<!--*** CREATE NEW ROW ***-->
+function createNewRow() {
+	var newDiv;
+
+
+	newDiv = document.createElement('DIV');
+	newDiv.className = 'rowSelector';
+	newDiv.style.top = numberOfRows * rowHeight + 'px';
+	newDiv.style.height = rowHeight-thinBorder * 3 + 'px';
+	rowNumBody.appendChild(newDiv);
+	var rowSelector = newDiv;
+
+	if(!lineCommentsDisabled){
+		newDiv = document.createElement('DIV');
+		newDiv.id = 'rowComment' + numberOfRows;
+		newDiv.className = 'rowCommentImg';
+		newDiv.onclick = openRowComment;
+		newDiv.onmouseover = showComment;
+		var rowCommentIcon = newDiv;
+		rowSelector.appendChild(newDiv);
+	}
+	var newChk = document.createElement('INPUT');
+	newChk.type = 'checkbox';
+	newChk.id='rowSelector' + numberOfRows;
+	newChk.style.position = 'absolute';
+	newChk.style.left='17px';
+	newChk.style.top='-1px';
+	newChk.onclick=changeRowSelectedStatus;
+	rowSelector.appendChild(newChk);
+
+
+	newDiv = document.createElement('DIV');
+	newDiv.id = 'rowNum' + numberOfRows;
+	newDiv.className = 'rowNum';
+	newDiv.style.top = numberOfRows * rowHeight + 'px';
+	newDiv.style.height = rowHeight-thinBorder + 'px';
+	newDiv.innerHTML = (numberOfRows + 1) + '&nbsp;&nbsp;';
+	rowNumBody.appendChild(newDiv);
+
+	udtRowArray[numberOfRows] = new Array();
+	for (var c = 0; c < grid.numberOfUdts; c++) {
+		newDiv = document.createElement('DIV');
+		newDiv.id = 'udt' + numberOfRows + '_' + c;
+		newDiv.className = 'u';
+		newDiv.style.top = numberOfRows * rowHeight + 'px';
+		newDiv.style.height = rowHeight-thinBorder + 'px';
+		newDiv.style.width = Math.max(udtSizes[c]-thinBorder,0) + 'px';
+		newDiv.row = numberOfRows;
+		newDiv.col = c;
+		newDiv.typ = ROA[0].udts[c].typ;
+		if(newDiv.typ == 0){
+			newDiv.readOnly = true;
+		}
+		newDiv.onclick=processCellFocus;
+		udtRowArray[numberOfRows][c] = newDiv;
+		var udtColumn = document.getElementById('udtColumn'+c);
+		udtColumn.appendChild(newDiv);
+		udtColumn.style.height = (numberOfRows + 1) * rowHeight + 'px';
+	}
+
+	document.getElementById('udtColumnLast').style.height = (numberOfRows + 1) * rowHeight + 'px';
+
+	dayRowArray[numberOfRows] = new Array();
+	for (var c = 0; c < 35; c++) {
+		newDiv = document.createElement('DIV');
+		newDiv.id = 'hrs' + numberOfRows + '_' + c;
+		newDiv.className = 'd';
+		newDiv.style.top = numberOfRows * rowHeight + 'px';
+		newDiv.style.left = '0px';
+		newDiv.style.height = rowHeight-thinBorder + 'px';
+		newDiv.style.width = hrsCellWidth-thinBorder + 'px';
+		newDiv.row = numberOfRows;
+		newDiv.col = c;
+		newDiv.onclick=processCellFocus;
+		dayRowArray[numberOfRows][c] = newDiv;
+		var dayObject = ROA[0].hrs[c];
+		newDiv.style.display = dayObject.style.display;
+		newDiv.ddt = dayObject.ddt;
+		newDiv.nonWorkDay = dayObject.nonWorkDay;
+		newDiv.flexible = dayObject.flexible;
+		newDiv.holiday = dayObject.holiday;
+		newDiv.vacation = dayObject.vacation;
+		newDiv.hrs_dt = dayObject.hrs_dt;
+		newDiv.sts = 'O';
+		newDiv.txt = "";
+		newDiv.crt="N";
+		newDiv.hrs = "";
+
+		newDiv.readOnlyAlways = dayObject.readOnlyAlways;
+		if (newDiv.readOnlyAlways) {
+			newDiv.readOnly = true;
+		}
+		newDiv.style.backgroundColor = "#ffffff";
+			if (newDiv.nonWorkDay == "true") {
+			   newDiv.style.backgroundColor = "#cccccc";
+			}
+			if (newDiv.vacation == "true") {
+			   newDiv.style.backgroundColor = "#00ff00";
+			}
+			if (newDiv.holiday == "true") {
+			   newDiv.style.backgroundColor = "yellow";
+			}
+
+		var hrsColumn = document.getElementById('hrsColumn'+c);
+		hrsColumn.appendChild(newDiv);
+	}
+
+	newDiv = document.createElement('DIV');
+	newDiv.id = 'rt' + numberOfRows;
+	newDiv.className = 'rowTotal';
+	newDiv.style.top = numberOfRows * rowHeight + 'px';
+	newDiv.style.height = rowHeight-thinBorder + 'px';
+	newDiv.style.width = rowTotalWidth-thickBorder + 'px';
+	rowTotalBody.appendChild(newDiv);
+
+	vertScrollerContent.style.height = (numberOfRows + 1) * rowHeight + 'px';
+	udtResizerBody.style.height = (numberOfRows + 1) * rowHeight + 'px';
+
+
+	ROA[numberOfRows] = new RowObject(numberOfRows + 1, dayRowArray[numberOfRows], udtRowArray[numberOfRows]);
+	ROA[numberOfRows].pkLineNumber = numberOfRows + 1;
+	ROA[numberOfRows].selector = rowSelector;
+	ROA[numberOfRows].selector.selected = "N";
+	if (!lineCommentsDisabled){
+		ROA[numberOfRows].commentIcon = rowCommentIcon;
+	}
+	ROA[numberOfRows].setRowTotal(0);
+
+	numberOfRows++;
+
+	if (top.is_safari) {
+		changeVertScrollBar();
+	}
+}
+function changeSelectedStatus() {
+	var elem = event.srcElement;
+	changeRowSelectedStatus(getCellRow(elem));
+}
+function showRowComment() {
+	if (lineCommentsDisabled) return;
+	var elem = event.srcElement;
+	showComment(elem, elem.parentNode.id);
+}
+function openComment() {
+	if (lineCommentsDisabled) return;
+	var elem = event.srcElement;
+	openRowComment(elem, elem.parentNode.id);
+}
+<!--*** RESET GRID ***-->
+function resetGrid(offline){
+	hideEditor();
+	selectAllRows(false);
+	editor.value = "";
+	editor.originalValue = "";
+	editor.previousValue = "";
+	editor.currentCell = null;
+	for (var t = 0; t < ROA.length; t++) {
+		rowObject = ROA[t];
+		rowObject.rowTotal = 0.0;
+		rowObject.typ[1] = "";
+		rowObject.typ[2] = "";
+		rowObject.typ[3] = "";
+		rowObject.typ[4] = "";
+		rowObject.typ[5] = "";
+		rowObject.typ[6] = "";
+		rowObject.typ[7] = "";
+		rowObject.typ[8] = "";
+		rowObject.typ[9] = "";
+		rowObject.typ[10] = "";
+		rowObject.typ[11] = "";
+		rowObject.typ[12] = "";
+		rowObject.typ[13] = "";
+		rowObject.typ[14] = "";
+		rowObject.typ[15] = "";
+		rowObject.short_line_text = "";
+		rowObject.line_desc = "";
+		rowObject.hasComment = null;
+		rowObject.active = "N";
+		rowObject.udt02LinkFlag = false;
+		rowObject.udt17RequiredFlag = false;
+		rowObject.udt19LinkFlag = false;
+		rowObject.udt27RequiredFlag = false;
+		rowObject.udt29LinkFlag = false;
+		rowObject.startStopTimeFl = false;
+		rowObject.hasProcessedCell = false;
+		rowObject.hasSentCell = false;
+		if (!lineCommentsDisabled){
+			rowObject.commentIcon.style.visibility = "hidden";
+		}
+		if(rowObject.LLAImage) {
+			rowObject.LLAImage.style.visibility = "hidden";
+			document.getElementById('rowNum'+t).removeChild(rowObject.LLAImage);
+			rowObject.LLAImage = null;
+		}
+		if(!offline){
+			rowObject.previouslySaved = false;
+		}
+		for (s = 0; s < rowObject.hrs.length; s++) {
+			cellObject = rowObject.hrs[s];
+			with(cellObject) {
+				innerHTML = "";
+				hrs = "";
+				proratedHrs = null;
+				readOnly = true;
+				if(!offline){
+					readOnlyAlways = false;
+					hwl = "";
+					previouslySaved = false;
+					style.backgroundColor = "white";
+					hadCommentWhenLoaded = null;
+					commentTextWhenLoaded = null;
+					nonWorkDay = "false";
+					holiday = "false";
+					vacation = "false";
+					flexible = "false";
+					hrs_dt = "";
+					ddt = "";
+					dyr = "";
+				}
+				style.backgroundImage = "";
+				style.color = "black";
+				hasComment = null;
+				txt = "";
+				sts = "";
+				enteredRate1Amt = null;
+				enteredRate2Amt = null;
+				proratedRate1Amt = null;
+				proratedRate2Amt = null;
+				rate1 = null;
+				rate2 = null;
+				rate1Cd = null;
+				rate2Cd = null;
+				reversal_fl=null;
+				crt = null;
+			}
+		}
+		for (s = 0; s < rowObject.udts.length; s++) {
+			cellObject = rowObject.udts[s];
+			with(cellObject) {
+				innerHTML = "";
+				title = "";
+				cv = "";
+				if(!offline){
+					style.backgroundColor = "white";
+					readOnlyWhenLoaded = true;
+					udtIdWhenLoaded = null;
+					chargeValueWhenLoaded = null;
+				}
+				style.color = "black";
+				readOnly = true;
+				readOnlyAlways = false;
+			}
+		}
+
+		document.getElementById("rt"+t).innerHTML = "";
+
+	}
+	for (var h = 0; h < 3; h++) {
+		for (s = 0; s < grid.numberOfDays; s++) {
+			document.getElementById("DT0_"+s).innerHTML = "";
+			document.getElementById("DT1_"+s).innerHTML = "";
+			document.getElementById("DT2_"+s).innerHTML = "";
+		}
+	}
+	if(offline){
+		for (s = 0; s < grid.numberOfDays; s++) {
+			var co = COA[s];
+			co.regularTotal = 0.0;
+			co.overtimeTotal = 0.0;
+			co.columnTotal = 0.0;
+			co.regularProratedTotal = 0.0;
+			co.overtimeProratedTotal = 0.0;
+			co.columnProratedTotal = 0.0;
+
+		}
+	}
+	/* something else removes those comments, probably re-setting innerHTML for hour cells. ??Memory leak??
+	for (var z = 0; z < hourCommentArray.length; z++) {
+
+		document.getElementById(hourCommentArray[z].hourCellId).removeChild(hourCommentArray[z]);
+		hourCommentArray[z].style.display = "none";
+	}*/
+	currentHourView = 'entered';
+	document.getElementById('hourViewToggle').value = enteredButtonLabel;
+	enableSaveTS(false);
+	startStopArray = new Array();
+}
+
+<!--*** CALCULATE TOTALS ***-->
+function calculateTotals(proratedView) {
+	var sRowTotal;
+	var cellValueStr;
+	var inputId;
+	var columnObject;
+	var rowObject;
+	var chargeInput;
+	var regularGrand = 0.0;
+	var overtimeGrand = 0.0;
+	var grandTotal = 0.0;
+
+		if (proratedView == null) proratedView = false;
+
+	for (var a = 0; a < grid.numberOfCompleteTsLines; a++) {
+		rowObject = ROA[a];
+		sRowTotal = "rt" + a;
+		if (! rowObject.costonly) {
+			if (proratedView){
+				if (rowObject.rowProratedTotal != 0) {
+					cellValueStr = addDecimalAndZero(roundit(rowObject.rowProratedTotal, 2), proratedView);
+				}
+				else {
+					cellValueStr = "";
+				}
+						} else {
+				if (rowObject.rowTotal != 0) {
+					cellValueStr = addDecimalAndZero(roundit(rowObject.rowTotal, 2), proratedView);
+				}
+				else {
+					cellValueStr = "";
+				}
+			}
+			document.getElementById(sRowTotal).innerHTML = cellValueStr;
+		}
+		else {
+			document.getElementById(sRowTotal).innerHTML = "";
+		}
+	}
+	for (var b = 0; b < grid.numberOfDays; b++) {
+		columnObject = COA[b];
+		if (proratedView){
+			regularGrand += columnObject.regularProratedTotal;
+			overtimeGrand += columnObject.overtimeProratedTotal;
+			grandTotal += columnObject.columnProratedTotal;
+		} else {
+			regularGrand += columnObject.regularTotal;
+			overtimeGrand += columnObject.overtimeTotal;
+			grandTotal += columnObject.columnTotal;
+		}
+		overtimeGrand = roundit(overtimeGrand,2);
+		regularGrand = roundit(regularGrand,2);
+		grandTotal = roundit(grandTotal,2);
+
+		if(proratedView){
+					if (columnObject.regularProratedTotal != 0) {
+				cellValueStr = addDecimalAndZero(roundit(columnObject.regularProratedTotal, 2), proratedView);
+			} else {
+				cellValueStr = "";
+			}
+		} else {
+					if (columnObject.regularTotal != 0) {
+				cellValueStr = addDecimalAndZero(roundit(columnObject.regularTotal, 2), proratedView);
+			} else {
+				cellValueStr = "";
+			}
+		}
+		inputId = "DT0_" + b;
+		document.getElementById(inputId).innerHTML = cellValueStr;
+
+		if(proratedView){
+				if (columnObject.overtimeProratedTotal != 0) {
+				cellValueStr = addDecimalAndZero(roundit(columnObject.overtimeProratedTotal, 2), proratedView);
+			} else {
+				cellValueStr = "";
+			}
+		} else {
+				if (columnObject.overtimeTotal != 0) {
+				cellValueStr = addDecimalAndZero(roundit(columnObject.overtimeTotal, 2), proratedView);
+			} else {
+				cellValueStr = "";
+			}
+		}
+		inputId = "DT1_" + b;
+		document.getElementById(inputId).innerHTML = cellValueStr;
+
+		if(proratedView){
+				if (columnObject.columnProratedTotal != 0) {
+				cellValueStr = addDecimalAndZero(roundit(columnObject.columnProratedTotal, 2), proratedView);
+			} else {
+				cellValueStr = "";
+			}
+		} else {
+				if (columnObject.columnTotal != 0) {
+				cellValueStr = addDecimalAndZero(roundit(columnObject.columnTotal, 2), proratedView);
+			} else {
+				cellValueStr = "";
+			}
+		}
+		inputId = "DT2_" + b;
+		document.getElementById(inputId).innerHTML = cellValueStr;
+	}
+	if (regularGrand == 0) {
+		regularGrand = "";
+	}
+	else {
+		regularGrand = addDecimalAndZero(regularGrand, proratedView);
+	}
+	if (overtimeGrand == 0) {
+		overtimeGrand = "";
+	}
+	else {
+		overtimeGrand = addDecimalAndZero(overtimeGrand, proratedView);
+	}
+	if (grandTotal == 0) {
+		grandTotal = "";
+	}
+	else {
+		grandTotal = addDecimalAndZero(grandTotal, proratedView);
+	}
+	document.getElementById("grandTotal0").innerHTML = regularGrand;
+	document.getElementById("grandTotal1").innerHTML = overtimeGrand;
+	document.getElementById("grandTotal2").innerHTML = grandTotal;
+}
+<!--*** TRIM STRING ***-->
+function trim(string) {
+	if(!string || string == "") return string;
+	var i = 0;
+	for(; i < string.length && string.charAt(i) == ' '; i++);
+	if(i == string.length) return "";
+	var h = string.length - 1;
+	for(; h > -1 && string.charAt(h) == ' '; h--);
+	return string.substring(i, h + 1);
+}
+
+function getDisplayLineNo(pkNo){
+	for(var i = 0; i < grid.numberOfCompleteTsLines; i++){
+		if(ROA[i].pkLineNumber == pkNo){
+			return ROA[i].lineNumber;
+		}
+	}
+	//we should never get here
+	return 0;
+}
+
+function setTSClosed(){
+	grid.timesheetIsClosed = true;
+	browseOnly = true;
+	setApplicationName();
+}

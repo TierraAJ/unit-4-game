@@ -1,0 +1,475 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!-- saved from url=(0050)https://te.sysplus.com/DeltekTC/TimeCollection.msv -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+
+<!--****** JAVASCRIPT ******-->
+<script type="text/javascript" src="./Quotes.js.download"></script>
+
+<script language="Javascript">
+var pageIsLoaded = false;
+var event = "getLineDefaults";
+
+
+window.onload = function() {
+	pageIsLoaded = true;
+	top.clearFormSubmitted();
+	
+	proceed1();
+} //endof init();
+
+function proceed1() {
+
+	
+
+	
+	
+	
+
+	 
+
+	proceed2();
+	
+} //endof proceed1()
+
+
+function proceed4() {
+
+}
+
+
+var tmpRowObject;
+var tmpChargeArray;
+var aLineIsIncomplete = false;
+var setToRed = false;
+
+function proceed2() {
+
+<!--****** LINE DEFAULTS ******-->
+
+
+		parent.hideEditor();
+		
+			var charge_tree_cd = null;
+			var charge_branch_cd = null;
+			var charge_cd = null;
+			
+				if (! aLineIsIncomplete) {
+				
+					if (0 > 0) {
+						tmpRowObject = parent.ROA[parent.grid.numberOfCompleteTsLines];
+					}
+					else {
+						tmpRowObject = parent.tmpRowObject;
+					}
+				        if(event == "getFavorites") {	
+						
+				        }
+					else if (parent.isChargeLookup){
+						
+							tmpRowObject.charge_tree_cd = "000315"; 
+							tmpRowObject.charge_branch_cd = "3706.003.001"; 
+							tmpRowObject.charge_cd = "3706.003.001ASAJ"; 
+							
+					}
+					else if (parent.isAmbiguousLookup) {
+						tmpRowObject.charge_tree_cd = parent.chargeInfo[0][0];
+						tmpRowObject.charge_branch_cd = parent.chargeInfo[0][1];
+						tmpRowObject.charge_cd = parent.chargeInfo[0][2];
+					}					
+					else {
+						tmpRowObject.charge_tree_cd = charge_tree_cd;
+						tmpRowObject.charge_branch_cd = charge_branch_cd;
+						tmpRowObject.charge_cd = charge_cd;
+					}
+					                             	                        
+					tmpRowObject.udts[1].cv ='USSOCOM EKM USASOC HQ Bragg';
+					tmpRowObject.udts[1].innerHTML = "USSOCOM EKM USASOC HQ Bragg";
+					tmpRowObject.udts[1].title = "USSOCOM EKM USASOC HQ Bragg";
+					tmpRowObject.udts[1].readOnly = true;
+					
+					
+						tmpRowObject.udts[1].style.color = "black";
+						 
+					if (parent.isAmbiguousLookup && parent.isUnauthorized) {
+						tmpRowObject.udts[1].style.color = "red";
+					} else if (!setToRed) {
+						tmpRowObject.udts[1].style.color = "black";
+					}
+					tmpRowObject.line_desc = 'USSOCOM EKM USASOC HQ Bragg'; 
+             				tmpRowObject.isDefaultBillableFl = false;	
+					tmpRowObject.udt02LinkFlag = true; 
+					tmpRowObject.udt17RequiredFlag = false; 
+					tmpRowObject.udt27RequiredFlag = true; 
+					tmpRowObject.udt19LinkFlag = false; 
+					tmpRowObject.udt29LinkFlag = true; 
+					
+					if(parent.grid.startStopTimeMode == 'DETAIL'){
+						for(var i = 0; i < tmpRowObject.hrs.length; i++){
+							tmpRowObject.hrs[i].readOnly = false;
+						}
+					}
+					
+
+					
+						setToRed = false;
+						tmpRowObject.typ[1] = "0500-003";
+						
+								tmpRowObject.udts[2].cv = tmpRowObject.typ[1];
+								tmpRowObject.udts[2].innerHTML = quoteHtml(tmpRowObject.typ[1]);
+								
+								tmpRowObject.udts[2].style.color = "black";
+								
+							if (parent.isAmbiguousLookup && parent.isUnauthorized) {
+								tmpRowObject.udts[2].style.color = "red";
+							} else if (!setToRed) {
+								tmpRowObject.udts[2].style.color = "black";
+							}
+							
+                   					tmpRowObject.src[1] = 'C';
+							if (tmpRowObject.src[1] == 'C') {
+								if (! parent.isPrimaryCharge(tmpRowObject.udts[2])){
+									tmpRowObject.udts[2].readOnly = true;
+									tmpRowObject.isDefaultArray[1] = true;
+					      			}
+								else {
+									tmpRowObject.udts[2].readOnly = false;
+									tmpRowObject.isDefaultArray[1] = true;
+								}
+							}
+							else {
+								tmpRowObject.udts[2].readOnly = false;
+					      			tmpRowObject.isDefaultArray[1] = false;							
+							}
+							
+						setToRed = false;
+						tmpRowObject.typ[2] = "3706.003.001";
+						
+								tmpRowObject.udts[0].cv = tmpRowObject.typ[2];
+								tmpRowObject.udts[0].innerHTML = quoteHtml(tmpRowObject.typ[2]);
+								
+								tmpRowObject.udts[0].style.color = "black";
+								
+							if (parent.isAmbiguousLookup && parent.isUnauthorized) {
+								tmpRowObject.udts[0].style.color = "red";
+							} else if (!setToRed) {
+								tmpRowObject.udts[0].style.color = "black";
+							}
+							
+                   					tmpRowObject.src[2] = 'C';
+							if (tmpRowObject.src[2] == 'C') {
+								if (! parent.isPrimaryCharge(tmpRowObject.udts[0])){
+									tmpRowObject.udts[0].readOnly = true;
+									tmpRowObject.isDefaultArray[2] = true;
+					      			}
+								else {
+									tmpRowObject.udts[0].readOnly = false;
+									tmpRowObject.isDefaultArray[2] = true;
+								}
+							}
+							else {
+								tmpRowObject.udts[0].readOnly = false;
+					      			tmpRowObject.isDefaultArray[2] = false;							
+							}
+							
+						setToRed = false;
+						tmpRowObject.typ[3] = "NC";
+						
+								tmpRowObject.udts[3].cv = tmpRowObject.typ[3];
+								tmpRowObject.udts[3].innerHTML = quoteHtml(tmpRowObject.typ[3]);
+								
+								tmpRowObject.udts[3].style.color = "black";
+								
+							if (parent.isAmbiguousLookup && parent.isUnauthorized) {
+								tmpRowObject.udts[3].style.color = "red";
+							} else if (!setToRed) {
+								tmpRowObject.udts[3].style.color = "black";
+							}
+							
+                   					tmpRowObject.src[3] = 'E';
+							if (tmpRowObject.src[3] == 'C') {
+								if (! parent.isPrimaryCharge(tmpRowObject.udts[3])){
+									tmpRowObject.udts[3].readOnly = true;
+									tmpRowObject.isDefaultArray[3] = true;
+					      			}
+								else {
+									tmpRowObject.udts[3].readOnly = false;
+									tmpRowObject.isDefaultArray[3] = true;
+								}
+							}
+							else {
+								tmpRowObject.udts[3].readOnly = false;
+					      			tmpRowObject.isDefaultArray[3] = false;							
+							}
+							
+						setToRed = false;
+						tmpRowObject.typ[4] = "";
+						
+						setToRed = false;
+						tmpRowObject.typ[5] = "";
+						
+						setToRed = false;
+						tmpRowObject.typ[6] = "";
+						
+						setToRed = false;
+						tmpRowObject.typ[7] = "ASAJ";
+						
+								tmpRowObject.udts[4].cv = tmpRowObject.typ[7];
+								tmpRowObject.udts[4].innerHTML = quoteHtml(tmpRowObject.typ[7]);
+								
+								tmpRowObject.udts[4].style.color = "black";
+								
+							if (parent.isAmbiguousLookup && parent.isUnauthorized) {
+								tmpRowObject.udts[4].style.color = "red";
+							} else if (!setToRed) {
+								tmpRowObject.udts[4].style.color = "black";
+							}
+							
+                   					tmpRowObject.src[7] = 'C';
+							if (tmpRowObject.src[7] == 'C') {
+								if (! parent.isPrimaryCharge(tmpRowObject.udts[4])){
+									tmpRowObject.udts[4].readOnly = true;
+									tmpRowObject.isDefaultArray[7] = true;
+					      			}
+								else {
+									tmpRowObject.udts[4].readOnly = false;
+									tmpRowObject.isDefaultArray[7] = true;
+								}
+							}
+							else {
+								tmpRowObject.udts[4].readOnly = false;
+					      			tmpRowObject.isDefaultArray[7] = false;							
+							}
+							
+						setToRed = false;
+						tmpRowObject.typ[8] = "";
+						
+						setToRed = false;
+						tmpRowObject.typ[9] = "01.027.003";
+						
+								tmpRowObject.udts[5].cv = tmpRowObject.typ[9];
+								tmpRowObject.udts[5].innerHTML = quoteHtml(tmpRowObject.typ[9]);
+								
+								tmpRowObject.udts[5].style.color = "black";
+								
+							if (parent.isAmbiguousLookup && parent.isUnauthorized) {
+								tmpRowObject.udts[5].style.color = "red";
+							} else if (!setToRed) {
+								tmpRowObject.udts[5].style.color = "black";
+							}
+							
+                   					tmpRowObject.src[9] = 'C';
+							if (tmpRowObject.src[9] == 'C') {
+								if (! parent.isPrimaryCharge(tmpRowObject.udts[5])){
+									tmpRowObject.udts[5].readOnly = true;
+									tmpRowObject.isDefaultArray[9] = true;
+					      			}
+								else {
+									tmpRowObject.udts[5].readOnly = false;
+									tmpRowObject.isDefaultArray[9] = true;
+								}
+							}
+							else {
+								tmpRowObject.udts[5].readOnly = false;
+					      			tmpRowObject.isDefaultArray[9] = false;							
+							}
+							
+						setToRed = false;
+						tmpRowObject.typ[10] = "R";
+						
+								tmpRowObject.udts[6].cv = tmpRowObject.typ[10];
+								tmpRowObject.udts[6].innerHTML = quoteHtml(tmpRowObject.typ[10]);
+								
+								tmpRowObject.udts[6].style.color = "black";
+								
+							if (parent.isAmbiguousLookup && parent.isUnauthorized) {
+								tmpRowObject.udts[6].style.color = "red";
+							} else if (!setToRed) {
+								tmpRowObject.udts[6].style.color = "black";
+							}
+							
+                   					tmpRowObject.src[10] = 'C';
+							if (tmpRowObject.src[10] == 'C') {
+								if (! parent.isPrimaryCharge(tmpRowObject.udts[6])){
+									tmpRowObject.udts[6].readOnly = true;
+									tmpRowObject.isDefaultArray[10] = true;
+					      			}
+								else {
+									tmpRowObject.udts[6].readOnly = false;
+									tmpRowObject.isDefaultArray[10] = true;
+								}
+							}
+							else {
+								tmpRowObject.udts[6].readOnly = false;
+					      			tmpRowObject.isDefaultArray[10] = false;							
+							}
+							
+						setToRed = false;
+						tmpRowObject.typ[11] = "";
+						
+						setToRed = false;
+						tmpRowObject.typ[12] = "";
+						
+						setToRed = false;
+						tmpRowObject.typ[13] = "";
+						
+						setToRed = false;
+						tmpRowObject.typ[14] = "";
+						
+						setToRed = false;
+						tmpRowObject.typ[15] = "";
+						
+		     			if (parent.checkLineCompletion(tmpRowObject.lineNumber-1)) {
+						parent.setLineIsCompleteNoUdt10(tmpRowObject.lineNumber-1);
+					        parent.setRowPayType(tmpRowObject.lineNumber-1, false, false);
+		     			}
+		     			else {
+						if (!parent.udtLineIsEmpty(tmpRowObject.lineNumber-1)) {
+			   				parent.setLineIsIncomplete(tmpRowObject.lineNumber-1);
+			   				aLineIsIncomplete = true;
+						}
+		     			}
+             			}
+				
+			if (parent.isAmbiguousLookup) {
+				parent.isAmbiguousLookup = false;
+				parent.isUnauthorized = false;
+			}
+			parent.isChargeLookup = false;
+			if(tmpRowObject.interim_fl){
+				for(var i = 0; i < tmpRowObject.udts.length; i++){
+					tmpRowObject.udts[i].style.color = 'red';
+				}
+			}
+
+          		parent.lineDefaultsIsDone(true);
+			
+	
+}//endof proceed2() or proceed3() if error was shown
+
+  
+function recalcDefaultHandler(result)  {
+	parent.recalculateDefaultIsDone();
+	proceed1();
+}
+
+function lineDefaultHandler(result)  {
+	parent.lineDefaultsIsDone(false);
+}
+
+</script>
+
+</head>
+
+<body>
+
+<!--*** LINE DEFAULTS FORM ***-->
+<form id="lineDefaultsForm" name="lineDefaultsForm" method="post" action="https://te.sysplus.com/DeltekTC/TimeCollection.msv">
+
+      <input id="unit1" name="unit" type="hidden" value="TS">
+
+      <input id="event1" name="event" type="hidden" value="getLineDefaults">
+
+      <input id="udtValues" name="udtValues" type="hidden" value="">
+
+      <input id="superMode" name="superMode" type="hidden" value="N">
+
+      <input id="udtNumber" name="udtNumber" type="hidden" value="1">
+
+      <input id="udtIndex" name="udtIndex" type="hidden" value="0">
+
+      <input id="udtId" name="udtId" type="hidden">
+             
+      <input id="recalcDefault" name="recalcDefault" type="hidden" value="N">
+
+      <input id="recalcDefaultType" name="recalcDefaultType" type="hidden" value="1">
+            
+      <input id="chargeBranchCharge" name="chargeBranchCharge" type="hidden" value="Y">
+             
+      <input id="isChargeLookup" name="isChargeLookup" type="hidden" value="Y">             
+
+      <input id="chargeDesc" name="chargeDesc" type="hidden" value="">             
+                 
+</form>
+
+<!--*** ADD LINE TO FAVORITES FORM ***-->
+<form id="addToFavoritesForm" name="addToFavoritesForm" method="post" action="https://te.sysplus.com/DeltekTC/TimeCollection.msv">
+
+      <input id="unit2" name="unit" type="hidden" value="TS">
+
+      <input id="event2" name="event" type="hidden" value="addToFavorites">
+
+      <input id="chargeInfo" name="chargeInfos" type="hidden" value="">
+
+</form>
+
+<!--*** GET FAVORITES FORM ***-->
+<form id="getFavoritesForm" name="getFavoritesForm" method="post" action="https://te.sysplus.com/DeltekTC/TimeCollection.msv">
+
+      <input id="unit3" name="unit" type="hidden" value="TS">
+
+      <input id="event3" name="event" type="hidden" value="getFavorites">
+
+      <input id="superMode" name="superMode" type="hidden" value="N">
+ 
+      <input id="autoload" name="autoload" type="hidden" value="N">
+ 
+</form>
+
+<!--*** UDT VALIDATION FORM ***-->
+<form id="udtValidationForm" name="udtValidationForm" method="post" action="https://te.sysplus.com/DeltekTC/TimeCollection.msv">
+
+	<input id="unit4" name="unit" type="hidden" value="TS">
+	<input id="event4" name="event" type="hidden" value="">
+	<input id="udt01Id" name="udt01Id" type="hidden" value="">
+	<input id="isDefaultUdt1" name="isDefaultUdt1" type="hidden" value="">
+	<input id="udt02Id" name="udt02Id" type="hidden" value="">
+	<input id="isDefaultUdt2" name="isDefaultUdt2" type="hidden" value="">
+	<input id="udt03Id" name="udt03Id" type="hidden" value="">
+	<input id="isDefaultUdt3" name="isDefaultUdt3" type="hidden" value="">
+	<input id="udt04Id" name="udt04Id" type="hidden" value="">
+	<input id="udt05Id" name="udt05Id" type="hidden" value="">
+	<input id="udt06Id" name="udt06Id" type="hidden" value="">
+	<input id="udt07Id" name="udt07Id" type="hidden" value="">
+	<input id="isDefaultUdt7" name="isDefaultUdt7" type="hidden" value="">
+	<input id="udt08Id" name="udt08Id" type="hidden" value="">
+	<input id="udt09Id" name="udt09Id" type="hidden" value="">
+	<input id="isDefaultUdt9" name="isDefaultUdt9" type="hidden" value="">
+	<input id="udt10Id" name="udt10Id" type="hidden" value="">
+	<input id="rowNum" name="rowNum" type="hidden" value="">
+	<input id="src" name="src" type="hidden" value="">
+	<input id="udt11Id" name="udt11Id" type="hidden" value="">
+	<input id="udt12Id" name="udt12Id" type="hidden" value="">
+	<input id="udt13Id" name="udt13Id" type="hidden" value="">
+	<input id="udt14Id" name="udt14Id" type="hidden" value="">
+	<input id="udt15Id" name="udt15Id" type="hidden" value="">
+ 
+</form>
+
+<form id="saveTSForm" name="saveTSForm" method="post" action="https://te.sysplus.com/DeltekTC/TimeCollection.msv">
+	<input type="hidden" id="unit5" name="unit" value="TsSave">
+	<input type="hidden" id="event5" name="event" value="save">
+	<input type="hidden" id="tsHead" name="tsHead">
+	<input type="hidden" id="tsLines" name="tsLines">
+	<input type="hidden" id="tsCells" name="tsCells">
+	<input type="hidden" id="tsDays" name="tsDays">
+	<input type="hidden" id="resizedUdts" name="resizedUdts" disabled="">
+	<input type="hidden" id="splitterPos" name="splitterPos" disabled="">
+
+</form>
+
+<form id="rejectTSForm" name="rejectTSForm" method="post" action="https://te.sysplus.com/DeltekTC/TimeCollection.msv">
+	<input type="hidden" id="unit6" name="unit" value="TsApproveReject">
+	<input type="hidden" id="event6" name="event" value="reject">
+	<input type="hidden" id="explanationText" name="explanationText">
+</form>
+
+<form id="approveTSForm" name="approveTSForm" method="post" action="https://te.sysplus.com/DeltekTC/TimeCollection.msv">
+	<input type="hidden" id="unit7" name="unit" value="TsApproveReject">
+	<input type="hidden" id="event7" name="event" value="open">
+</form>
+
+
+
+
+
+</body></html>

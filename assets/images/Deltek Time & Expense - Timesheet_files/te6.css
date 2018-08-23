@@ -1,0 +1,845 @@
+/****************************************************************/
+/**************** GENERAL TAG STYLES ****************************/
+/****************************************************************/
+
+BODY {
+	font-size:70%;
+	font-family: Arial, helvetica, sans-serif;
+}
+TABLE {
+	font-size:100%;
+	font-family: Arial, helvetica, sans-serif;
+}
+SELECT {
+	font-size:100%;
+	font-family: Arial, helvetica, sans-serif;
+}
+
+INPUT {
+	font-size:100%;
+	font-family: Arial, helvetica, sans-serif;
+}
+
+TEXTAREA {
+	font-size:100%;
+	font-family: Arial, helvetica, sans-serif;
+}
+
+FORM {
+	margin-bottom:0px;
+	display:inline;
+}
+
+FIELDSET {
+	border:solid black 1px;
+	padding:0px;
+}
+
+.mainTable {
+	width:100%;
+}
+
+.displayField{
+	border:solid black 1px;
+	background: #CCCCCC;
+}
+
+.numDisplayField{
+	border:solid black 1px;
+	background: #CCCCCC;
+	text-align:right;
+}
+
+.modalFrame {
+	position:absolute;
+	width:0px;
+	height:0px;
+	border:3px;
+	visibility:visible;
+	z-index:99;
+}
+
+.modalTitle {
+	position:absolute;
+	width:0px;
+	height:0px;
+	visibility:hidden;
+	z-index:99;
+}
+
+
+.modalBorderDiv {
+	position:absolute;
+	width:0px;
+	height:0px;
+	border:ridge #bbbbbb 3px;
+	visibility:hidden;
+}
+
+.modalTitleBar {
+	height:0px;
+	width:100%;
+	color:white;
+	background-color:#5998CB;
+	font-weight:bold;
+	border-bottom:ridge #888888 3px;
+	visibility:hidden;
+}
+
+.messageTitleBar {
+	height:20px;
+	width:100%;
+	color:white;
+	background-color:#5998CB;
+	font-weight:bold;
+	border-bottom:ridge #888888 3px;
+}
+
+.glassPane {
+	position:absolute;
+	visibility:hidden;
+	opacity: 0.5;
+	background: gray;
+	filter: alpha(opacity=50);
+}
+/**************dialog with white background********/
+.msgTable{
+	background-color:white;
+}
+/************** scrollable table ******************/
+.expenseWizScrollingTable{
+	overflow:auto;
+	border:none;
+}
+
+.scrollingTable{
+	overflow:auto;
+	border:solid black 1px;
+	background-color:#ffffff;
+}
+
+.valueTable {
+	background-color:#FFFFFF;
+	width:100%;
+	border-left:solid black 1px;
+	border-top:solid black 1px;
+}
+
+.scrollingTableWithoutBorder{
+	overflow:auto;
+	background-color:#ffffff;
+}
+
+.valueTableWithoutBorder {
+	background-color:#FFFFFF;
+	width:100%;
+}
+
+.headerCell {
+	white-space:nowrap;
+	background-color:#5998CB;
+	color:#ffffff;
+	border-right:solid black 1px;
+	border-bottom:solid black 1px;
+	border-left:solid #cccccc 1px;
+	border-top:solid #cccccc 1px;
+	height:20px;
+	text-align:center;
+	font-weight: bold;
+}
+
+.headerCellSuper {
+	white-space:nowrap;
+	background-color:#5998CB;
+	color:#ffffff;
+	border-right:solid black 1px;
+	border-bottom:solid black 1px;
+	border-left:solid #cccccc 1px;
+	border-top:solid #cccccc 1px;
+	height:20px;
+	text-align:center;
+	font-weight: bold;
+	font-size:130%;
+}
+
+.rowHeaderCell {
+	white-space:nowrap;
+	background-color:#5998CB;
+	color:#ffffff;
+	border-right:solid black 1px;
+	border-bottom:solid black 1px;
+	border-left:solid #cccccc 1px;
+	border-top:solid #cccccc 1px;
+	height:20px;
+	font-weight: bold;
+	text-align:left;
+}
+
+.upperLeftCell{
+	background-color:#5998CB;
+	border-right:solid black 1px;
+	border-bottom:solid black 1px;
+	border-left:solid #cccccc 1px;
+	border-top:solid #cccccc 1px;
+	height:20px;
+}
+
+.valueCell {
+	white-space:nowrap;
+	border-right: solid 1px;
+	border-right-color: black;
+	border-bottom: solid 1px;
+	border-bottom-color: black;
+	height:20px;
+	background-color:#CCCCCC;
+}
+
+.valueCellRed {
+	white-space:nowrap;
+	border-right: solid 1px;
+	border-right-color: black;
+	border-bottom: solid 1px;
+	border-bottom-color: black;
+	height:20px;
+	color: red;
+}
+.valueCellRedDisabled {
+	white-space:nowrap;
+	border-right: solid 1px;
+	border-right-color: black;
+	border-bottom: solid 1px;
+	border-bottom-color: black;
+	height:20px;
+	color: red;
+	background-color:#CCCCCC;
+}
+
+.valueCellYellowDisabled {
+	white-space:nowrap;
+	border-right: solid 1px;
+	border-right-color: black;
+	border-bottom: solid 1px;
+	border-bottom-color: black;
+	height:20px;
+	color: yellow;
+	background-color:#CCCCCC;
+}
+.valueCellBlueDisabled {
+	white-space:nowrap;
+	border-right: solid 1px;
+	border-right-color: black;
+	border-bottom: solid 1px;
+	border-bottom-color: black;
+	height:20px;
+	color: blue;
+	background-color:#CCCCCC;
+}
+.valueCellDisabled {
+	white-space:nowrap;
+	border-right: solid 1px;
+	border-right-color: black;
+	border-bottom: solid 1px;
+	border-bottom-color: black;
+	height:20px;
+	background-color:#CCCCCC;
+}
+
+.valueCellReadOnly {
+	white-space:nowrap;
+	border-right: solid 1px;
+	border-right-color: black;
+	border-bottom: solid 1px;
+	border-bottom-color: black;
+	height:20px;
+	cursor:default;
+}
+
+.tableButton{
+	width:30px;
+	height:20px;
+	background-color:#5998CB;
+	border-right:solid black 1px;
+	border-bottom:solid black 1px;
+	border-left:solid #cccccc 1px;
+	border-top:solid #cccccc 1px;
+	cursor:pointer;
+	text-align: center;
+	padding: 0px;
+}
+
+.tableButtonWithPlus {
+	width:30px;
+	height:20px;
+	background-color: #5998CB;
+	color: white;
+	border-right:solid black 1px;
+	border-bottom:solid black 1px;
+	border-left:solid #cccccc 1px;
+	border-top:solid #cccccc 1px;
+	font-size:12pt;
+	cursor:pointer;
+	text-align: center;
+}
+
+.notSelected {
+	background-color: white;
+	color: black;
+}
+
+.selected {
+	background-color: blue;
+	color: white;
+}
+
+.valueLink {
+	text-decoration: underline;
+	cursor: pointer;
+}
+
+.disableValueLink {
+   cursor: default;
+}
+/****************************************************************/
+/**************** APPLICATION FIELD TYPES ***********************/
+/****************************************************************/
+
+.fieldLabelRequired {
+	font-weight: bold;
+}
+
+.smallText {
+	font-size:85%;
+}
+
+/************** Edit Field ******************/
+input.editField {
+}
+
+/**** Double class doesn't work for cross browser. Use editFieldInTable ****/
+input.editField.inTable {
+	margin-left: 3px;
+	margin-right: 3px;
+}
+
+input.editFieldInTable{
+	margin-left: 3px;
+	margin-right: 3px;
+}
+
+input.editFieldInTableStyle2{
+        width:94%;
+	margin-left: 3px;
+	margin-right: 3px;
+}
+
+input.numEditField {
+	text-align:right;
+}
+
+input.numEditFieldInTable{
+	margin-left: 3px;
+	margin-right: 3px;
+	text-align:right;
+}
+input.numDisplayFieldInTable{
+	border: 0px;
+	text-align:right;
+	background-color:#CCCCCC;
+	margin-left: 3px;
+	margin-right: 3px;
+}
+/************** Display Field ******************/
+textarea.displayField {
+	border: solid 1px;
+	border-color: black;
+	background: #CCCCCC;
+}
+
+
+button.lookupFieldButton {
+	width:20px;
+	height:20px;
+	padding: 0px;
+	margin:0px;
+	background: url(../../images/lookupButton.gif);
+	background-repeat: no-repeat;
+	background-position: center center;
+}
+
+input.lookupFieldButton {
+	width:21px;
+	height:21px;
+	background: url(../../images/lookupButton.gif);
+	background-repeat: no-repeat;
+	background-position: center center;
+}
+
+
+button.lookupFieldButton div {
+	width: 21px;
+	height: 21px;
+}
+
+input.displayFieldInTable{
+	border: 0px;
+	background-color:#CCCCCC;
+	margin-left: 3px;
+	margin-right: 3px;
+}
+
+input.displayFieldInTableStyle2{
+        width:94%;
+	border: 0px;
+	background-color:#CCCCCC;
+	margin-left: 3px;
+	margin-right: 3px;
+}
+/************** Date Field ******************/
+
+button.dateFieldButton {
+	width: 20px;
+	height: 20px;
+	padding: 0px;
+	margin:0px;
+	background: url(../../images/calendarButton.gif);
+	background-repeat: no-repeat;
+	background-position: center center;
+}
+
+
+button.dateFieldButton div {
+	width: 21px;
+	height: 21px;
+}
+
+input.dateFieldButton {
+	width: 21px;
+	height: 21px;
+	background: url(../../images/calendarButton.gif);
+	background-repeat: no-repeat;
+	background-position: center center;
+	margin:0px;
+	padding:0px;
+}
+
+/************** URL Field ******************/
+input.URLFieldText {
+	text-decoration: underline;
+	cursor: pointer;
+}
+
+input.URLFieldTextEdit {
+	text-decoration: underline;
+}
+
+button.URLFieldButton {
+	width: 20px;
+	height: 20px;
+	padding: 0px;
+	margin:0px;
+	background: url(../../images/URLButton.gif);
+	background-repeat: no-repeat;
+	background-position: center center;
+}
+
+input.URLFieldButton {
+	width: 21px;
+	height: 21px;
+	background: url(../../images/URLButton.gif);
+	background-repeat: no-repeat;
+	background-position: center center;
+}
+
+
+button.URLFieldButton div {
+	width: 21px;
+	height: 21px;
+}
+
+/************** email Field ******************/
+input.emailFieldText {
+	text-decoration: underline;
+	color: blue;
+	cursor: pointer;
+}
+
+input.emailFieldTextEdit {
+	text-decoration: none;
+}
+
+button.emailFieldButton {
+	width: 20px;
+	height: 20px;
+	padding: 0px;
+	margin:0px;
+	background: url(../../images/emailButton.gif);
+	background-repeat: no-repeat;
+	background-position: center center;
+}
+
+input.emailFieldButton {
+	width: 21px;
+	height: 21px;
+	background: url(../../images/emailButton.gif);
+	background-repeat: no-repeat;
+	background-position: center center;
+}
+
+button.emailFieldButton div{
+	width: 21px;
+	height: 21px;
+}
+
+
+
+/************** Push Button ***********/
+/* for <input type='button'>, <input type='submit'>, <button> */
+.pushButton {
+	text-align: center;
+}
+
+.pushButtonEnabled {
+	text-align: center;
+}
+.pushButtonDisabled {
+	text-align: center;
+}
+
+
+
+/************** Time Field ******************/
+
+input.timeFieldHoursText {
+	width: 20px;
+	border-right:none;
+	text-align:right;
+}
+
+input.timeFieldMinutesText {
+	width: 20px;
+	border-left:none;
+}
+
+input.timeFieldSeparator {
+	width: 5px;
+	text-align: center;
+	border-right:none;
+	border-left:none;
+}
+
+input.timeFieldSeparatorDisplayField {
+	width: 5px;
+	text-align: center;
+	border-top:solid black 1px;
+	border-bottom:solid black 1px;
+	border-right:none;
+	border-left:none;
+	background: #CCCCCC;
+}
+
+input.timeFieldHoursTextDisplayField{
+		width: 20px;
+	border-top:solid black 1px;
+	border-bottom:solid black 1px;
+	border-right:none;
+	border-left:solid black 1px;
+	background: #CCCCCC;
+	text-align:right;
+}
+
+input.timeFieldMinutesTextDisplayField{
+		width: 20px;
+	border-top:solid black 1px;
+	border-bottom:solid black 1px;
+	border-right:solid black 1px;
+	border-left:none;
+	background: #CCCCCC;
+}
+/******************* tabs ********************/
+.tab {
+	/*border-top: 1px solid;
+	border-top-color: #999999;
+	background-color: #CCCCCC;*/
+}
+
+/* substyle for first tab */
+.first {
+	/*border-left: 1px solid;
+	border-left-color: #999999;*/
+}
+
+.tabtextActive {
+	text-align: center;
+	color: black;
+	font-weight: bold;
+	cursor:pointer;
+	width:100px;
+	background-color: #CCCCCC;
+	border-top: 1px solid;
+	border-top-color: #999999;
+	border-bottom: 1px solid;
+	border-bottom-color: #CCCCCC;
+	white-space:nowrap;
+}
+
+.tabtextInactive {
+	text-align: center;
+	color: black;
+	cursor: pointer;
+	width: 100px;
+	background-color: #CCCCCC;
+	border-top: 1px solid;
+	border-top-color: #999999;
+	border-bottom: 1px solid;
+	border-bottom-color: #999999;
+	white-space:nowrap;
+}
+
+.tabtextDisabled {
+	text-align: center;
+	color: #999999;
+	cursor: default;
+	width: 100px;
+	background-color: #CCCCCC;
+	border-top: 1px solid;
+	border-top-color: #999999;
+	border-bottom: 1px solid;
+	border-bottom-color: #999999;
+	white-space:nowrap;
+}
+
+.tabImage {
+	background-color: #CCCCCC;
+	border-bottom: 1px solid;
+	border-bottom-color: #999999;
+}
+
+.leftImg {
+	width: 10px;
+	height: 20px;
+	background-image: url(../../images/leftTab.gif);
+	background-color: #CCCCCC;
+	border-top: 1px solid;
+	border-top-color: #999999;
+}
+
+.rightImg {
+	width: 10px;
+	height: 20px;
+	background-image: url(../../images/rightTab.gif);
+	background-color: #CCCCCC;
+	border-top: 1px solid;
+	border-top-color: #999999;
+}
+
+/* substyle for images cells surrounding active tab */
+.nearActive {
+	border-bottom: 1px solid;
+	border-bottom-color: #CCCCCC;
+}
+
+/* substyle for right image when last tab is inactive */
+.last {
+	background-color: #5998CB;
+	border-top: 1px solid;
+	border-top-color: #5998CB;
+}
+
+.tabPadding{
+	width: 100%;
+	background-color: #5998CB;
+}
+
+/********************* Progress bar ***************/
+.progressBar {
+		position:absolute;
+	height: 20%;
+	width: 1%;
+	color:white;
+	border: solid 1px;
+	border-color: black;
+	background-color: blue;
+}
+
+/**********************Comments Button ************/
+.commentButton {
+	width: 13px;
+	height: 15px;
+	background-color: white;
+	background-image: url(../../images/Comments.gif);
+	background-repeat: no-repeat;
+	background-position: center center;
+}
+
+/**********************Approve Button ************/
+div.button button span.approveButton {
+	margin-top: -1px;
+	width: 13px;
+	height: 12px;
+	background-color: white;
+	background-image: url(../../images/Line_Approve_Approved.gif);
+	background-repeat: no-repeat;
+	background-position: center center;
+}
+
+/**********************Reject Button ************/
+div.button button span.rejectButton {
+	margin-top: -1px;
+	width: 13px;
+	height: 12px;
+	background-color: white;
+	background-image: url(../../images/Line_Approve_Rejected.gif);
+	background-repeat: no-repeat;
+	background-position: center center;
+}
+
+/**********************Pending Button ************/
+div.button button span.pendingButton {
+	margin-top: -1px;
+	width: 13px;
+	height: 12px;
+	background-color: white;
+	background-image: url(../../images/Line_Approve_Pending.gif);
+	background-repeat: no-repeat;
+	background-position: center center;
+}
+/**********************Increment Button ************/
+div.incrButton {
+	background-position:bottom left;
+	width:20px;
+	height:10px;
+	background-repeat:no-repeat;
+	background-image:url("../../images/ybuttonup.gif");
+}
+
+/**********************Increment Button Pressed ************/
+div.incrButtonPressed {
+	background-position:bottom left;
+	width:20px;
+	height:10px;
+	background-repeat:no-repeat;
+	background-image:url("../../images/ybuttonup2.gif");
+}
+
+/**********************Decrement Button ************/
+div.decrButton {
+	background-position:top left;
+	width:20px;
+	height:10px;
+	background-repeat:no-repeat;
+	background-image:url("../../images/ybuttondn.gif");
+}
+
+/**********************Decrement Button Pressed ************/
+div.decrButtonPressed {
+	background-position:top left;
+	width:20px;
+	height:10px;
+	background-repeat:no-repeat;
+	background-image:url("../../images/ybuttondn2.gif");
+}
+
+/********************** Navigation Path Folder Icons ************/
+.closedFolderImg {
+	width: 15px;
+	height: 13px;
+	background-image: url(../../images/closedFolder.gif);
+	background-repeat: no-repeat;
+
+}
+
+.openAttachedFolderImg {
+	width: 31px;
+	height: 14px;
+	background-image: url(../../images/openAttachedFolder.gif);
+	background-repeat: no-repeat;
+}
+
+.closedAttachedFolderImg {
+	width: 30px;
+	height: 14px;
+	background-image: url(../../images/closedAttachedFolder.gif);
+	background-repeat: no-repeat;
+}
+
+.approveButton {
+	margin-top: -1px;
+	width: 13px;
+	height: 12px;
+	background-color: white;
+	background-image: url(../../images/Line_Approve_Approved.gif);
+	background-repeat: no-repeat;
+	background-position: center center;
+}
+
+
+.rejectButton {
+	margin-top: -1px;
+	width: 13px;
+	height: 12px;
+	background-color: white;
+	background-image: url(../../images/Line_Approve_Rejected.gif);
+	background-repeat: no-repeat;
+	background-position: center center;
+}
+
+.pendingButton {
+	margin-top: -1px;
+	width: 13px;
+	height: 12px;
+	background-color: white;
+	background-image: url(../../images/Line_Approve_Pending.gif);
+	background-repeat: no-repeat;
+	background-position: center center;
+}
+
+
+
+/********************* General Link ***************/
+
+.generalLinkActive {
+	cursor: pointer;
+	color: black;
+	text-decoration: underline;
+}
+
+.generalLinkActive:hover {
+	text-decoration: underline;
+}
+
+.generalLinkPassive {
+	color: #999999;
+}
+
+.inverseLinkPassive {
+	color: #cccccc;
+}
+
+.inverseLinkActive {
+	cursor: pointer;
+	color: white;
+	text-decoration: underline;
+}
+
+.inverseLinkActive:hover {
+	text-decoration: underline;
+}
+
+/*********************Header links within a table **************/
+.generalTableLinkActive {
+	cursor: pointer;
+	text-decoration: underline;
+}
+
+.generalTableLinkActive:hover {
+	text-decoration: underline;
+}
+
+.generalTableLinkPassive {
+}
+
+/*********************Simple table with no selectoins **********/
+.simpleTable{
+	border-left:solid black 1px;
+	border-top:solid black 1px;
+}

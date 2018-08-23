@@ -1,0 +1,261 @@
+
+var errorHandler = "";
+var errorCode = "";
+var errorMessage = "";
+var errorDetails = "";
+var isErrorMessage;
+
+var formElements = new Array();
+var formElementsDisabled = new Array();
+var wizElements = new Array();
+var wizElementsDisabled = new Array();
+
+var titleHeight = 22;
+var borderWidth = 4;
+
+var agt=navigator.userAgent.toLowerCase();
+var appVer = navigator.appVersion.toLowerCase();
+
+function showErrorMessage(_errorCode, _errorMessage, _errorDetails, _errorHandler,  _topProperty) {
+	if ((_errorCode!=null) && (_errorCode != "")) {
+		errorHandler = _errorHandler;
+		errorCode = _errorCode;
+		errorMessage = _errorMessage;
+		errorDetails = _errorDetails;
+
+		var modalFrame = document.getElementById('modalFrame');
+		var modalTitle = document.getElementById("modalTitle");
+		var modalBorderLeft = document.getElementById("modalBorderLeft");
+		var modalBorderRight = document.getElementById("modalBorderRight");
+		var modalBorderBottom = document.getElementById("modalBorderBottom");
+		var glassPane = document.getElementById('glassPane');
+
+		if (modalFrame){
+			if (modalFrame.style.visibility == 'visible') return;
+			var winWidth = 0;
+			var winHeight = 0;
+			try {
+				if (self == top.getUnitFrame()) {
+					winWidth = top.getUnitFrameWidth();
+				} else {
+					if (typeof window.innerWidth == 'number'){
+						winWidth = window.innerWidth;
+					} else if ((typeof document.body.clientWidth == 'number') && (document.body.clientWidth > 0)) {
+						winWidth = document.body.clientWidth;
+					} else if (typeof document.documentElement.clientWidth == 'number') {
+						winWidth = document.documentElement.clientWidth;
+					}
+				}
+
+				if (typeof window.innerHeight == 'number'){
+					winHeight = window.innerHeight;
+				} else if (typeof document.documentElement.clientHeight == 'number') {
+					winHeight = document.documentElement.clientHeight;
+				}
+			} catch(e){
+			}
+
+			winWidth=(winWidth <= 0 ? 300 : winWidth);
+			winHeight=(winHeight <= 0 ? 400 : winHeight);
+
+
+			if(top.is_ie){
+				var selects = document.getElementsByTagName('SELECT');
+				for(var i = 0; i < selects.length; i++){
+					formElements[i] = selects[i];
+					formElementsDisabled[i] = selects[i].disabled;
+					selects[i].disabled = true;
+				}
+
+				//disabling stuff in wizard frame, if shown
+				if (self.frames['wizardFrame'] && document.getElementById('wizardFrame').style.visibility == 'visible') {
+					var wizdoc = self.frames['wizardFrame'].document;
+					selects = wizdoc.getElementsByTagName('SELECT');
+					for(var i = 0; i < selects.length; i++){
+						wizElements[i] = selects[i];
+						wizElementsDisabled[i] = selects[i].disabled;
+						selects[i].disabled = true;
+					}
+				}
+			}
+
+			var glassPaneHeight = winHeight;
+			if (typeof document.height == 'number'){
+				glassPaneHeight = document.height;
+			} else if (typeof document.documentElement.scrollHeight == 'number') {
+				glassPaneHeight = document.documentElement.scrollHeight;
+			}
+			glassPaneHeight = glassPaneHeight > winHeight ? glassPaneHeight : winHeight;
+			var glassPaneWidth = winWidth;
+			if (typeof document.width == 'number'){
+				glassPaneWidth = document.width;
+			} else if (typeof document.documentElement.scrollWidth == 'number') {
+				glassPaneWidth = document.documentElement.scrollWidth;
+			}
+			glassPaneWidth = glassPaneWidth > screen.width ? glassPaneWidth : screen.width;
+			glassPane.style.width=glassPaneWidth+'px';
+			glassPane.style.height=glassPaneHeight+'px';
+			glassPane.style.top='0px';
+			glassPane.style.left='0px';
+			glassPane.style.visibility='visible';
+
+			if (! _topProperty) {
+				_topProperty = Math.floor(((winHeight - 200) / 2));
+				var pos;
+				if (window.innerHeight){
+					pos = window.pageYOffset
+				} else if (document.documentElement && document.documentElement.scrollTop){
+					pos = document.documentElement.scrollTop
+				} else if (document.body){
+					pos = document.body.scrollTop
+				}
+
+				if(pos > 0){
+					_topProperty += pos;
+				}
+			}
+			var leftProperty = Math.floor((winWidth - 300) / 2);
+
+
+			modalTitle.style.width = '300px';
+			modalTitle.style.height = titleHeight + 'px';
+			modalTitle.style.top = _topProperty + "px";
+			modalTitle.style.left = leftProperty + 'px';
+
+			self.frames['modalTitle'].document.getElementById('titleText').innerHTML = top.F0000Message;
+			self.frames['modalTitle'].closeAction = "closePopup";
+			self.frames['modalTitle'].modalFrameIsMoving = false;
+
+			modalFrame.style.width= '300px';
+			modalFrame.style.height = '200px';
+			modalFrame.style.top = (_topProperty + titleHeight) + "px";
+			modalFrame.style.left = leftProperty + 'px';
+
+			modalBorderLeft.style.width = borderWidth + 'px';
+			modalBorderLeft.style.height = (200 + titleHeight) + 'px';
+			modalBorderLeft.style.top = _topProperty + "px";
+			modalBorderLeft.style.left = (leftProperty - borderWidth) + 'px';
+
+			modalBorderRight.style.width = borderWidth + 'px';
+			modalBorderRight.style.height = (200 + titleHeight) + 'px';
+			modalBorderRight.style.top = _topProperty + "px";
+			modalBorderRight.style.left = (leftProperty + 300) + 'px';
+
+			modalBorderBottom.style.width = (300 + borderWidth * 2) + 'px';
+			modalBorderBottom.style.height = borderWidth + 'px';
+			modalBorderBottom.style.top = (_topProperty + 200 + titleHeight) + "px";
+			modalBorderBottom.style.left = leftProperty - borderWidth + 'px';
+			modalTitle.style.visibility = 'visible';
+			modalFrame.style.visibility = 'visible';
+			modalBorderLeft.style.visibility = 'visible';
+			modalBorderRight.style.visibility = 'visible';
+			modalBorderBottom.style.visibility = 'visible';
+			self.frames['modalFrame'].window.location.replace(top.errorMsgJsp);
+		}
+		else {
+		      var myarray = new Array();
+		      myarray[0] = _errorCode;
+		      myarray[1] = _errorMessage;
+		      myarray[2] = _errorDetails;
+
+		      if (window.showModalDialog) {
+			  newReturn = window.showModalDialog(top.errorMsgJsp,myarray,
+			       'dialogWidth:300px;dialogHeight:200px;status:false;center:true;help:no;resizable:yes;status:no;scroll:no');
+			  closePopup(newReturn);
+
+		      }
+		      else {
+			window.top.onfocus=HandleFocus;
+			top.popupWindow = window.open(top.errorMsgJsp,'',
+			'toolbar=0,location=0,directories=0,status=0,scrollbars=0,resizable=0,left='+ (screen.availWidth-300)/2 + ',top=' + (screen.availHeight - 200)/2 + ',width=300,height=200');
+			top.popupWindow.focus();
+		      }
+		}
+	}
+}
+
+
+function closePopup(clickedButton) {
+
+	if (clickedButton == null){
+		clickedButton = "CANCEL";
+	}
+
+
+
+	var modalFrame = document.getElementById('modalFrame');
+	var glassPane = document.getElementById('glassPane');
+	var modalTitle = document.getElementById('modalTitle');
+	var modalBorderLeft = document.getElementById('modalBorderLeft');
+	var modalBorderRight = document.getElementById('modalBorderRight');
+	var modalBorderBottom = document.getElementById('modalBorderBottom');
+
+	if (modalFrame){
+		self.frames['modalTitle'].modalFrameIsMoving = false;
+		modalFrame.style.visibility = 'hidden';
+		modalTitle.style.visibility = 'hidden';
+		modalBorderLeft.style.visibility = 'hidden';
+		modalBorderRight.style.visibility = 'hidden';
+		modalBorderBottom.style.visibility = 'hidden';
+		var modalFrameDoc = self.frames['modalFrame'].document;
+		if(modalFrameDoc.body){
+			modalFrameDoc.body.style.visibility = 'hidden';
+		}
+		if(modalFrameDoc.getElementById("errImage")){
+			modalFrameDoc.getElementById("errImage").style.visibility = 'hidden';
+		}
+		modalFrame.style.width='0px';
+		modalFrame.style.height='0px';
+		modalTitle.style.width='0px';
+		modalTitle.style.height='0px';
+		modalBorderLeft.style.width='0px';
+		modalBorderLeft.style.height='0px';
+		modalBorderRight.style.width='0px';
+		modalBorderRight.style.height='0px';
+		modalBorderBottom.style.width='0px';
+		modalBorderBottom.style.height='0px';
+		//modalFrame.style.top = '0px';
+		//modalFrame.style.left = '0px';
+
+		glassPane.style.width='0px';
+		glassPane.style.height='0px';
+		glassPane.style.top='0px';
+		glassPane.style.left='0px';
+		glassPane.style.visibility='hidden';
+
+		var formElementsLength = formElements.length;
+		for(var i = 0; i < formElementsLength; i++) {
+			formElements[i].disabled = formElementsDisabled[i];
+		}
+
+		if (self.frames['wizardFrame'] && document.getElementById('wizardFrame').style.visibility == 'visible') {
+			var wizElementsLength = wizElements.length;
+			for(var i = 0; i < wizElementsLength; i++) {
+				try {
+					wizElements[i].disabled = wizElementsDisabled[i];
+				} catch(e) {}
+			}
+			wizElements = new Array();
+			wizElementsDisabled = new Array();
+                }		
+	}
+	window.focus();
+    try {
+		errorHandler(clickedButton);
+	} catch (ex){
+	}
+}
+
+function HandleFocus() {
+	if (top.popupWindow) {
+		if (!top.popupWindow.closed) {
+			top.popupWindow.focus();
+		}
+	}
+	return false;
+}
+
+
+function defaultHandler(clickedButton) {
+}
+

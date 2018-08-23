@@ -1,0 +1,648 @@
+
+<!--****** OPEN CHARGE LOOKUP ******-->
+var chargeLookupWindow;
+var tmpRowObject;
+var tmpChargeObj;
+var chargeLookupInputBox;
+var chargeInfo = new Array();
+var chargeInputId = "1u0";
+var windowOpenedFrom;
+var lookupLaunchedFrom='T';
+
+<!--***  OPEN CHARGE LOOKUP  ***-->
+function openChargeLookup(input, udtType) {
+	if(grid.timesheetIsClosed) {
+		return false;
+	}
+	if (udtType == "01") {
+		windowOpenedFrom = 'Udt01Id';
+	}
+	else {
+		windowOpenedFrom = 'Udt02Id';
+	}
+	var inputBox = input;//document.getElementById(inputId);
+	chargeLookupInputBox = inputBox;
+	var rowNum = getCellRow(inputBox);
+	tmpRowObject = ROA[rowNum];
+
+	if (tmpRowObject.previouslySaved) {
+		return false;
+	}
+	chargeInputId = input.id;
+	showModalFrame(tsChargeLookupJsp, 640, 500, chargeLookupTitle, 50);
+}
+
+<!--****** CHARGE LOOKUP IS DONE ******-->
+var isChargeLookup = false;
+function chargeLookupIsDone(enabledCharges) {
+	var tmpValue;
+	var udtValues = "";
+	for (var s = 0; s < enabledCharges.length; s++) {
+		tmpValue = enabledCharges[s];
+		udtValues += tmpValue + '|';
+	}
+	isChargeLookup = true;
+
+	self.frames[0].document.forms["lineDefaultsForm"].chargeBranchCharge.value = "Y";
+	self.frames[0].document.forms["lineDefaultsForm"].udtValues.value = udtValues;
+	self.frames[0].document.forms["lineDefaultsForm"].isChargeLookup.value = "Y";
+	hideEditor();
+	top.setFormSubmitted();
+	self.frames[0].document.forms["lineDefaultsForm"].submit();
+}
+
+<!--***  OPEN AMBIGUOUS LOOKUP  ***-->
+function openAmbiguousLookup() {
+	showModalFrame(ambiguousLookupJsp, 500, 310, ambiguousTitle, 50);
+	frames['modalTitle'].closeAction = "cancelAmbigLookup";
+}
+
+<!--****** AMBIGUOUS LOOKUP IS DONE ******-->
+var isAmbiguousLookup = false;
+var isUnauthorized;
+function ambiguousLookupIsDone(enabledCharges, unauthorizedFl) {
+	var tmpArray;
+	for (var s = 0; s < enabledCharges.length; s++) {
+		tmpArray = new Array();
+		tmpArray[0] = enabledCharges[s].ctcd;
+		tmpArray[1] = enabledCharges[s].cbcd;
+		tmpArray[2] = enabledCharges[s].ccd;
+		chargeInfo[s] = tmpArray;
+	}
+	var udtValue;
+	var udtValues = "";
+	var udtValuesArray = new Array();
+	for (var r = 1; r < 16; r++) {
+		udtValuesArray[r] = " ";
+	}
+	for (var s = 0; s < enabledCharges[0].uids.length; s++) {
+		var tmpValue = enabledCharges[0].uids[s];
+
+		if (! tmpValue) {
+			tmpValue = " ";
+		}
+		udtValues += tmpValue + '|';
+	}
+	isAmbiguousLookup = true;
+	isUnauthorized = unauthorizedFl;
+	self.frames[0].document.forms["lineDefaultsForm"].chargeBranchCharge.value = "Y";
+	self.frames[0].document.forms["lineDefaultsForm"].udtValues.value = udtValues;
+	self.frames[0].document.forms["lineDefaultsForm"].isChargeLookup.value = "N";
+	self.frames[0].document.forms["lineDefaultsForm"].chargeDesc.value = enabledCharges[0].chargeDesc;
+	top.setFormSubmitted();
+	self.frames[0].document.forms["lineDefaultsForm"].submit();
+}
+
+function cancelAmbigLookup(offlineTs){
+	var curCell = editor.currentCell;
+	hideEditor();
+	if(!offlineTs){
+		editor.value = editor.previousValue;
+		curCell.innerHTML = editor.value;
+		curCell.cv = editor.value;
+		ROA[getCellRow(curCell)].typ[parseInt(getUdtType(curCell),10)]=editor.value;
+
+	}
+	setActiveEntry(curCell);
+	closeModalFrame();
+	window.focus();
+	editor.focus();
+}
+
+<!--****** CANCEL INTERIM CHARGE ******-->
+
+function cancelInterimCharge(){
+	closeModalFrame();
+	udtHasBeenValidated(false, '');
+}
+
+<!--****** GET LINE DEFAULTS AFTER MANUAL ENTRY OF PRIMARY CHARGE ******-->
+function getLineDefaults(elem, inputValue) {
+	tmpRowObject = ROA[getCellRow(elem)];
+	var udtIndex = 1;
+	var udtValues = "";
+	var udtId = inputValue;
+	var udtValuesArray = new Array();
+	for (var r = 1; r < 16; r++) {
+		if(tmpRowObject.interim_fl){
+			udtValuesArray[r] = (tmpRowObject.typ[r]+"" == "" ? " " : tmpRowObject.typ[r]);
+		} else {
+			udtValuesArray[r] = " ";
+		}
+	}
+	if (elem.typ == "01") {
+		udtIndex = 1;
+	}
+	else if (elem.typ == "02") {
+		udtIndex = 2;
+	}
+	udtValuesArray[udtIndex] = inputValue;
+
+	for (var r = 1; r < 16; r++) {
+		udtValues += udtValuesArray[r] + '|';
+	}
+	fromChargeLookup = false;
+
+	self.frames[0].document.forms["lineDefaultsForm"].chargeBranchCharge.value = tmpRowObject.interim_fl ? "Y" : "N";
+	self.frames[0].document.forms["lineDefaultsForm"].udtNumber.value = udtIndex;
+	self.frames[0].document.forms["lineDefaultsForm"].udtValues.value = udtValues;
+	self.frames[0].document.forms["lineDefaultsForm"].udtId.value = udtId;
+	self.frames[0].document.forms["lineDefaultsForm"].isChargeLookup.value = "N";
+	top.setFormSubmitted();
+	self.frames[0].document.forms["lineDefaultsForm"].submit();
+}
+
+<!--****** LINE DEFAULTS IS DONE ******-->
+function lineDefaultsIsDone(booleanValue) {
+	if (booleanValue) {
+		setUnsavedChanges();
+		if (canChangeFocus(editor.nextCell)){
+			setActiveEntry(editor.nextCell);
+		}
+		else {
+			if(!editor.currentCell.readOnly){
+				setActiveEntry(editor.currentCell);
+			} else {
+				setActiveEntry(findPrimaryCell(editor.currentCell));
+			}
+		}
+		doAfterValid();
+	 }
+	else {
+		setActiveEntry(editor.currentCell);
+	}
+}
+
+<!--****** RECALCULATE DEFAULT ******-->
+function recalculateDefault(udtEntered, udtToBeRecalculated) {
+	var elem = editor.currentCell;
+	var udtType = elem.typ;
+	var udtValues = "";
+	var udtValuesArray = new Array();
+
+	for (var r = 1; r < 16; r++) {
+		udtValuesArray[r] = " ";
+	}
+	var tmpRowObject = ROA[elem.row];
+	var udtArray = tmpRowObject.udts;
+
+	for (var v = 0; v < udtArray.length; v++) {
+		if (udtArray[v].typ == 1) {
+			break;
+		}
+	}
+	if ((tmpRowObject.typ[1] != "") && (udtArray[v] != null) && (isPrimaryCharge(udtArray[v]))) {
+		udtValuesArray[1] = tmpRowObject.typ[1];
+	}
+	else  {
+		for (var v = 0; v < udtArray.length; v++) {
+			if (udtArray[v].typ == "02") {
+				break;
+			}
+		}
+		if ((tmpRowObject.typ[2] != "") && (udtArray[v] != null) && (isPrimaryCharge(udtArray[v]))) {
+			udtValuesArray[2] = tmpRowObject.typ[2];
+		}
+
+		else {
+			return false;
+		}
+	}
+	if (udtEntered == 3 && udtToBeRecalculated == 9) {
+		udtValuesArray[1] = tmpRowObject.typ[1];
+		udtValuesArray[2] = tmpRowObject.typ[2];
+	}
+	for (var r = 1; r < 16; r++) {
+		if (tmpRowObject.src[r] == "C") {
+			udtValuesArray[r] = tmpRowObject.typ[r];
+		}
+		else {
+			udtValuesArray[r] = " ";
+		}
+	}
+	udtValuesArray[udtEntered] = editor.value;
+	for (var r = 1; r < 16; r++) {
+		udtValues += udtValuesArray[r] + '|';
+	}
+	fromChargeLookup = true;
+
+	self.frames[0].document.forms["lineDefaultsForm"].chargeBranchCharge.value = "Y";
+	self.frames[0].document.forms["lineDefaultsForm"].udtValues.value = udtValues;
+	self.frames[0].document.forms["lineDefaultsForm"].recalcDefault.value = "Y";
+	self.frames[0].document.forms["lineDefaultsForm"].recalcDefaultType.value = udtToBeRecalculated;
+	self.frames[0].document.forms["lineDefaultsForm"].isChargeLookup.value = "N";
+	top.setFormSubmitted();
+	self.frames[0].document.forms["lineDefaultsForm"].submit();
+}
+<!--****** RECALCULATE DEFAULT IS DONE ******-->
+function recalculateDefaultIsDone() {
+	putCellValue(editor.currentCell);
+	setActiveEntry(editor.currentCell);
+}
+
+<!--****** OPEN TS SEARCH ******-->
+var tsSearchWindow;
+var selectedNames = new Array();
+
+function openTsSearch() {
+	if (!isOkToClose("search")){
+		return;
+	}
+	showModalFrame(frontServlet+'?unit=TsSearch&event=loadSearchCriteria', 640, 505, tsSearchTitle, 1);
+}
+
+var selectElement = null;
+
+<!--****** TS SEARCH IS DONE ******-->
+function tsSearchIsDone() {
+		top.clearFormSubmitted();
+	var emplName = document.getElementById('emplName');
+	emplName.style.borderStyle = 'none';
+	var htmlStr = '<select id="selectElement" class="emplSelect" onchange="getTimesheet()"><option>' + grid.loginFullName + ' ' + grid.periodEndDt + '</option>';
+
+	for (var n = 0; n < selectedNames.length; n++) {
+		htmlStr += '<option' + (n==0?' selected':'') + '>' + selectedNames[n] + '</option>';
+	}
+	htmlStr += '</select>';
+	emplName.innerHTML = htmlStr;
+	selectElement = document.getElementById('selectElement');
+	grid.numberOfSearchIds = selectedNames.length;
+	firstRecordIcon.className = 'firstPassive';
+	previousRecordIcon.className = 'previousPassive';
+	firstRecordIcon.onclick = null;
+	previousRecordIcon.onclick = null;
+	if (selectedNames.length > 1){
+		nextRecordIcon.className = 'nextActive';
+		lastRecordIcon.className = 'lastActive';
+		nextRecordIcon.onclick = handleNextRecordClick;
+		lastRecordIcon.onclick = handleLastRecordClick;
+	} else {
+		nextRecordIcon.className = 'nextPassive';
+		lastRecordIcon.className = 'lastPassive';
+		nextRecordIcon.onclick = null;
+		lastRecordIcon.onclick = null
+	}
+	firstBrowsableTS = 1;
+	getTimesheet();
+}
+
+<!--****** OPEN UDT LOOKUP ******-->
+var UdtTypeName;
+var UdtType;
+var udtLookupElem;
+var udt10RowNumber;
+var udt10LineNumber;
+var udtLookupValue;
+var udtLookupRowObject;
+var udt01id;
+var udt02id;
+var udt03id;
+var udt07id;
+var udt09id;
+
+function openUdtLookup(udtElem, udttype) {
+	if(grid.timesheetIsClosed) {
+		return false;
+	}
+	udtLookupElem = udtElem;//document.getElementById(udtElemId);
+	udt10RowNumber = getCellRow(udtLookupElem);
+	udtLookupRowObject = ROA[udt10RowNumber];
+	udt01id = udtLookupRowObject.typ[1];
+	udt02id = udtLookupRowObject.typ[2];
+	udt03id = udtLookupRowObject.typ[3];
+	udt07id = udtLookupRowObject.typ[7];
+	udt09id = udtLookupRowObject.typ[9];
+	UdtTypeName = "UDT" + udttype;
+	UdtType = parseInt(udttype,10);
+
+	showModalFrame(tsUdtLookupJsp, 480, 390, simpleLookupTitle, 50);
+}
+
+<!--****** UDT LOOKUP IS DONE ******-->
+function udtLookupIsDone(udtLookupValues, isAbbrv) {
+	setUnsavedChanges();
+	hideEditor();
+	udtLookupRowObject.typ[UdtType] = udtLookupValues[0];
+	udtLookupElem.innerHTML = quoteHtml(isAbbrv ? udtLookupValues[1] : udtLookupValues[0]);
+	udtLookupElem.cv = isAbbrv ? udtLookupValues[1] : udtLookupValues[0];
+	udtLookupRowObject.src[UdtType] = "L";
+	if (checkLineCompletion(udt10RowNumber)) {
+		setLineIsComplete(udt10RowNumber);
+	}
+	else {
+		if (! udtLineIsEmpty(udt10RowNumber)) {
+			setLineIsIncomplete(udt10RowNumber);
+		}
+	}
+	if(UdtTypeName == "UDT10"){
+		validateUdt10(udt10RowNumber,udtLookupValues[0], 'L');
+	} else {
+		setActiveEntry(udtLookupElem);
+	}
+}
+
+
+<!--****** OPEN CALENDAR ******-->
+var openTSWindow;
+function openCalendar() {
+	if (!isOkToClose("open")){
+		return;
+	}
+	showOpenTS(calendarTitle);
+}
+
+<!--****** OPEN REJECT COMMENT BOX ******-->
+var rejectWindow;
+
+function openReject() {
+	if (!isOkToClose("reject")){
+		return;
+	}
+	showModalFrame(tsRejectJsp, 360, 280, rejectDialogTitle);
+}
+
+<!--****** OPEN HOUR COMMENT BOX ******-->
+var hourCommentObject;
+var rowCommentObject;
+var commentText;
+var commentType;
+var rowCommentIcon;
+var isLineComment = "N";
+var commentLineNumber;
+var columnDate = "";
+var alreadyHasIcon = false;
+var lineCommentIsReadOnly = "N";
+var hoursDate;
+var hoursAmount;
+
+function openHourComment(ev) {
+	if(cellCommentsDisabled) return;
+	if (ev == null){
+		hourCommentObject = document.getElementById(event.srcElement.hourCellId);
+	} else {
+		hourCommentObject = document.getElementById(ev.target.hourCellId);
+		if(hourCommentObject.ddt == null){
+			hourCommentObject = dayRowArray[ev.target.row][ev.target.col];
+		}
+	}
+	if (hourCommentObject.txt != null){
+		commentText = hourCommentObject.txt;
+	} else {
+		commentText = "";
+	}
+	columnDate = hourCommentObject.ddt;
+	hoursDate = hourCommentObject.hrs_dt;
+
+	if (editor.value == "" || editor.value == null) {
+		hoursAmount = "0";
+	}
+	else {
+		hoursAmount = editor.value;
+	}
+	commentLineNumber = ROA[getCellRow(hourCommentObject)].pkLineNumber;
+	commentType = "hour";
+	if (hourCommentObject.hasComment) {
+		alreadyHasIcon = true;
+	}
+	else {
+		if (grid.timesheetIsClosed || browseOnly) {
+			return false;
+		}
+		alreadyHasIcon = false;
+	}
+	if (hourCommentObject.readOnly || browseOnly || grid.timesheetIsClosed) {
+		lineCommentIsReadOnly = "readonly";
+	}
+	else {
+		lineCommentIsReadOnly = "";
+	}
+	isLineComment = "N";
+
+	showModalFrame(commentJsp, 420, 440, "");
+}
+
+<!--*** OPEN ROW COMMENT BOX ***-->
+function openRowComment(icon) {
+	if(lineCommentsDisabled) return;
+	submitActive(null);
+	if (icon == null || icon.target != null){
+		if (icon == null){
+			icon = event.srcElement;
+		} else if (icon.target != null){
+			icon = icon.target;
+		}
+	}
+	var rowNum = getCommentIconRow(icon);
+	if (! checkLineCompletion(rowNum) ) {
+		incompleteLineMessage();
+		return false;
+	}
+	rowCommentObject = ROA[rowNum];
+	if (rowCommentObject.hasComment) {
+		commentText = rowCommentObject.short_line_text;
+	}
+	else {
+		commentText = "";
+	}
+	commentType = "row";
+	rowCommentIcon = icon;
+	if (rowCommentObject.readOnly || browseOnly || grid.timesheetIsClosed) {
+		lineCommentIsReadOnly = "readonly";
+	}
+	else {
+		lineCommentIsReadOnly = "";
+	}
+	isLineComment = "Y";
+	commentLineNumber = rowCommentObject.pkLineNumber;
+
+	showModalFrame(commentJsp, 420, 440, "");
+}
+
+<!--****** CREATE NEW HOUR COMMENT ******-->
+function createHourComment(elem, commentText) {
+	if(cellCommentsDisabled) return;
+	if (trim(commentText) == "") {
+		return false;
+	}
+	var newNode = document.createElement("DIV");
+	elem.appendChild(newNode);
+
+	newNode.id = 'c'+elem.id;
+	newNode.className = 'commentIcon';
+	newNode.style.visibility = 'visible';
+	newNode.onclick = openHourComment;
+	newNode.hourCellId = elem.id;
+	newNode.row = elem.row;
+	newNode.col = elem.col;
+	elem.hasComment = true;
+
+	elem.txt = commentText;
+	hourCommentArray[hourCommentArray.length] = newNode;
+	grid.tsHasHourCells = true;
+}
+
+function refreshHourComment(elem, commentNode) {
+	var newNode = commentNode;
+	elem.appendChild(newNode);
+}
+
+<!--****** SHOW ROW COMMENT ******-->
+function showComment(icon) {
+	if(lineCommentsDisabled) return;
+	if (icon == null || icon.target != null){
+		if (icon == null){
+			icon = event.srcElement;
+		} else if (icon.target != null){
+			icon = icon.target;
+		}
+	}
+	var rowNum = getCommentIconRow(icon);
+	if (ROA[rowNum].short_line_text.length > 0) {
+		icon.title = ROA[rowNum].short_line_text;
+	}
+}
+
+<!--****** TS PRINT ******--!>
+function openTsPrintWindow() {
+	showModalFrame(tsReportJsp, 320, 280, tsPrintTitle, 50);
+}
+
+<!--****** OPEN TIME IN/OUT DIALOG ******--!>
+var inOutColumnDay;
+var inOutColumnMonth;
+var inOutColumnYear;
+var inOutFormattedDt;
+var inOutDfltInTime;
+var inOutDfltOutTime;
+var inOutDfltNonWorkHrs;
+var inOutDfltNonWorkHrs;
+var inOutDfltLunchStartTime
+var inOutDfltLunchEndTime
+
+
+var timeInDate;
+var timeOutDate;
+var	lunchStartDate;
+var lunchEndDate;
+var offsiteHours;
+var nonWorkHours;
+var dayText;
+var lunchStartHours;
+var lunchEndHours;
+
+var tsIsReadOnly;
+
+var hasNewValues = false;
+
+var tmpStartStopArray = null;
+
+function openStartStop(ev){
+	if (grid.numberOfCompleteTsLines < 1) return;
+	var rowNum = getCellRow(editor.currentCell);
+	if (!checkLineCompletion(rowNum) && !udtLineIsEmpty(rowNum)) {
+    		incompleteLineMessage();
+    		return false;
+	}
+	var clockIcon;
+	if (ev == null) {
+		clockIcon = event.srcElement;
+	} else {
+		clockIcon = ev.target;
+	}
+
+		var dayNo = clockIcon.dayNo;
+		var rows = 0;
+		tmpStartStopArray = new Array();
+		if(startStopArray[dayNo] != null){
+			rows = startStopArray[dayNo].length;
+			for(var i = 0; i < rows; i++){
+				tmpStartStopArray[i] = new Array();
+				tmpStartStopArray[i]['dayNo'] = startStopArray[dayNo][i]['dayNo'];
+				tmpStartStopArray[i]['charge'] = startStopArray[dayNo][i]['charge'];
+				tmpStartStopArray[i]['startDate'] = startStopArray[dayNo][i]['startDate'];
+				tmpStartStopArray[i]['startTime'] = startStopArray[dayNo][i]['startTime'];
+				tmpStartStopArray[i]['startAmPm'] = startStopArray[dayNo][i]['startAmPm'];
+				tmpStartStopArray[i]['stopDate'] = startStopArray[dayNo][i]['stopDate'];
+				tmpStartStopArray[i]['stopTime'] = startStopArray[dayNo][i]['stopTime'];
+				tmpStartStopArray[i]['stopAmPm'] = startStopArray[dayNo][i]['stopAmPm'];
+				tmpStartStopArray[i]['comment'] = startStopArray[dayNo][i]['comment'];
+				tmpStartStopArray[i]['hours'] = startStopArray[dayNo][i]['hours'];
+				tmpStartStopArray[i]['hoursInt'] = startStopArray[dayNo][i]['hoursInt'];
+
+				tmpStartStopArray[i]['startYear'] = startStopArray[dayNo][i]['startYear'];
+				tmpStartStopArray[i]['startMonth'] = startStopArray[dayNo][i]['startMonth'];
+				tmpStartStopArray[i]['startDay'] = startStopArray[dayNo][i]['startDay'];
+				tmpStartStopArray[i]['startHrs'] = startStopArray[dayNo][i]['startHrs'];
+				tmpStartStopArray[i]['startMin'] = startStopArray[dayNo][i]['startMin'];
+				tmpStartStopArray[i]['startDt'] = startStopArray[dayNo][i]['startDt'];
+				tmpStartStopArray[i]['stopYear'] = startStopArray[dayNo][i]['stopYear'];
+				tmpStartStopArray[i]['stopMonth'] = startStopArray[dayNo][i]['stopMonth'];
+				tmpStartStopArray[i]['stopDay'] = startStopArray[dayNo][i]['stopDay'];
+				tmpStartStopArray[i]['stopHrs'] = startStopArray[dayNo][i]['stopHrs'];
+				tmpStartStopArray[i]['stopMin'] = startStopArray[dayNo][i]['stopMin'];
+				tmpStartStopArray[i]['stopDt'] = startStopArray[dayNo][i]['stopDt'];
+			}
+		}
+		var url = startStopTimeJsp + '?day=' + dayNo + '&rows='+rows + '&browse='+(browseOnly ? 'Y' : 'N');
+		showModalFrame(url, 640, 460, startStopDlgTitle + ' - ' + clockIcon.dt);
+}
+
+function openTsInOut(ev) {
+	if (grid.numberOfCompleteTsLines < 1) return;
+	var clockIcon;
+	if (ev == null) {
+		clockIcon = event.srcElement;
+	} else {
+		clockIcon = ev.target;
+	}
+
+	inOutFormattedDt = clockIcon.dt;
+	inOutDfltInTime = clockIcon.intm;
+	inOutDfltOutTime = clockIcon.outm;
+	inOutDfltNonWorkHrs = clockIcon.nwh;
+	inOutDfltOffsiteHrs = clockIcon.osh;
+	inOutDfltLunchStartTime=clockIcon.lchst;
+	inOutDfltLunchEndTime=clockIcon.lchend;
+	inOutColumnDay = clockIcon.dy;
+	inOutColumnMonth = clockIcon.mo;
+	inOutColumnYear = clockIcon.yr;
+	var columnDate = inOutColumnYear + "/" + inOutColumnMonth + "/" + inOutColumnDay;
+	var tmpArray = null;
+	for (var p = 0; p < tsDayObjectArray.length; p++) {
+		tmpArray = tsDayObjectArray[p];
+		if (columnDate == tmpArray[0]) {
+			hasNewValues = true;
+			timeInDate = tmpArray[1];
+			timeOutDate = tmpArray[2];
+			offsiteHours = tmpArray[3];
+			nonWorkHours = tmpArray[4];
+			dayText = tmpArray[5];
+			lunchStartDate = tmpArray[6];
+			lunchEndDate = tmpArray[7];
+			tmpArray = null;
+			break;
+		}
+			tmpArray = null;
+	}
+	if (browseOnly || grid.timesheetIsClosed) {
+		tsIsReadOnly = "Y";
+	}
+	else {
+		tsIsReadOnly = "N";
+	}
+	showModalFrame(timeInOutJsp, 600, 500, timeInOutTitle, 20);
+}
+
+<!--****** AUDIT DIALOG ******-->
+function showAuditDialog() {
+	showModalFrame(revisionsJsp, 520, 400, auditTitle);
+}
+
+<!--****** VALIDATION DIALOG ******-->
+function showValidationDialog() {
+	showModalFrame(validationDialogJsp, 500, 400, validationTitle);
+}
+
+function openSaveSignWarningsDialog(){
+	showModalFrame(saveSignWarningsJsp, 500, 450, saveSignWarningsTitle);
+}

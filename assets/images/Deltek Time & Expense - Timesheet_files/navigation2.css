@@ -1,0 +1,124 @@
+
+BODY { 
+	background-color: #2A3C75;
+	margin:0px;
+	font-family: Arial, helvetica, sans-serif;
+}
+
+
+.topInfo {
+	background:#008CBA;
+}
+
+.bottomInfo {
+	color:white;
+	padding-left:5px;
+	font-size:70%;
+	white-space:nowrap;
+}
+
+.bottomInfoText {
+	width:91px;
+	overflow:hidden;
+}
+
+.topMenuNoChildren {
+	cursor: pointer;
+	padding-top:2px;
+}
+
+.topMenuWithChildren {
+	cursor: pointer;
+	padding-top:2px;
+}
+
+
+.menuImageBlueCurve {
+	width:15px;
+	height:20px;
+	background-image: url(../../images/menuBackLDB.gif);
+	background-repeat: no-repeat;
+	vertical-align:top;
+}
+
+.menuImageClosed {
+	position:relative;
+	top:3px;
+	left:1px;
+	width:13px;
+	height:13px;
+	background-image: url(../../images/menuClosed.gif);
+	background-repeat: no-repeat;
+}
+
+.menuImageTealCurve {
+	width:15px;
+	height:20px;
+	background-image: url(../../images/menuBackMAC.gif);
+	background-repeat: no-repeat;
+	vertical-align:top;
+}
+
+
+.menuImageOpen {
+	position:relative;
+	top:3px;
+	left:1px;
+	width:13px;
+	height:13px;
+	background-image: url(../../images/menuOpen.gif);
+	background-repeat: no-repeat;
+}
+
+.topTextDivBlue {
+	background-color: #5998CB;
+	color:white;
+	font-size:70%;
+	white-space:nowrap;
+}
+
+
+.topTextDivTeal {
+	background-color: #6666CC;
+	color:white;
+	font-size:70%;
+	white-space:nowrap;
+}
+
+.topText {
+	width:81px;
+	overflow:hidden;
+}
+
+.bottomMenu{
+	background-color: #CCCCCC;
+	display:none;	
+}
+
+.bottomMenuItem {
+	height:17px;
+	width:100%;
+	padding-left:2px;
+	color: black;
+	cursor:pointer;
+	font-size:70%;
+	white-space:nowrap;
+}
+
+.bottomText {
+	width:94px;
+	overflow:hidden;
+}
+
+.webMasterLink {
+	color:white;
+	font-size:70%;
+	text-decoration:underline;
+	white-space:nowrap;
+	width:96px;
+	overflow:hidden;
+	cursor:pointer;
+}
+
+
+

@@ -1,0 +1,1343 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!-- saved from url=(0050)https://te.sysplus.com/DeltekTC/TimeCollection.msv -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta http-equiv="Content-Type" content="text/html">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Style-Type" content="text/css">
+</head>
+<body>
+
+
+
+
+
+
+
+		<!--************************* JAVASCRIPT     ***********************-->
+		<script>
+
+
+		<!--*** ROUNDING NUMBERS ***-->
+		function roundit(Num, Places) {
+			if (Places > 0) {
+				if ((Num.toString().length - Num.toString().lastIndexOf('.')) > (Places + 1)) {
+					var Rounder = Math.pow(10, Places);
+					return Math.round(Num * Rounder) / Rounder;
+				}
+				else {
+					return Num;
+				}
+			}
+			else {
+				return Math.round(Num);
+			}
+		}
+
+		<!--*** CREATE TS OBJECT ***-->
+		function TsObject() {
+			this.emplId = "00676";
+			this.ts_schedule_cd = "002";
+			this.year_no_cd = "2018";
+			this.period_no_cd = "016";
+			this.class_cd = "RFEP";
+			this.work_schedule_cd = "SM";
+		}
+
+		var TS = new TsObject();
+
+		<!--*** CREATE GRID OBJECT ***-->
+		function GridObject() {
+			this.aLineIsIncomplete = false;
+			this.incompleteLineNumber = 1;
+			this.unsavedChanges = false;
+			this.tsHasProcessedCells = false;
+			this.tsHasRejectedCells = false;
+
+			this.selectedDate = parent.grid.selectedDate;
+			this.selectedMonth = parent.grid.selectedMonth;
+			this.selectedYear = parent.grid.selectedYear;
+
+			this.startDate = 16;
+			this.startMonth = 8;
+			this.startYear = 2018;
+
+			this.endDate = 31;
+			this.endMonth = 8;
+			this.endYear = 2018;
+
+			this.loginEmplId = parent.grid.loginEmplId;
+			this.loginFullName = parent.grid.loginFullName;
+			this.truncatedSchedule = false;
+			this.emplId = "00676";
+			this.recordIndex = 0;
+			this.searchMode = parent.grid.searchMode;
+			this.numberOfSearchIds = parent.grid.numberOfSearchIds;
+			this.isOpenTSSameSchedule = false;
+			this.mode = "insert";
+			this.fullName = " ";
+			this.country = "US";
+			this.screenWidth = parent.grid.screenWidth;
+			this.visibleRows = parent.grid.visibleRows;
+			this.numberOfCompleteTsLines = 0;
+			this.numberOfUdts = parent.grid.numberOfUdts;
+			this.numberOfDays = 16;
+			this.hoursIncrement = "QUARTER";
+			this.timesheetIsClosed = false;
+			this.udts1And2AreLinked = true;
+			this.tsHasHourCells = false;
+			this.lineApproveConfigCode = "OPTIONAL";
+			this.decimalSymbol = parent.grid.decimalSymbol;
+			this.resizedUdts = new Array();
+			this.periodEndDt = "Aug 31, 2018";
+		}
+
+		var grid = new GridObject();
+
+		var rows =  (grid.numberOfCompleteTsLines < grid.visibleRows) ? grid.visibleRows : grid.numberOfCompleteTsLines + 1;
+
+		var loadFavoritiesFlag = true;
+		var hoursNotShown = false;
+		parent.resetGrid();
+		parent.noSuperModifyRights = false;
+
+		if (rows > parent.numberOfRows) {
+			var diff = rows - parent.numberOfRows;
+			for (var k = 0; k < diff; k++) {
+				parent.createNewRow();
+			}
+		}
+
+		parent._inc = grid.hoursIncrement;
+		parent.grid.hoursIncrement = grid.hoursIncrement;
+		parent._mask = "999.99";
+		parent._thirdkey = 57;
+
+		if (parent._inc == "HUNDREDTH") {
+			parent._mask = "999.99";
+		}
+		if (parent._inc == "TENTH") {
+			parent._mask = "999.9";
+		}
+		if (parent._inc == "QUARTER") {
+			parent._mask = "999.99";
+		}
+		if (parent._inc == "HALF") {
+			parent._mask = "999.9";
+		}
+		if (parent._inc == "WHOLE") {
+			parent._mask = "999";
+		}
+
+
+		
+		if(parent.TS.class_cd != TS.class_cd){
+			
+				parent.udtTypeArray[0] = '02';
+			
+				parent.udtTypeArray[1] = '0';
+			
+				parent.udtTypeArray[2] = '01';
+			
+				parent.udtTypeArray[3] = '03';
+			
+				parent.udtTypeArray[4] = '07';
+			
+				parent.udtTypeArray[5] = '09';
+			
+				parent.udtTypeArray[6] = '10';
+			
+				parent.udtTypeArray[7] = '';
+			
+				parent.udtTypeArray[8] = '';
+			
+				parent.udtTypeArray[9] = '';
+			
+				parent.udtTypeArray[10] = '';
+			
+				parent.udtTypeArray[11] = '';
+			
+				parent.udtTypeArray[12] = '';
+			
+				parent.udtTypeArray[13] = '';
+			
+				parent.udtTypeArray[14] = '';
+			
+				parent.udtTypeArray[15] = '';
+			
+			parent.usedButNotShownUdts = new Array();
+			
+				parent.usedButNotShownUdts[0] = false;
+			
+				parent.usedButNotShownUdts[1] = false;
+			
+				parent.usedButNotShownUdts[2] = false;
+			
+				parent.usedButNotShownUdts[3] = true;
+			
+				parent.usedButNotShownUdts[4] = false;
+			
+				parent.usedButNotShownUdts[5] = false;
+			
+				parent.usedButNotShownUdts[6] = false;
+			
+				parent.usedButNotShownUdts[7] = false;
+			
+				parent.usedButNotShownUdts[8] = false;
+			
+				parent.usedButNotShownUdts[9] = true;
+			
+				parent.usedButNotShownUdts[10] = false;
+			
+				parent.usedButNotShownUdts[11] = false;
+			
+				parent.usedButNotShownUdts[12] = false;
+			
+				parent.usedButNotShownUdts[13] = false;
+			
+				parent.usedButNotShownUdts[14] = false;
+			
+				parent.usedButNotShownUdts[15] = false;
+			
+			for(var i = 0; i < parent.udtSizes.length; i++){
+				parent.udtSizes[i] = 0;
+			}
+			
+				parent.udtSizes[0] = 128;
+			
+				parent.udtSizes[1] = 240;
+			
+				parent.udtSizes[2] = 96;
+			
+				parent.udtSizes[3] = 0;
+			
+				parent.udtSizes[4] = 48;
+			
+				parent.udtSizes[5] = 0;
+			
+				parent.udtSizes[6] = 24;
+			
+				parent.udtSizes[7] = 0;
+			
+				parent.udtSizes[8] = 0;
+			
+				parent.udtSizes[9] = 0;
+			
+				parent.udtSizes[10] = 0;
+			
+				parent.udtSizes[11] = 0;
+			
+				parent.udtSizes[12] = 0;
+			
+				parent.udtSizes[13] = 0;
+			
+				parent.udtSizes[14] = 0;
+			
+				parent.udtSizes[15] = 0;
+			
+			
+				parent.udtRequiredArray[0] = true;
+			
+				parent.udtRequiredArray[1] = true;
+			
+				parent.udtRequiredArray[2] = false;
+			
+				parent.udtRequiredArray[3] = false;
+			
+				parent.udtRequiredArray[4] = false;
+			
+				parent.udtRequiredArray[5] = false;
+			
+				parent.udtRequiredArray[6] = false;
+			
+				parent.udtRequiredArray[7] = false;
+			
+				parent.udtRequiredArray[8] = false;
+			
+				parent.udtRequiredArray[9] = false;
+			
+				parent.udtRequiredArray[10] = true;
+			
+				parent.udtRequiredArray[11] = false;
+			
+				parent.udtRequiredArray[12] = false;
+			
+				parent.udtRequiredArray[13] = false;
+			
+				parent.udtRequiredArray[14] = false;
+			
+				parent.udtRequiredArray[15] = false;
+			
+			
+				parent.udtValidatedArray[0] = false;
+			
+				parent.udtValidatedArray[1] = true;
+			
+				parent.udtValidatedArray[2] = true;
+			
+				parent.udtValidatedArray[3] = false;
+			
+				parent.udtValidatedArray[4] = false;
+			
+				parent.udtValidatedArray[5] = false;
+			
+				parent.udtValidatedArray[6] = false;
+			
+				parent.udtValidatedArray[7] = true;
+			
+				parent.udtValidatedArray[8] = false;
+			
+				parent.udtValidatedArray[9] = true;
+			
+				parent.udtValidatedArray[10] = true;
+			
+				parent.udtValidatedArray[11] = false;
+			
+				parent.udtValidatedArray[12] = false;
+			
+				parent.udtValidatedArray[13] = false;
+			
+				parent.udtValidatedArray[14] = false;
+			
+				parent.udtValidatedArray[15] = false;
+			
+			var left = 0;
+			for (var c = 0; c < 7; c++){
+				if(!parent.usedButNotShownUdts[parseInt(parent.udtTypeArray[c], 10)]){
+					var newSize = (parent.udtSizes[c] - 1) + 'px';
+					parent.document.getElementById('udtHeaderText'+c).style.display = 'block';
+					parent.document.getElementById('udtHeaderText'+c).style.left = left + 'px'
+					parent.document.getElementById('udtHeaderText'+c).style.width = newSize;
+					parent.document.getElementById('udtColumn'+c).style.display = 'block';
+					parent.document.getElementById('udtColumn'+c).style.left = left + 'px'
+					parent.document.getElementById('udtColumn'+c).style.width = newSize;
+					left += parent.udtSizes[c];
+					parent.document.getElementById('udtResizer'+c).style.display = 'block';
+					parent.document.getElementById('udtResizer'+c).style.left = left - 1 + 'px'
+					for (r = 0; r < parent.numberOfRows; r++){
+						parent.ROA[r].udts[c].style.width = newSize;
+					}
+				} else {
+					parent.document.getElementById('udtHeaderText'+c).style.display = 'none';
+					parent.document.getElementById('udtResizer'+c).style.display = 'none';
+					parent.document.getElementById('udtColumn'+c).style.display = 'none';
+				}
+			}
+			parent.document.getElementById('udtColumnLast').style.left = left + 'px'
+			parent.document.getElementById('udtHeaderTextLast').style.left = left + 'px'
+			parent.document.getElementById('udtScrollerContent').style.width = left + 480 + 'px'
+
+			/*for (r = 0; r < parent.numberOfRows; r++) {
+				var udtNum = 0;
+				for (c = 0; c < 7; c++) {
+					var udtDiv = parent.document.getElementById('udt'+r+'_'+c);
+					if(udtDiv != null && columns[c]){
+						parent.udtRowArray[r][udtNum] = udtDiv;
+						parent.udtRowArray[r][udtNum].row = r;
+						parent.udtRowArray[r][udtNum].col = udtNum;
+						parent.udtRowArray[r][udtNum].typ = parent.udtTypeArray[udtNum];
+						udtNum++;
+					} else {
+						parent.udtRowArray[r][udtNum] = null;
+					}
+				}
+				parent.ROA[r].udts = parent.udtRowArray[r];
+			}*/
+
+		}
+
+			<!--***** If schedules or periods are different *****-->
+		if ((parent.TS.ts_schedule_cd != TS.ts_schedule_cd) || (parent.TS.period_no_cd != TS.period_no_cd) || (parent.TS.year_no_cd != TS.year_no_cd) || grid.truncatedSchedule || parent.grid.truncatedSchedule) {
+
+			parent.document.getElementById('hrsScrollerContent').style.width = '800px';
+			parent.minHrsLeft = parent.tsWidth-parent.rowTotalWidth-800-parent.splitterWidth;
+
+			if (parent.oldSplitterPosition < parent.minHrsLeft){
+				parent.splitterIsMoving = true;
+				parent.newSplitterPosition = parent.minHrsLeft;
+				parent.documentMU();
+				parent.splitter.style.left = parent.newSplitterPosition + 'px';
+			}
+
+			for (var s = 0; s < grid.numberOfDays; s++) {
+				parent.document.getElementById('hrsHeaderText'+s).style.display = "block";
+				parent.document.getElementById('hrsColumn'+s).style.display = "block";
+			}
+			for (var s = grid.numberOfDays; s < 35; s++) {
+				parent.document.getElementById('hrsHeaderText'+s).style.display = "none";
+				parent.document.getElementById('hrsColumn'+s).style.display = "none";
+			}
+			for (var b = 0; b < 3; b++) {
+				for (var c = 0; c < grid.numberOfDays; c++) {
+					parent.document.getElementById('DT0_'+c).style.display = "block";
+					parent.document.getElementById('DT1_'+c).style.display = "block";
+					parent.document.getElementById('DT2_'+c).style.display = "block";
+				}
+				for (var d = grid.numberOfDays; d < 35; d++) {
+					parent.document.getElementById('DT0_'+d).style.display = "none";
+					parent.document.getElementById('DT1_'+d).style.display = "none";
+					parent.document.getElementById('DT2_'+d).style.display = "none";
+				}
+			}
+		}
+
+		function populateObjects2() {
+			var winObject = parent;
+			
+
+
+
+var ro;
+var udt;
+var hr;
+var rowTotal;
+var rowProratedTotal;
+
+
+winObject.offlineSecurityKey = '';
+
+
+
+
+	winObject.enablePrintTS(false);
+
+
+
+
+		}
+
+
+		//parent.timeInIconArray = new Array();
+		
+			var dayHeader = parent.document.getElementById('hrsHeaderText0');
+
+			//This line seems to release all "clock" icons added earlier
+			dayHeader.innerHTML = "Thu<br>8/16";
+			
+				var newNode = parent.document.createElement("DIV");
+				newNode.className = "clock";
+				newNode.dayNo = 0;
+				newNode.dt = "8/16";
+				
+				newNode.dy = "16";
+				newNode.mo = "7";
+				newNode.yr = "2018";
+				newNode.intm = "08:30";
+				newNode.outm = "17:00";
+				newNode.nwh = "0.0";
+				newNode.lchst = "12:00";
+				newNode.lchend = "12:30";
+				newNode.osh = "0.0";
+				
+				newNode.onclick = parent.openTsInOut;
+
+				/*if (grid.numberOfCompleteTsLines < 1) {
+					newNode.disabled = true;
+					parent.timeInIconArray[parent.timeInIconArray.length] = newNode;
+				}*/
+				dayHeader.appendChild(newNode);
+				
+			for (var x = 0; x < parent.ROA.length; x++) {
+				var hr =  parent.ROA[x].hrs;
+				hr[0].nonWorkDay = "false";
+				hr[0].holiday="false";
+				hr[0].vacation="false";
+				hr[0].flexible="false";
+				hr[0].ddt="8/16";
+				hr[0].dyr="2018";
+				hr[0].hrs_dt="08/16/2018";
+				hr[0].dayOfMonth = "8/16";
+				
+			}
+		
+			var dayHeader = parent.document.getElementById('hrsHeaderText1');
+
+			//This line seems to release all "clock" icons added earlier
+			dayHeader.innerHTML = "Fri<br>8/17";
+			
+				var newNode = parent.document.createElement("DIV");
+				newNode.className = "clock";
+				newNode.dayNo = 1;
+				newNode.dt = "8/17";
+				
+				newNode.dy = "17";
+				newNode.mo = "7";
+				newNode.yr = "2018";
+				newNode.intm = "08:30";
+				newNode.outm = "17:00";
+				newNode.nwh = "0.0";
+				newNode.lchst = "12:00";
+				newNode.lchend = "12:30";
+				newNode.osh = "0.0";
+				
+				newNode.onclick = parent.openTsInOut;
+
+				/*if (grid.numberOfCompleteTsLines < 1) {
+					newNode.disabled = true;
+					parent.timeInIconArray[parent.timeInIconArray.length] = newNode;
+				}*/
+				dayHeader.appendChild(newNode);
+				
+			for (var x = 0; x < parent.ROA.length; x++) {
+				var hr =  parent.ROA[x].hrs;
+				hr[1].nonWorkDay = "false";
+				hr[1].holiday="false";
+				hr[1].vacation="false";
+				hr[1].flexible="false";
+				hr[1].ddt="8/17";
+				hr[1].dyr="2018";
+				hr[1].hrs_dt="08/17/2018";
+				hr[1].dayOfMonth = "8/17";
+				
+			}
+		
+			var dayHeader = parent.document.getElementById('hrsHeaderText2');
+
+			//This line seems to release all "clock" icons added earlier
+			dayHeader.innerHTML = "Sat<br>8/18";
+			
+				var newNode = parent.document.createElement("DIV");
+				newNode.className = "clock";
+				newNode.dayNo = 2;
+				newNode.dt = "8/18";
+				
+				newNode.dy = "18";
+				newNode.mo = "7";
+				newNode.yr = "2018";
+				newNode.intm = "08:30";
+				newNode.outm = "17:00";
+				newNode.nwh = "0.0";
+				newNode.lchst = "12:00";
+				newNode.lchend = "12:30";
+				newNode.osh = "0.0";
+				
+				newNode.onclick = parent.openTsInOut;
+
+				/*if (grid.numberOfCompleteTsLines < 1) {
+					newNode.disabled = true;
+					parent.timeInIconArray[parent.timeInIconArray.length] = newNode;
+				}*/
+				dayHeader.appendChild(newNode);
+				
+			for (var x = 0; x < parent.ROA.length; x++) {
+				var hr =  parent.ROA[x].hrs;
+				hr[2].nonWorkDay = "true";
+				hr[2].holiday="false";
+				hr[2].vacation="false";
+				hr[2].flexible="true";
+				hr[2].ddt="8/18";
+				hr[2].dyr="2018";
+				hr[2].hrs_dt="08/18/2018";
+				hr[2].dayOfMonth = "8/18";
+				
+				hr[2].style.backgroundColor = "#cccccc";
+				
+			}
+		
+			var dayHeader = parent.document.getElementById('hrsHeaderText3');
+
+			//This line seems to release all "clock" icons added earlier
+			dayHeader.innerHTML = "Sun<br>8/19";
+			
+				var newNode = parent.document.createElement("DIV");
+				newNode.className = "clock";
+				newNode.dayNo = 3;
+				newNode.dt = "8/19";
+				
+				newNode.dy = "19";
+				newNode.mo = "7";
+				newNode.yr = "2018";
+				newNode.intm = "08:30";
+				newNode.outm = "17:00";
+				newNode.nwh = "0.0";
+				newNode.lchst = "12:00";
+				newNode.lchend = "12:30";
+				newNode.osh = "0.0";
+				
+				newNode.onclick = parent.openTsInOut;
+
+				/*if (grid.numberOfCompleteTsLines < 1) {
+					newNode.disabled = true;
+					parent.timeInIconArray[parent.timeInIconArray.length] = newNode;
+				}*/
+				dayHeader.appendChild(newNode);
+				
+			for (var x = 0; x < parent.ROA.length; x++) {
+				var hr =  parent.ROA[x].hrs;
+				hr[3].nonWorkDay = "true";
+				hr[3].holiday="false";
+				hr[3].vacation="false";
+				hr[3].flexible="true";
+				hr[3].ddt="8/19";
+				hr[3].dyr="2018";
+				hr[3].hrs_dt="08/19/2018";
+				hr[3].dayOfMonth = "8/19";
+				
+				hr[3].style.backgroundColor = "#cccccc";
+				
+			}
+		
+			var dayHeader = parent.document.getElementById('hrsHeaderText4');
+
+			//This line seems to release all "clock" icons added earlier
+			dayHeader.innerHTML = "Mon<br>8/20";
+			
+				var newNode = parent.document.createElement("DIV");
+				newNode.className = "clock";
+				newNode.dayNo = 4;
+				newNode.dt = "8/20";
+				
+				newNode.dy = "20";
+				newNode.mo = "7";
+				newNode.yr = "2018";
+				newNode.intm = "08:30";
+				newNode.outm = "17:00";
+				newNode.nwh = "0.0";
+				newNode.lchst = "12:00";
+				newNode.lchend = "12:30";
+				newNode.osh = "0.0";
+				
+				newNode.onclick = parent.openTsInOut;
+
+				/*if (grid.numberOfCompleteTsLines < 1) {
+					newNode.disabled = true;
+					parent.timeInIconArray[parent.timeInIconArray.length] = newNode;
+				}*/
+				dayHeader.appendChild(newNode);
+				
+			for (var x = 0; x < parent.ROA.length; x++) {
+				var hr =  parent.ROA[x].hrs;
+				hr[4].nonWorkDay = "false";
+				hr[4].holiday="false";
+				hr[4].vacation="false";
+				hr[4].flexible="false";
+				hr[4].ddt="8/20";
+				hr[4].dyr="2018";
+				hr[4].hrs_dt="08/20/2018";
+				hr[4].dayOfMonth = "8/20";
+				
+			}
+		
+			var dayHeader = parent.document.getElementById('hrsHeaderText5');
+
+			//This line seems to release all "clock" icons added earlier
+			dayHeader.innerHTML = "Tue<br>8/21";
+			
+				var newNode = parent.document.createElement("DIV");
+				newNode.className = "clock";
+				newNode.dayNo = 5;
+				newNode.dt = "8/21";
+				
+				newNode.dy = "21";
+				newNode.mo = "7";
+				newNode.yr = "2018";
+				newNode.intm = "08:30";
+				newNode.outm = "17:00";
+				newNode.nwh = "0.0";
+				newNode.lchst = "12:00";
+				newNode.lchend = "12:30";
+				newNode.osh = "0.0";
+				
+				newNode.onclick = parent.openTsInOut;
+
+				/*if (grid.numberOfCompleteTsLines < 1) {
+					newNode.disabled = true;
+					parent.timeInIconArray[parent.timeInIconArray.length] = newNode;
+				}*/
+				dayHeader.appendChild(newNode);
+				
+			for (var x = 0; x < parent.ROA.length; x++) {
+				var hr =  parent.ROA[x].hrs;
+				hr[5].nonWorkDay = "false";
+				hr[5].holiday="false";
+				hr[5].vacation="false";
+				hr[5].flexible="false";
+				hr[5].ddt="8/21";
+				hr[5].dyr="2018";
+				hr[5].hrs_dt="08/21/2018";
+				hr[5].dayOfMonth = "8/21";
+				
+			}
+		
+			var dayHeader = parent.document.getElementById('hrsHeaderText6');
+
+			//This line seems to release all "clock" icons added earlier
+			dayHeader.innerHTML = "Wed<br>8/22";
+			
+				var newNode = parent.document.createElement("DIV");
+				newNode.className = "clock";
+				newNode.dayNo = 6;
+				newNode.dt = "8/22";
+				
+				newNode.dy = "22";
+				newNode.mo = "7";
+				newNode.yr = "2018";
+				newNode.intm = "08:30";
+				newNode.outm = "17:00";
+				newNode.nwh = "0.0";
+				newNode.lchst = "12:00";
+				newNode.lchend = "12:30";
+				newNode.osh = "0.0";
+				
+				newNode.onclick = parent.openTsInOut;
+
+				/*if (grid.numberOfCompleteTsLines < 1) {
+					newNode.disabled = true;
+					parent.timeInIconArray[parent.timeInIconArray.length] = newNode;
+				}*/
+				dayHeader.appendChild(newNode);
+				
+			for (var x = 0; x < parent.ROA.length; x++) {
+				var hr =  parent.ROA[x].hrs;
+				hr[6].nonWorkDay = "false";
+				hr[6].holiday="false";
+				hr[6].vacation="false";
+				hr[6].flexible="false";
+				hr[6].ddt="8/22";
+				hr[6].dyr="2018";
+				hr[6].hrs_dt="08/22/2018";
+				hr[6].dayOfMonth = "8/22";
+				
+			}
+		
+			var dayHeader = parent.document.getElementById('hrsHeaderText7');
+
+			//This line seems to release all "clock" icons added earlier
+			dayHeader.innerHTML = "Thu<br>8/23";
+			
+				var newNode = parent.document.createElement("DIV");
+				newNode.className = "clock";
+				newNode.dayNo = 7;
+				newNode.dt = "8/23";
+				
+				newNode.dy = "23";
+				newNode.mo = "7";
+				newNode.yr = "2018";
+				newNode.intm = "08:30";
+				newNode.outm = "17:00";
+				newNode.nwh = "0.0";
+				newNode.lchst = "12:00";
+				newNode.lchend = "12:30";
+				newNode.osh = "0.0";
+				
+				newNode.onclick = parent.openTsInOut;
+
+				/*if (grid.numberOfCompleteTsLines < 1) {
+					newNode.disabled = true;
+					parent.timeInIconArray[parent.timeInIconArray.length] = newNode;
+				}*/
+				dayHeader.appendChild(newNode);
+				
+			for (var x = 0; x < parent.ROA.length; x++) {
+				var hr =  parent.ROA[x].hrs;
+				hr[7].nonWorkDay = "false";
+				hr[7].holiday="false";
+				hr[7].vacation="false";
+				hr[7].flexible="false";
+				hr[7].ddt="8/23";
+				hr[7].dyr="2018";
+				hr[7].hrs_dt="08/23/2018";
+				hr[7].dayOfMonth = "8/23";
+				
+			}
+		
+			var dayHeader = parent.document.getElementById('hrsHeaderText8');
+
+			//This line seems to release all "clock" icons added earlier
+			dayHeader.innerHTML = "Fri<br>8/24";
+			
+				var newNode = parent.document.createElement("DIV");
+				newNode.className = "clock";
+				newNode.dayNo = 8;
+				newNode.dt = "8/24";
+				
+				newNode.dy = "24";
+				newNode.mo = "7";
+				newNode.yr = "2018";
+				newNode.intm = "08:30";
+				newNode.outm = "17:00";
+				newNode.nwh = "0.0";
+				newNode.lchst = "12:00";
+				newNode.lchend = "12:30";
+				newNode.osh = "0.0";
+				
+				newNode.onclick = parent.openTsInOut;
+
+				/*if (grid.numberOfCompleteTsLines < 1) {
+					newNode.disabled = true;
+					parent.timeInIconArray[parent.timeInIconArray.length] = newNode;
+				}*/
+				dayHeader.appendChild(newNode);
+				
+			for (var x = 0; x < parent.ROA.length; x++) {
+				var hr =  parent.ROA[x].hrs;
+				hr[8].nonWorkDay = "false";
+				hr[8].holiday="false";
+				hr[8].vacation="false";
+				hr[8].flexible="false";
+				hr[8].ddt="8/24";
+				hr[8].dyr="2018";
+				hr[8].hrs_dt="08/24/2018";
+				hr[8].dayOfMonth = "8/24";
+				
+			}
+		
+			var dayHeader = parent.document.getElementById('hrsHeaderText9');
+
+			//This line seems to release all "clock" icons added earlier
+			dayHeader.innerHTML = "Sat<br>8/25";
+			
+				var newNode = parent.document.createElement("DIV");
+				newNode.className = "clock";
+				newNode.dayNo = 9;
+				newNode.dt = "8/25";
+				
+				newNode.dy = "25";
+				newNode.mo = "7";
+				newNode.yr = "2018";
+				newNode.intm = "08:30";
+				newNode.outm = "17:00";
+				newNode.nwh = "0.0";
+				newNode.lchst = "12:00";
+				newNode.lchend = "12:30";
+				newNode.osh = "0.0";
+				
+				newNode.onclick = parent.openTsInOut;
+
+				/*if (grid.numberOfCompleteTsLines < 1) {
+					newNode.disabled = true;
+					parent.timeInIconArray[parent.timeInIconArray.length] = newNode;
+				}*/
+				dayHeader.appendChild(newNode);
+				
+			for (var x = 0; x < parent.ROA.length; x++) {
+				var hr =  parent.ROA[x].hrs;
+				hr[9].nonWorkDay = "true";
+				hr[9].holiday="false";
+				hr[9].vacation="false";
+				hr[9].flexible="true";
+				hr[9].ddt="8/25";
+				hr[9].dyr="2018";
+				hr[9].hrs_dt="08/25/2018";
+				hr[9].dayOfMonth = "8/25";
+				
+				hr[9].style.backgroundColor = "#cccccc";
+				
+			}
+		
+			var dayHeader = parent.document.getElementById('hrsHeaderText10');
+
+			//This line seems to release all "clock" icons added earlier
+			dayHeader.innerHTML = "Sun<br>8/26";
+			
+				var newNode = parent.document.createElement("DIV");
+				newNode.className = "clock";
+				newNode.dayNo = 10;
+				newNode.dt = "8/26";
+				
+				newNode.dy = "26";
+				newNode.mo = "7";
+				newNode.yr = "2018";
+				newNode.intm = "08:30";
+				newNode.outm = "17:00";
+				newNode.nwh = "0.0";
+				newNode.lchst = "12:00";
+				newNode.lchend = "12:30";
+				newNode.osh = "0.0";
+				
+				newNode.onclick = parent.openTsInOut;
+
+				/*if (grid.numberOfCompleteTsLines < 1) {
+					newNode.disabled = true;
+					parent.timeInIconArray[parent.timeInIconArray.length] = newNode;
+				}*/
+				dayHeader.appendChild(newNode);
+				
+			for (var x = 0; x < parent.ROA.length; x++) {
+				var hr =  parent.ROA[x].hrs;
+				hr[10].nonWorkDay = "true";
+				hr[10].holiday="false";
+				hr[10].vacation="false";
+				hr[10].flexible="true";
+				hr[10].ddt="8/26";
+				hr[10].dyr="2018";
+				hr[10].hrs_dt="08/26/2018";
+				hr[10].dayOfMonth = "8/26";
+				
+				hr[10].style.backgroundColor = "#cccccc";
+				
+			}
+		
+			var dayHeader = parent.document.getElementById('hrsHeaderText11');
+
+			//This line seems to release all "clock" icons added earlier
+			dayHeader.innerHTML = "Mon<br>8/27";
+			
+				var newNode = parent.document.createElement("DIV");
+				newNode.className = "clock";
+				newNode.dayNo = 11;
+				newNode.dt = "8/27";
+				
+				newNode.dy = "27";
+				newNode.mo = "7";
+				newNode.yr = "2018";
+				newNode.intm = "08:30";
+				newNode.outm = "17:00";
+				newNode.nwh = "0.0";
+				newNode.lchst = "12:00";
+				newNode.lchend = "12:30";
+				newNode.osh = "0.0";
+				
+				newNode.onclick = parent.openTsInOut;
+
+				/*if (grid.numberOfCompleteTsLines < 1) {
+					newNode.disabled = true;
+					parent.timeInIconArray[parent.timeInIconArray.length] = newNode;
+				}*/
+				dayHeader.appendChild(newNode);
+				
+			for (var x = 0; x < parent.ROA.length; x++) {
+				var hr =  parent.ROA[x].hrs;
+				hr[11].nonWorkDay = "false";
+				hr[11].holiday="false";
+				hr[11].vacation="false";
+				hr[11].flexible="false";
+				hr[11].ddt="8/27";
+				hr[11].dyr="2018";
+				hr[11].hrs_dt="08/27/2018";
+				hr[11].dayOfMonth = "8/27";
+				
+			}
+		
+			var dayHeader = parent.document.getElementById('hrsHeaderText12');
+
+			//This line seems to release all "clock" icons added earlier
+			dayHeader.innerHTML = "Tue<br>8/28";
+			
+				var newNode = parent.document.createElement("DIV");
+				newNode.className = "clock";
+				newNode.dayNo = 12;
+				newNode.dt = "8/28";
+				
+				newNode.dy = "28";
+				newNode.mo = "7";
+				newNode.yr = "2018";
+				newNode.intm = "08:30";
+				newNode.outm = "17:00";
+				newNode.nwh = "0.0";
+				newNode.lchst = "12:00";
+				newNode.lchend = "12:30";
+				newNode.osh = "0.0";
+				
+				newNode.onclick = parent.openTsInOut;
+
+				/*if (grid.numberOfCompleteTsLines < 1) {
+					newNode.disabled = true;
+					parent.timeInIconArray[parent.timeInIconArray.length] = newNode;
+				}*/
+				dayHeader.appendChild(newNode);
+				
+			for (var x = 0; x < parent.ROA.length; x++) {
+				var hr =  parent.ROA[x].hrs;
+				hr[12].nonWorkDay = "false";
+				hr[12].holiday="false";
+				hr[12].vacation="false";
+				hr[12].flexible="false";
+				hr[12].ddt="8/28";
+				hr[12].dyr="2018";
+				hr[12].hrs_dt="08/28/2018";
+				hr[12].dayOfMonth = "8/28";
+				
+			}
+		
+			var dayHeader = parent.document.getElementById('hrsHeaderText13');
+
+			//This line seems to release all "clock" icons added earlier
+			dayHeader.innerHTML = "Wed<br>8/29";
+			
+				var newNode = parent.document.createElement("DIV");
+				newNode.className = "clock";
+				newNode.dayNo = 13;
+				newNode.dt = "8/29";
+				
+				newNode.dy = "29";
+				newNode.mo = "7";
+				newNode.yr = "2018";
+				newNode.intm = "08:30";
+				newNode.outm = "17:00";
+				newNode.nwh = "0.0";
+				newNode.lchst = "12:00";
+				newNode.lchend = "12:30";
+				newNode.osh = "0.0";
+				
+				newNode.onclick = parent.openTsInOut;
+
+				/*if (grid.numberOfCompleteTsLines < 1) {
+					newNode.disabled = true;
+					parent.timeInIconArray[parent.timeInIconArray.length] = newNode;
+				}*/
+				dayHeader.appendChild(newNode);
+				
+			for (var x = 0; x < parent.ROA.length; x++) {
+				var hr =  parent.ROA[x].hrs;
+				hr[13].nonWorkDay = "false";
+				hr[13].holiday="false";
+				hr[13].vacation="false";
+				hr[13].flexible="false";
+				hr[13].ddt="8/29";
+				hr[13].dyr="2018";
+				hr[13].hrs_dt="08/29/2018";
+				hr[13].dayOfMonth = "8/29";
+				
+			}
+		
+			var dayHeader = parent.document.getElementById('hrsHeaderText14');
+
+			//This line seems to release all "clock" icons added earlier
+			dayHeader.innerHTML = "Thu<br>8/30";
+			
+				var newNode = parent.document.createElement("DIV");
+				newNode.className = "clock";
+				newNode.dayNo = 14;
+				newNode.dt = "8/30";
+				
+				newNode.dy = "30";
+				newNode.mo = "7";
+				newNode.yr = "2018";
+				newNode.intm = "08:30";
+				newNode.outm = "17:00";
+				newNode.nwh = "0.0";
+				newNode.lchst = "12:00";
+				newNode.lchend = "12:30";
+				newNode.osh = "0.0";
+				
+				newNode.onclick = parent.openTsInOut;
+
+				/*if (grid.numberOfCompleteTsLines < 1) {
+					newNode.disabled = true;
+					parent.timeInIconArray[parent.timeInIconArray.length] = newNode;
+				}*/
+				dayHeader.appendChild(newNode);
+				
+			for (var x = 0; x < parent.ROA.length; x++) {
+				var hr =  parent.ROA[x].hrs;
+				hr[14].nonWorkDay = "false";
+				hr[14].holiday="false";
+				hr[14].vacation="false";
+				hr[14].flexible="false";
+				hr[14].ddt="8/30";
+				hr[14].dyr="2018";
+				hr[14].hrs_dt="08/30/2018";
+				hr[14].dayOfMonth = "8/30";
+				
+			}
+		
+			var dayHeader = parent.document.getElementById('hrsHeaderText15');
+
+			//This line seems to release all "clock" icons added earlier
+			dayHeader.innerHTML = "Fri<br>8/31";
+			
+				var newNode = parent.document.createElement("DIV");
+				newNode.className = "clock";
+				newNode.dayNo = 15;
+				newNode.dt = "8/31";
+				
+				newNode.dy = "31";
+				newNode.mo = "7";
+				newNode.yr = "2018";
+				newNode.intm = "08:30";
+				newNode.outm = "17:00";
+				newNode.nwh = "0.0";
+				newNode.lchst = "12:00";
+				newNode.lchend = "12:30";
+				newNode.osh = "0.0";
+				
+				newNode.onclick = parent.openTsInOut;
+
+				/*if (grid.numberOfCompleteTsLines < 1) {
+					newNode.disabled = true;
+					parent.timeInIconArray[parent.timeInIconArray.length] = newNode;
+				}*/
+				dayHeader.appendChild(newNode);
+				
+			for (var x = 0; x < parent.ROA.length; x++) {
+				var hr =  parent.ROA[x].hrs;
+				hr[15].nonWorkDay = "false";
+				hr[15].holiday="false";
+				hr[15].vacation="false";
+				hr[15].flexible="false";
+				hr[15].ddt="8/31";
+				hr[15].dyr="2018";
+				hr[15].hrs_dt="08/31/2018";
+				hr[15].dayOfMonth = "8/31";
+				
+			}
+		
+
+		var udtOrderedTypes = new Array();
+		var ROA = parent.ROA;
+		var COA = new Array();
+
+		for (var x = 0; x < grid.numberOfDays; x++) {
+			COA[x] = new parent.ColumnObject(x);
+		}
+		udtOrderedTypes = parent.udtOrderedTypes;
+
+		var readOnlyCells = new Array();
+		var readOnlyCellCount = 0;
+		var readOnlyLines = new Array();
+		var readOnlyLineCount = 0;
+
+
+
+		parent.offlineSecurityKey = null;
+		populateObjects2();
+
+		  grid.loginEmplId = parent.grid.loginEmplId;
+
+		  parent.grid = grid;
+		  parent.TS = TS;
+		  parent.udtOrderedTypes = udtOrderedTypes;
+		  parent.COA = COA;
+
+		  if (grid.mode == "insert") {
+			parent.addLine();
+		  }
+
+		   <!--*** LOAD CHARGES, HOURS, AND SHOW COSTONLY LINES ***-->
+		  parent.calculateTotals();
+		  if (grid.mode == "update") {
+			parent.addLine();
+		  }
+
+		<!--**** INITIALIZE FIRST, NEXT, PREVIOUS, LAST BUTTONS ****-->
+
+
+
+		parent.firstRecordIcon.onclick = null;
+		parent.previousRecordIcon.onclick = null;
+		parent.nextRecordIcon.onclick = null;
+		parent.lastRecordIcon.onclick = null
+		if(grid.recordIndex > parent.firstBrowsableTS) {
+			parent.firstRecordIcon.onclick =  parent.handleFirstRecordClick;
+			parent.previousRecordIcon.onclick = parent.handlePreviousRecordClick;
+		}
+		if(grid.searchMode && (grid.recordIndex < grid.numberOfSearchIds - 1 + parent.firstBrowsableTS)) {
+			parent.nextRecordIcon.onclick = parent.handleNextRecordClick;
+			parent.lastRecordIcon.onclick = parent.handleLastRecordClick;
+		}
+		if (grid.searchMode) {
+			parent.firstRecordIcon.className = (grid.recordIndex > parent.firstBrowsableTS ? 'firstActive' : 'firstPassive');
+			parent.previousRecordIcon.className = (grid.recordIndex > parent.firstBrowsableTS ? 'previousActive' : 'previousPassive');
+			parent.nextRecordIcon.className = ((grid.recordIndex <  (grid.numberOfSearchIds - 1 + parent.firstBrowsableTS)) ? 'nextActive' : 'nextPassive');
+			parent.lastRecordIcon.className = ((grid.recordIndex <  (grid.numberOfSearchIds - 1 + parent.firstBrowsableTS)) ? 'lastActive' : 'lastPassive');
+		} else {
+			parent.firstRecordIcon.className = 'firstPassive';
+			parent.previousRecordIcon.className = 'previousPassive';
+			parent.nextRecordIcon.className = 'nextPassive';
+			parent.lastRecordIcon.className = 'lastPassive';
+		}
+		if ((grid.searchMode) && (false)) {
+			if (grid.numberOfSearchIds > (1 - parent.firstBrowsableTS)) {
+				parent.selectElement.options[grid.recordIndex].selected = true;
+			}
+		}
+		parent.document.getElementById("statusCodeSpan").innerHTML = "Missing";
+		
+			parent.document.getElementById("statusCodeSpan").title='';
+		
+		parent.document.getElementById("endingDateSpan").innerHTML = "Aug 31, 2018" +
+			'';
+		parent.document.getElementById("revisionNumberSpan").innerHTML = 1;
+		parent.document.getElementById("classCodeSpan").innerHTML = "RFEP-Projects";
+		parent.document.getElementById("scheduleDescSpan").innerHTML = "Semi-Month " + "Period Ending";
+		if (parent.document.getElementById("headerValue") != null) {
+			parent.document.getElementById("headerValue").innerHTML = "01";
+		}
+
+		
+			parent.enableAuditTS(false);
+			
+		
+			parent.enablePrintTS(false);
+		
+
+		parent.enableAllLineFunctions(false);
+
+		
+
+		parent.browseOnly = false;
+
+		
+		if(false) {
+			top.setApplicationName('Timesheet', true);
+		}
+		else if (parent.grid.timesheetIsClosed) {
+			top.setApplicationName('Timesheet-Closed', false);
+		}
+		else if(parent.browseOnly) {
+			top.setApplicationName('Timesheet', true);
+		}
+		else {
+			top.setApplicationName('Timesheet', false);
+		}
+
+		<!--**** INITIALIZE SIGN AND APPROVE FUNCTIONS ****-->
+
+
+		function initializeSignAndApprove() {
+			var winObject = parent;
+				
+			winObject.grid.signReplacement = false;
+			winObject.signBox.innerHTML = "&nbsp;";
+			winObject.signBox.title = "";
+			
+			winObject.grid.approveReplacement = false;
+			winObject.approveBox.innerHTML = "&nbsp;";
+			winObject.approveBox.title = "";
+			winObject.approveImage.title = "";
+			
+
+		}
+
+
+
+
+		
+			parent.document.getElementById('hourViewTable').style.visibility = 'hidden';
+		
+
+		parent.saveWarnings = '';
+		parent.signWarnings = '';
+		
+			parent.document.getElementById('saveSignWarningsIcon').style.visibility = 'hidden';
+		
+
+				parent.signImage.className = "signDisabled";
+				parent.approveImage.className = "approveDisabled";
+				parent.rejectImage.className = "rejectDisabled";
+
+		
+		function enableReverseTSLinkOnLoad() {
+			parent.reverseTimesheetEnabled = false;
+			parent.enableReverseTimesheet(false);
+			parent.offlineDlgTitle = 'Off-Line Timesheet' + ' '+
+					'Aug 31, 2018'+ ' '+
+					'Semi-Month';
+			
+		}
+
+		function enableOfflineTSLinkOnLoad(){
+			parent.enableOfflineTimesheet(false);
+			parent.classAllowsOfflineTS = false;
+			
+		}
+
+		function enableNotesLinkOnLoad(){
+			parent.enableNotes(false);
+		}
+
+		parent.tsDayObjectArray = new Array();
+		parent.timeInDate = null;
+		parent.timeOutDate = null;
+		parent.offsiteHours = null;
+		parent.nonWorkHours = null;
+		parent.hasNewValues = false;
+		parent.dayText = null;
+
+		parent.scrollToTopLeft();
+		var udtCells = parent.ROA[grid.numberOfCompleteTsLines].udts;
+		var firstCellCol = 0;
+		while(udtCells[firstCellCol].typ == "0" || parent.udtSizes[firstCellCol] == 0) firstCellCol++;
+		var firstCell = udtCells[firstCellCol];
+
+		parent.addLine();
+		parent.setActiveEntry(firstCell);
+		initializeSignAndApprove();
+		enableReverseTSLinkOnLoad();
+		enableOfflineTSLinkOnLoad();
+		enableNotesLinkOnLoad();
+		parent.enableTotalLink(false);
+
+		var openTSLink = parent.document.getElementById('openTS');
+		var navBackBtn = parent.document.getElementById('navBack');
+		var navForwBtn = parent.document.getElementById('navForward');
+		
+			openTSLink.className = 'navFunctionEnabled';
+			openTSLink.onclick = parent.openCalendar;
+			navBackBtn.disabled = false;
+			navBackBtn.onclick = parent.changePeriodPrev;
+			navForwBtn.disabled = false;
+			navForwBtn.onclick = parent.changePeriodNext;
+		
+
+		top.clearFormSubmitted();
+
+
+
+		
+			if (hoursNotShown == "Y") {
+				parent.giveHoursNotShownMessage();
+			}
+		
+
+		</script>
+
+		
+
+<form id="jspPage2" name="jspPage2" method="post" action="https://te.sysplus.com/DeltekTC/TimeCollection.msv">
+
+  <input type="hidden" name="unit" id="unit" value="TS">
+
+  <input type="hidden" name="event" id="event" value="openTsByDateNoRepaint">
+
+  <input type="hidden" id="year" name="year" value="2001">
+
+  <input type="hidden" id="month" name="month" value="5">
+
+  <input type="hidden" id="date" name="date" value="1">
+
+  <input id="screenWidth" name="screenWidth" type="hidden" value="1366">
+
+  <input id="recordIndex" name="recordIndex" type="hidden" value="1">
+</form>
+
+<form id="supervisorForm" name="supervisorForm" method="post" action="https://te.sysplus.com/DeltekTC/TimeCollection.msv">
+
+	  <input id="unit" name="unit" type="hidden" value="TS">
+
+	  <input id="event" name="event" type="hidden" value="openTsByIndexNoRepaint">
+
+	  <input id="recordIndex" name="recordIndex" value="1" type="hidden">
+
+	  <input id="screenWidth" name="screenWidth" type="hidden" value="1366">
+
+</form>
+
+<form id="changePeriodForm" name="changePeriodForm" method="post" action="https://te.sysplus.com/DeltekTC/TimeCollection.msv">
+
+	  <input id="unit" name="unit" type="hidden" value="TS">
+
+	  <input id="event" name="event" type="hidden" value="changePeriod">
+
+	  <input id="isLoginUser" name="isLoginUser" type="hidden" value="Y">
+
+	  <input id="direction" name="direction" type="hidden" value="next">
+
+	  <input id="recordIndex" name="recordIndex" value="1" type="hidden">
+
+	  <input id="screenWidth" name="screenWidth" type="hidden">
+
+</form>
+
+
+<script language="Javascript">
+   var widthOfScreen = screen.width;
+   document.forms["jspPage2"].screenWidth.value = widthOfScreen;
+   document.forms["supervisorForm"].screenWidth.value = widthOfScreen;
+</script>
+
+
+
+
+
+</body></html>

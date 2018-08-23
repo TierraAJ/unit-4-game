@@ -1,0 +1,11 @@
+/********** default stylesheet for time collection *****************/
+@import url(te6.css);
+
+BODY { 
+    margin: 0px;
+    background-color: #cccccc;
+}
+
+.disabledText{
+	color: #999999;
+}

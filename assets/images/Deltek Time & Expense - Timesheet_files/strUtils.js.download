@@ -1,0 +1,61 @@
+function trim(string) {
+	if(!string || string == "") {
+		return string;
+	}
+	var i = 0;
+	for(; i < string.length && isWhitespace(string.charAt(i)); i++);
+	if(i == string.length) {
+		return "";
+	}
+	var h = string.length - 1;
+	for(; h > -1 && isWhitespace(string.charAt(h)); h--);
+	return string.substring(i, h + 1);
+}
+
+function isWhitespace(c) {
+	if(c == ' ' || c == '\n' || c == '\r' || c == '\t') return true;
+	return false;
+}
+
+function truncateString(string, amount){
+	var ar = string.split('\n');
+	var s1 = ar.join('');
+	var delta = string.length - s1.length;
+	if (string.indexOf('\r') != -1){
+		delta = 0;
+	}
+	return string.substr(0, amount - delta);
+}
+
+function realLength(string){
+	var ar = string.split('\n');
+	var s1 = ar.join('');
+	var delta = string.length - s1.length;
+
+	//if no CR+LF are found in the string - return the length
+	if (delta == 0){
+		return string.length;
+	}
+
+	//If can find "carriage return" characters - it's IE, so return the length
+	if (string.indexOf('\r') != -1){
+		return string.length;
+	}	
+
+	// otherwise it's Netscape 7 and for every line feed we should add carriage return
+	return string.length + delta;
+}
+
+function limitOnKeyUp(obj, limit){
+	if (realLength(obj.value) > limit){
+		obj.value = truncateString(obj.value, limit);
+	}
+}
+
+function showUnderline(obj) {
+    obj.style.textDecoration = "underline";
+}
+
+function hideUnderline(obj) {
+	obj.style.textDecoration = "none";
+}

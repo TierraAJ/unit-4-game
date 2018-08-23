@@ -1,0 +1,157 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!-- saved from url=(0070)https://te.sysplus.com/DeltekTC/com/deltek/tc/messages/modalTitle.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<script>
+var modalFrameIsMoving = false;
+var modalFrameStartX = 0;
+var modalFrameStartY = 0;
+var closeAction = null;
+
+
+function stripPx(str){
+	var pos = str.indexOf('px');
+	if (pos == -1) {
+		pos = str.indexOf('PX');
+	}
+	if (pos == -1) {
+		return parseInt(str);
+	} else {
+		return parseInt(str.substring(0, pos));
+	}
+}
+
+var gModalLeft = parent.document.getElementById('modalBorderLeft');
+var gModalRight = parent.document.getElementById('modalBorderRight');
+var gModalBottom = parent.document.getElementById('modalBorderBottom');
+var gModalFrame = parent.document.getElementById('modalFrame');
+var gModalTitle =  parent.document.getElementById('modalTitle'); 
+
+function onMD(ev){
+	if (!gModalLeft) gModalLeft = parent.document.getElementById('modalBorderLeft');
+	if (!gModalRight) gModalRight = parent.document.getElementById('modalBorderRight');
+	if (!gModalBottom) gModalBottom = parent.document.getElementById('modalBorderBottom');
+	if (!gModalFrame) gModalFrame = parent.document.getElementById('modalFrame');
+	if (!gModalTitle) gModalTitle =  parent.document.getElementById('modalTitle'); 
+	var target;
+	if(!ev){
+		modalFrameStartX = event.clientX;
+		modalFrameStartY = event.clientY;
+		target = event.srcElement;
+	} else {
+		modalFrameStartX = ev.clientX;
+		modalFrameStartY = ev.clientY;
+		target = ev.target;
+	}
+	if (target.id == 'closeButton') return true;
+	modalFrameIsMoving = true;
+	if (!ev){
+		gModalLeft.style.display = 'none';
+		gModalRight.style.display = 'none';
+		gModalBottom.style.display = 'none';
+		gModalFrame.style.display = 'none';
+	} else {
+		gModalLeft.style.visibility = 'hidden';
+		gModalRight.style.visibility = 'hidden';
+		gModalBottom.style.visibility = 'hidden';
+		gModalFrame.style.visibility = 'hidden';
+	}
+}
+
+function onMM(ev){
+	if (modalFrameIsMoving){
+		if (!gModalTitle) gModalTitle =  parent.document.getElementById('modalTitle'); 
+		var newClientX;
+		var newClientY;
+		var target;
+		if(typeof ev != 'object'){
+			newClientX = event.clientX;
+			newClientY = event.clientY;
+			target = event.srcElement;
+		} else {
+			newClientX = ev.clientX;
+			newClientY = ev.clientY;
+			target = ev.target;
+		}
+		if (target.id == 'closeButton') return true;
+		var deltaX = newClientX - modalFrameStartX;
+		var deltaY = newClientY - modalFrameStartY;
+		var obj = gModalTitle;
+
+		if (stripPx(obj.style.left) + deltaX < 0){
+			deltaX = 0 - stripPx(obj.style.left);
+		}
+		if (stripPx(obj.style.top) + deltaY < 0){
+			deltaY = 0 - stripPx(obj.style.top);
+		}
+
+		obj.style.left = stripPx(obj.style.left) + deltaX + 'px';
+		obj.style.top = stripPx(obj.style.top) + deltaY + 'px';
+	}
+}
+
+function onMU(ev){
+	var target; 
+	if(!ev){
+		target = event.srcElement;
+	} else {
+		target = ev.target;
+	}
+	if (target.id == 'closeButton') return true;
+	if (!gModalLeft) gModalLeft = parent.document.getElementById('modalBorderLeft');
+	if (!gModalRight) gModalRight = parent.document.getElementById('modalBorderRight');
+	if (!gModalBottom) gModalBottom = parent.document.getElementById('modalBorderBottom');
+	if (!gModalFrame) gModalFrame = parent.document.getElementById('modalFrame');
+	if (!gModalTitle) gModalTitle =  parent.document.getElementById('modalTitle'); 
+	modalFrameIsMoving = false;
+	gModalLeft.style.left = stripPx(gModalTitle.style.left) - 4 + 'px';
+	gModalLeft.style.top = stripPx(gModalTitle.style.top) + 'px';
+	gModalRight.style.left = stripPx(gModalTitle.style.left) + stripPx(gModalTitle.style.width) + 'px';
+	gModalRight.style.top = stripPx(gModalTitle.style.top) + 'px';
+	gModalBottom.style.left = stripPx(gModalTitle.style.left) - 4 + 'px';
+	gModalBottom.style.top = stripPx(gModalTitle.style.top) + 22 + stripPx(gModalFrame.style.height) + 'px';
+	gModalFrame.style.left = stripPx(gModalTitle.style.left) + 'px';
+	gModalFrame.style.top = stripPx(gModalTitle.style.top) + 22 + 'px';
+	if (!ev) {
+		gModalLeft.style.display = 'block';
+		gModalRight.style.display = 'block';
+		gModalBottom.style.display = 'block';
+		gModalFrame.style.display = 'block';
+	} else {
+		gModalLeft.style.visibility = 'visible';
+		gModalRight.style.visibility = 'visible';
+		gModalBottom.style.visibility = 'visible';
+		gModalFrame.style.visibility = 'visible';
+	}
+}
+
+function closeDialog(){
+	if (closeAction == null || closeAction == "disabled") return;
+	eval("parent."+closeAction+'()');
+}
+
+window.onload=function(){
+	modalFrameIsMoving = false;
+}
+
+document.onmousedown = onMD;
+document.onmousemove = onMM;
+document.onmouseup = onMU;
+document.onmouseout = onMU;
+
+</script>
+</head>
+<body marginleft="0" margintop="0" style="font-size:70%;font-family: Arial, helvetica, sans-serif;margin: 0px;color: #FFFFFF;background-color: #333399;border-top: 1px solid white;" onselectstart="return false;">
+<table width="100%" height="22" cellspacing="5" cellpadding="0" border="0">
+<tbody><tr>
+<td><div id="titleText" style="padding-left:5px;font-weight:bold;">Cell Comment 1&nbsp;-&nbsp;8/16</div>
+</td>
+<td>&nbsp;</td>
+<td width="20" valign="top">	
+	<div id="closeButton" style="width:16px;height:14px;background-image: url(../framework/images/modalCloseBtn.gif);" onclick="closeDialog()">&nbsp;
+	</div>
+</td>
+</tr>
+</tbody></table>
+
+
+</body></html>

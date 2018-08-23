@@ -1,0 +1,102 @@
+
+body {
+    background-color: white;
+    margin: 0px; 
+    font-family:Arial;
+}
+
+form {
+	margin-bottom:0px;
+}
+
+#toolbarMainTable {
+	font-size:80%;
+}
+
+.coloredBG {
+	background-color:#008CBA;
+}
+.transparentBG {
+	background-color:transparent;
+}
+
+table.globalOptions {
+	font-size:100%;
+}
+
+.showHide {
+    background-repeat: no-repeat;
+    background-image: url(../../images/globalOptionsBack.gif);
+    width: 25px;
+    height: 25px;
+    cursor: pointer;    
+}
+
+.applicationName {
+    font-size:110%;
+    color: white;
+    font-weight: bold;
+}
+
+div.showImg {
+    background-repeat: no-repeat;
+    background-image: url(../../images/Global_forward.gif);
+    width: 25px;
+    height: 25px;
+    cursor: pointer;
+}
+
+div.hideImg {
+    background-repeat: no-repeat;
+    background-image: url(../../images/Global_back.gif);
+    width: 25px;
+    height: 25px;
+    cursor: pointer;
+}
+
+
+div.homeImg {
+    background-repeat: no-repeat;
+    background-image: url(../../images/Global_home.gif);
+    width: 24px;
+    height: 19px;
+    cursor: pointer;
+}
+
+div.helpImg {
+    background-repeat: no-repeat;
+    background-image: url(../../images/Global_help.gif);
+    width: 24px;
+    height: 19px;
+    cursor: pointer;
+}
+
+div.aboutImg {
+    background-repeat: no-repeat;
+    background-image: url(../../images/Global_Info.gif);
+    width: 24px;
+    height: 19px;
+    cursor: pointer;
+}
+
+div.logoffImg {
+    background-repeat: no-repeat;
+    background-image: url(../../images/Global_logoff.gif);
+    width: 24px;
+    height: 19px;
+    cursor: pointer;
+}
+
+div.waitImg {
+	width:19px;
+	height:19px;
+	background-image:url(../../images/Wait.gif);
+	background-repeat: no-repeat;
+}
+
+span.blinkingTimeout{
+	font-size:110%;
+	font-weight: bold;
+	color: yellow;
+	text-decoration: blink;
+}

@@ -1,0 +1,221 @@
+var _formElements = new Array();
+var _formElementsDisabled = new Array();
+var _wizElements = new Array();
+var _wizElementsDisabled = new Array();
+
+var titleHeight = 22;
+var borderWidth = 4;
+
+var agt=navigator.userAgent.toLowerCase();
+var appVer = navigator.appVersion.toLowerCase();
+
+function showModalFrame(_URL, _width, _height, _title, _topProperty, _closeButtonDisabled) {
+	var modalFrame = document.getElementById('modalFrame');
+	var modalTitle = document.getElementById("modalTitle");
+	var modalBorderLeft = document.getElementById("modalBorderLeft");
+	var modalBorderRight = document.getElementById("modalBorderRight");
+	var modalBorderBottom = document.getElementById("modalBorderBottom");
+	var glassPane = document.getElementById('glassPane');
+        if (modalFrame){
+		if (modalFrame.style.visibility == 'visible') return;
+		var winWidth = 0;
+		var winHeight = 0;
+
+		try {
+			if (self == top.getUnitFrame()) {
+				winWidth = top.getUnitFrameWidth();
+			} else {
+				if (typeof window.innerWidth == 'number'){
+					winWidth = window.innerWidth;
+				} else if ((typeof document.body.clientWidth == 'number') && (document.body.clientWidth > 0)) {
+					winWidth = document.body.clientWidth;
+				} else if (typeof document.documentElement.clientWidth == 'number') {
+					winWidth = document.documentElement.clientWidth;
+				}
+			}
+			if (typeof window.innerHeight == 'number'){
+				winHeight = window.innerHeight;
+			} else if (typeof document.documentElement.clientHeight == 'number') {
+				winHeight = document.documentElement.clientHeight;
+			}
+		}
+		catch(e){
+		}
+
+
+
+
+		if(top.is_ie){
+			var selects = document.getElementsByTagName('SELECT');
+			for(var i = 0; i < selects.length; i++){
+				_formElements[i] = selects[i];
+				_formElementsDisabled[i] = selects[i].disabled;
+				selects[i].disabled = true;
+			}
+
+			//disabling stuff in wizard frame, if shown
+			if (self.frames['wizardFrame'] && document.getElementById('wizardFrame').style.visibility == 'visible') {
+				var wizdoc = self.frames['wizardFrame'].document;
+				selects = wizdoc.getElementsByTagName('SELECT');
+				for(var i = 0; i < selects.length; i++){
+					_wizElements[i] = selects[i];
+					_wizElementsDisabled[i] = selects[i].disabled;
+					selects[i].disabled = true;
+				}
+			}
+		}
+
+
+		var glassPaneHeight = winHeight;
+		if (typeof document.height == 'number'){
+			glassPaneHeight = document.height;
+		} else if (typeof document.documentElement.scrollHeight == 'number') {
+			glassPaneHeight = document.documentElement.scrollHeight;
+		}
+		glassPaneHeight = glassPaneHeight > winHeight ? glassPaneHeight : winHeight;
+		var glassPaneWidth = winWidth;
+		if (typeof document.width == 'number'){
+			glassPaneWidth = document.width;
+		} else if (typeof document.documentElement.scrollWidth == 'number') {
+			glassPaneWidth = document.documentElement.scrollWidth;
+		}
+		glassPaneWidth = glassPaneWidth > screen.width ? glassPaneWidth : screen.width;
+		glassPane.style.width = glassPaneWidth+'px';
+		glassPane.style.height = glassPaneHeight+'px';
+		glassPane.style.top = '0px';
+		glassPane.style.left = '0px';
+		glassPane.style.visibility = 'visible';
+
+
+		var leftProperty = winWidth - _width < 0 ? 100 : Math.floor((winWidth - _width) / 2);
+
+			if (! _topProperty) {
+				_topProperty = Math.floor(((winHeight - _height) / 2));
+				var pos;
+				if (window.innerHeight){
+					pos = window.pageYOffset
+				} else if (document.documentElement && document.documentElement.scrollTop){
+					pos = document.documentElement.scrollTop
+				} else if (document.body){
+					pos = document.body.scrollTop
+				}
+
+				if(pos > 0){
+					_topProperty += pos;
+				}
+			}
+
+
+			modalTitle.style.width = _width + 'px';
+			modalTitle.style.height = titleHeight + 'px';
+			modalTitle.style.top = _topProperty + "px";
+			modalTitle.style.left = leftProperty + 'px';
+
+			self.frames['modalTitle'].document.getElementById('titleText').innerHTML = _title;
+			self.frames['modalTitle'].closeAction = _closeButtonDisabled ? "disabled" : "closeModalFrame";
+			self.frames['modalTitle'].modalFrameIsMoving = false;
+
+			modalFrame.style.width= _width+'px';
+			modalFrame.style.height = _height+'px';
+			modalFrame.style.top = (_topProperty + titleHeight) + "px";
+			modalFrame.style.left = leftProperty + 'px';
+
+			modalBorderLeft.style.width = borderWidth + 'px';
+			modalBorderLeft.style.height = (_height + titleHeight + borderWidth) + 'px';
+			modalBorderLeft.style.top = _topProperty + "px";
+			modalBorderLeft.style.left = (leftProperty - borderWidth) + 'px';
+
+			modalBorderRight.style.width = borderWidth + 'px';
+			modalBorderRight.style.height = (_height + titleHeight + borderWidth) + 'px';
+			modalBorderRight.style.top = _topProperty + "px";
+			modalBorderRight.style.left = (leftProperty + _width) + 'px';
+
+			modalBorderBottom.style.width = _width+'px';
+			modalBorderBottom.style.height = borderWidth + 'px';
+			modalBorderBottom.style.top = (_topProperty + _height + titleHeight) + "px";
+			modalBorderBottom.style.left = leftProperty + 'px';
+
+			top.setFormSubmitted();
+			modalTitle.style.visibility = 'visible';
+			modalFrame.style.visibility = 'visible';
+			modalBorderLeft.style.visibility = 'visible';
+			modalBorderRight.style.visibility = 'visible';
+			modalBorderBottom.style.visibility = 'visible';
+			self.frames['modalFrame'].window.location.replace(_URL);
+
+	} else {
+		alert('No modalFrame element found.');
+	}
+}
+
+function closeModalFrame() {
+
+	var modalFrame = document.getElementById('modalFrame');
+	var modalTitle = document.getElementById('modalTitle');
+	var modalBorderLeft = document.getElementById('modalBorderLeft');
+	var modalBorderRight = document.getElementById('modalBorderRight');
+	var modalBorderBottom = document.getElementById('modalBorderBottom');
+	if (modalFrame){
+		self.frames['modalTitle'].modalFrameIsMoving = false;
+		modalFrame.style.visibility = 'hidden';
+		modalTitle.style.visibility = 'hidden';
+		modalBorderLeft.style.visibility = 'hidden';
+		modalBorderRight.style.visibility = 'hidden';
+		modalBorderBottom.style.visibility = 'hidden';
+		var modalFrameDoc = self.frames['modalFrame'].document;
+		if(modalFrameDoc.body){
+			modalFrameDoc.body.style.visibility = 'hidden';
+		}
+		if(modalFrameDoc.getElementById("errImage")){
+			modalFrameDoc.getElementById("errImage").style.visibility = 'hidden';
+		}
+		modalFrame.style.width='0px';
+		modalFrame.style.height='0px';
+		modalTitle.style.width='0px';
+		modalTitle.style.height='0px';
+		modalBorderLeft.style.width='0px';
+		modalBorderLeft.style.height='0px';
+		modalBorderRight.style.width='0px';
+		modalBorderRight.style.height='0px';
+		modalBorderBottom.style.width='0px';
+		modalBorderBottom.style.height='0px';
+		//modalFrame.style.top = '0px';
+		//modalFrame.style.left = '0px';
+
+		var glassPane = document.getElementById('glassPane');
+		glassPane.style.width='0px';
+		glassPane.style.height='0px';
+		glassPane.style.top='0px';
+		glassPane.style.left='0px';
+		glassPane.style.visibility='hidden';
+
+		var _formElementsLength = _formElements.length;
+		for(var i = 0; i < _formElementsLength; i++) {
+			_formElements[i].disabled = _formElementsDisabled[i];
+		}
+
+		//enabling stuff in wizard frame, if shown
+		if (self.frames['wizardFrame'] && document.getElementById('wizardFrame').style.visibility == 'visible') {
+			var _wizElementsLength = _wizElements.length;
+			for(var i = 0; i < _wizElementsLength; i++) {
+				try {
+					_wizElements[i].disabled = _wizElementsDisabled[i];
+				} catch(e) {}
+			}
+			_wizElements = new Array();
+			_wizElementsDisabled = new Array();
+		}
+		window.focus();
+		if(document.getElementById('editor') && editorShown && editor.currentCell != null && !editor.disabled){
+			if (editor.currentCell.className == "d"){
+				scrollHourCellIntoView(editor.currentCell);
+			} else {
+				scrollUdtCellIntoView(editor.currentCell, udtSizes[getCellCol(editor.currentCell)]);
+			}
+			editor.focus();
+		}
+	} else {
+		alert('No modalFrame element found.');
+	}
+}
+

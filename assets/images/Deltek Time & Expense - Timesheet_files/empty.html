@@ -1,0 +1,102 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!-- saved from url=(0050)https://te.sysplus.com/DeltekTC/TimeCollection.msv -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta http-equiv="Content-Type" content="text/html">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Style-Type" content="text/css">
+
+
+<script src="./ErrMessageDisplay.js.download"></script>
+<script type="text/javascript" src="./CommonXB.js.download"></script>
+<script>
+
+var intervalId;
+
+var showSignWarningIcon = true;
+var closedStatus = false;
+
+
+window.onload = function() {
+	top.clearFormSubmitted();
+	
+					
+					var dialogTitle = "Sign Timesheet";
+					parent.showModalFrame("/DeltekTC/com/deltek/tc/tssign/signTimesheet.jsp", 400, 260, dialogTitle);
+					
+}
+
+
+function doneWithSigning() {
+	if(intervalId != null) window.clearInterval(intervalId);
+
+	var signatureField = parent.document.getElementById("signature");
+	var signBoxSpan = parent.document.getElementById("signature");
+
+	if(!(signatureField.innerHTML == '' || signatureField.innerHTML == '&nbsp;') &&signatureField.innerHTML != parent.grid.loginFullName) {
+		var revision=parent.revisionNumberSpan.innerHTML;
+		parent.revisionNumberSpan.innerHTML = parseInt(revision)+1;
+		parent.enableAuditTS(true);
+	}
+	signatureField.innerHTML = parent.grid.loginFullName;
+	signBoxSpan.title = "August 23, 2018 - 3:15 AM";
+
+	parent.signImage.className = "signDisabled";
+
+	if (trim(parent.statusCodeSpan.innerHTML) == parent.statusCodeSpan.openStatusCode ||
+		trim(parent.statusCodeSpan.innerHTML) == parent.statusCodeSpan.rejectedStatusCode) {
+		parent.statusCodeSpan.innerHTML = parent.statusCodeSpan.signedStatusCode;
+	}
+
+	parent.approveImage.className = "approveDisabled";
+	parent.approveImage.title = "";
+
+	parent.rejectImage.className = "rejectDisabled";
+	parent.rejectImage.title = "";
+
+	if (parent.grid.loginEmplId != parent.TS.emplId) {
+		signatureField.style.color = "red";
+	}
+	else {
+		signatureField.style.color = "black";
+	}
+	if (parent.classRequiresProration){
+		parent.document.getElementById('hourViewTable').style.visibility = 'visible';
+		parent.document.getElementById('hourViewToggle').disabled = false;
+	}
+	if (showSignWarningIcon) {
+		parent.document.getElementById("saveSignWarningsIcon").style.visibility = "visible";
+	}
+	else{
+		parent.document.getElementById("saveSignWarningsIcon").style.visibility = "hidden";
+	}
+	if(closedStatus){
+		parent.setTSClosed();
+	}
+}
+
+function trim(string) {
+	if(!string || string == "") return string;
+		var i = 0;
+		for(; i < string.length && string.charAt(i) == ' '; i++);
+		if(i == string.length) return "";
+		var h = string.length - 1;
+		for(; h > -1 && string.charAt(h) == ' '; h--);
+		return string.substring(i, h + 1);
+}
+
+</script>
+</head>
+
+
+<body>
+
+<form id="tsSign" name="tsSign" method="post" action="https://te.sysplus.com/DeltekTC/TimeCollection.msv">
+<input type="hidden" id="unit" name="unit" value="TsSign">
+<input type="hidden" id="event" name="event" value="open">
+<input type="hidden" id="isValidated" name="isValidated" value="y">
+<input type="hidden" id="warnings" name="warnings">
+<input type="hidden" id="passwd" name="passwd" value="">
+</form>
+
+
+</body></html>

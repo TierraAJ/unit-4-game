@@ -1,0 +1,63 @@
+var calendarWindow;
+var calendarField;
+
+function showCalendar(name){
+
+	calendarField = name;
+
+	calendarWindow = window.open('/DeltekTC/com/deltek/tc/framework/Calendar.jsp', '_blank',
+	'width=400,height=350,left=' + (screen.availWidth-255)/2 + ',top=' + (screen.availHeight-250)/2);
+	if(opener)
+		opener.top.popupWindow = calendarWindow;
+	else
+		top.popupWindow = calendarWindow;
+
+	return false;
+}
+
+function showCalendarXB(dateFieldId, hideClearButton){
+
+	calendarField = dateFieldId;
+	var additionalParameter = "";
+	if (hideClearButton){
+		additionalParameter = "?hideClear=y";
+	}
+        showModalFrame(top.calendarJsp+additionalParameter, 400, 340, "", 0);
+}
+
+
+function parentShowCalendarXB(dateFieldId, hideClearButton){
+
+	calendarField = dateFieldId;
+	var additionalParameter = "";
+	if (hideClearButton){
+		additionalParameter = "?hideClear=y";
+	}
+        parent.showModalFrame(top.calendarJsp+additionalParameter, 400, 340, "", 0);
+}
+
+function showOpenTS(title){
+        showModalFrame(top.calendarJsp+'?ts=y&hideClear=y', 400, 340, title, 0);
+}
+
+
+function getDateValue(){
+	if(document.getElementById(calendarField).value!='')
+		return new Date(
+			document.getElementById(calendarField+"Y").value,
+			document.getElementById(calendarField+"M").value,
+			document.getElementById(calendarField+"D").value
+		)
+	return new Date();
+}
+
+function setDateValue(value, day, month, year){
+	document.getElementById(calendarField).value = value;
+	document.getElementById(calendarField+"D").value = day;
+	document.getElementById(calendarField+"M").value = month;
+	document.getElementById(calendarField+"Y").value = year;
+	if (typeof calendarLookupIsDone == 'function') {
+	    calendarLookupIsDone();
+	}
+}
+

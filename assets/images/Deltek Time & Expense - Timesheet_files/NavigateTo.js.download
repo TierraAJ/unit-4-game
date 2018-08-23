@@ -1,0 +1,1134 @@
+
+var nextAction = "";
+var nextTimeout = 0;
+
+function navigateTo(screen, title, rights, timeout){
+    if (isModalFrameVisible()) return;
+    nextAction = 'navigateTo'+screen+'("'+title+'",'+rights+')';
+    nextTimeout = timeout;
+    top.getToolbarFrame().nextTimeout = timeout;
+
+    navigateHandler("OK");
+}
+
+function navigateHandler(result){
+    if (result != "OK") return;
+    try{
+        if(top.getUnitFrame() && typeof top.getUnitFrame().isOkToClose == 'function'){
+            if (!top.getUnitFrame().isOkToClose('top.getToolbarFrame().'+nextAction)){
+                return;
+            }
+        }
+    } catch(e) {
+        //Preventing error messages if unit frame is messed up because previous unit failed to load properly
+    }
+    doNextAction();
+}
+
+function doNextAction(){
+    top.stopSystemTimeout();
+    top.setFormSubmitted();
+    try{
+        eval(nextAction);
+    } catch (e) {
+        //This is to workaround IE bug when canceling onBeforeUnload confirmation dialog
+    }
+}
+
+function isModalFrameVisible(){
+    try{
+        if(top.getUnitFrame() && top.getUnitFrame().document.getElementById('modalFrame')){
+            if(top.getUnitFrame().document.getElementById('modalFrame').style.visibility == 'visible'){
+                return true;
+            }
+        }
+    } catch (e) {
+        //Preventing error messages if unit frame is messed up because previous unit failed to load properly
+    }
+    return false;
+}
+
+
+function submitGlobalTopForm(){
+    document.forms["globalTopForm"].elements['screenWidth'].value = top.getUnitFrameWidth();
+    document.forms["globalTopForm"].elements['screenHeight'].value = top.getUnitFrameHeight();
+    top.setFormSubmitted();
+	if(!isNaN(nextTimeout) && nextTimeout > 0){
+	    top.startSystemTimeout(nextTimeout);
+	} else {
+	    top.stopSystemTimeout();
+	}
+    document.forms["globalTopForm"].submit();
+}
+
+function navigateToDIRECTORY(Title, BrowseOnly) {
+    document.forms["globalTopForm"].unit.value = 'DIRECTORY';
+    document.forms["globalTopForm"].event.value = 'new';
+	document.forms["globalTopForm"].runMode.value = "";
+    top.setHelpContext("company_directory");
+    top.setApplicationName(Title, BrowseOnly);
+    submitGlobalTopForm();
+}
+
+function navigateToLINKS(Title, BrowseOnly) {
+    document.forms["globalTopForm"].unit.value = 'LINKS';
+    document.forms["globalTopForm"].event.value = 'new';
+	document.forms["globalTopForm"].runMode.value = "";
+    top.setHelpContext("company_links");
+    top.setApplicationName(Title, BrowseOnly);
+    submitGlobalTopForm();
+}
+
+function navigateToLVSTAT(Title, BrowseOnly) {
+    document.forms["globalTopForm"].unit.value = 'LeaveStatus';
+    document.forms["globalTopForm"].event.value = 'new';
+	document.forms["globalTopForm"].runMode.value = "";
+    top.setHelpContext("leave_status");
+    top.setApplicationName(Title, BrowseOnly);
+    submitGlobalTopForm();
+}
+
+function navigateToDESKTOP(Title, BrowseOnly) {
+      document.forms["globalTopForm"].unit.value = "desktop";
+      document.forms["globalTopForm"].event.value = "load";
+	document.forms["globalTopForm"].runMode.value = "";
+      top.setHelpContext("DESKTOP");
+      top.setApplicationName(Title, false);
+      submitGlobalTopForm();
+}
+
+function navigateToTS(Title, BrowseOnly) {
+      var today = new Date();
+      var todaysDate = today.getDate();
+      var thisMonth = today.getMonth() + 1;
+      var thisYear = today.getFullYear();
+      document.forms["globalTopForm"].year.value = thisYear;
+      document.forms["globalTopForm"].month.value = thisMonth;
+      document.forms["globalTopForm"].date.value= todaysDate;
+      document.forms["globalTopForm"].unit.value = 'TS';
+      document.forms["globalTopForm"].event.value = 'openTsByDateRepaint';
+	document.forms["globalTopForm"].runMode.value = "";
+      if (document.forms["globalTopForm"].showmenu){
+          document.forms["globalTopForm"].showmenu.value = (top.showMenu ? 'yes' : 'no');
+      }
+      top.setHelpContext("timesheet_overall");
+      top.setApplicationName(Title, BrowseOnly);
+      submitGlobalTopForm();
+}
+
+function navigateToEMPLWSCHD(Title, BrowseOnly) {
+	document.forms["globalTopForm"].unit.value = 'workscheduledate';
+    document.forms["globalTopForm"].event.value = 'loadDefault';
+	document.forms["globalTopForm"].runMode.value = "";
+    top.setHelpContext("employee_work_schedule");
+    top.setApplicationName(Title, BrowseOnly);
+    submitGlobalTopForm();
+}
+
+function navigateToWSCHD(Title, BrowseOnly) {
+     return false;
+}
+
+function navigateToSYSTEM(Title, BrowseOnly) {
+     return false;
+}
+
+function navigateToGENCONFIG(Title, BrowseOnly) {
+      document.forms["globalTopForm"].unit.value = 'genconfig';
+      document.forms["globalTopForm"].event.value = 'loadDefaultGenConfig';
+	document.forms["globalTopForm"].runMode.value = "";
+      top.setHelpContext('config_general');
+      top.setApplicationName(Title, BrowseOnly);
+      submitGlobalTopForm();
+
+}
+
+function navigateToTIMECONFIG(Title, BrowseOnly) {
+      document.forms["globalTopForm"].unit.value = 'timeconfig';
+      document.forms["globalTopForm"].event.value = 'loadDefaultTimeConfig';
+	document.forms["globalTopForm"].runMode.value = "";
+      top.setHelpContext('config_timesheet');
+      top.setApplicationName(Title, BrowseOnly);
+      submitGlobalTopForm();
+
+}
+function navigateToEXPCONFIG(Title, BrowseOnly) {
+      document.forms["globalTopForm"].unit.value = 'expconfig';
+      document.forms["globalTopForm"].event.value = 'loadDefaultExpConfig';
+	document.forms["globalTopForm"].runMode.value = "";
+      top.setHelpContext('config_expense');
+      top.setApplicationName(Title, BrowseOnly);
+      submitGlobalTopForm();
+
+}
+function navigateToEXPCAT(Title, BrowseOnly) {
+      document.forms["globalTopForm"].unit.value = 'expcat';
+      document.forms["globalTopForm"].event.value = 'load';
+	document.forms["globalTopForm"].runMode.value = "";
+      top.setHelpContext('expense_category');
+      top.setApplicationName(Title, BrowseOnly);
+      submitGlobalTopForm();
+
+}
+function navigateToCURSCHD(Title, BrowseOnly) {
+      document.forms["globalTopForm"].unit.value = 'curschd';
+      document.forms["globalTopForm"].event.value = 'new';
+	document.forms["globalTopForm"].runMode.value = "";
+      top.setHelpContext('currency_schedule');
+      top.setApplicationName(Title, BrowseOnly);
+      submitGlobalTopForm();
+
+}
+function navigateToPROVIDER(Title, BrowseOnly) {
+      document.forms["globalTopForm"].unit.value = 'provider';
+      document.forms["globalTopForm"].event.value = 'new';
+	document.forms["globalTopForm"].runMode.value = "";
+      top.setHelpContext('providers');
+      top.setApplicationName(Title, BrowseOnly);
+      submitGlobalTopForm();
+
+}
+function navigateToPROCSCHD(Title, BrowseOnly) {
+      document.forms["globalTopForm"].unit.value = 'scheduledProcess';
+      document.forms["globalTopForm"].event.value = 'load';
+	document.forms["globalTopForm"].runMode.value = "";
+      top.setHelpContext('scheduled_processes');
+      top.setApplicationName(Title, BrowseOnly);
+      submitGlobalTopForm();
+
+}
+function navigateToCHRGTYPE(Title, BrowseOnly) {
+      document.forms["globalTopForm"].unit.value = 'chrgtype';
+      document.forms["globalTopForm"].event.value = 'new';
+	document.forms["globalTopForm"].runMode.value = "";
+      top.setHelpContext('expense_charge_types');
+      top.setApplicationName(Title, BrowseOnly);
+      submitGlobalTopForm();
+
+}
+function navigateToCONFIG(Title, BrowseOnly) {
+
+      document.forms["globalTopForm"].unit.value = 'config';
+      document.forms["globalTopForm"].event.value = 'loadDefaultConfig';
+	document.forms["globalTopForm"].runMode.value = "";
+      top.setHelpContext('config');
+      top.setApplicationName(Title, BrowseOnly);
+      submitGlobalTopForm();
+
+}
+
+function navigateToUTILCODE(Title, BrowseOnly) {
+
+       document.forms["globalTopForm"].unit.value = 'UTILIZATION';
+       document.forms["globalTopForm"].event.value = 'new';
+	document.forms["globalTopForm"].runMode.value = "";
+       top.setHelpContext('utilcode');
+       top.setApplicationName(Title, BrowseOnly);
+       submitGlobalTopForm();
+
+}
+
+function navigateToSETUPWSCHD(Title, BrowseOnly) {
+
+       document.forms["globalTopForm"].unit.value = 'workschedule';
+       document.forms["globalTopForm"].event.value = 'new';
+	document.forms["globalTopForm"].runMode.value = "";
+       top.setHelpContext('work_schedules');
+       top.setApplicationName(Title, BrowseOnly);
+       submitGlobalTopForm();
+
+}
+
+function navigateToWAGESCHD(Title, BrowseOnly) {
+      document.forms["globalTopForm"].unit.value = 'wageschedule';
+      document.forms["globalTopForm"].event.value = 'new';
+	document.forms["globalTopForm"].runMode.value = "";
+      top.setHelpContext('wage_schedule');
+      top.setApplicationName(Title, BrowseOnly);
+      submitGlobalTopForm();
+
+}
+
+function navigateToTSSCHD(Title, BrowseOnly) {
+
+       document.forms["globalTopForm"].unit.value = 'tsschedule';
+       document.forms["globalTopForm"].event.value = 'new';
+	document.forms["globalTopForm"].runMode.value = "";
+       top.setHelpContext('tsschd');
+       top.setApplicationName(Title, BrowseOnly);
+       submitGlobalTopForm();
+
+}
+
+function navigateToUDT01TYPE(Title, BrowseOnly) {
+
+       document.forms["globalTopForm"].unit.value = 'UDT01TYPES';
+       document.forms["globalTopForm"].event.value = 'new';
+	document.forms["globalTopForm"].runMode.value = "";
+       top.setHelpContext('udt01type');
+       top.setApplicationName(Title, BrowseOnly);
+       submitGlobalTopForm();
+
+}
+
+function navigateToGROUPTYPE(Title, BrowseOnly) {
+
+       document.forms["globalTopForm"].unit.value = 'EMPLOYEEGROUPTYPE';
+       document.forms["globalTopForm"].event.value = 'new';
+	document.forms["globalTopForm"].runMode.value = "";
+       top.setHelpContext('grouptype');
+       top.setApplicationName(Title, BrowseOnly);
+       submitGlobalTopForm();
+
+}
+
+function navigateToFUNC_ROLE(Title, BrowseOnly) {
+
+           document.forms["globalTopForm"].unit.value = 'FUNCROLE';
+           document.forms["globalTopForm"].event.value = 'new';
+	document.forms["globalTopForm"].runMode.value = "";
+       top.setHelpContext('functional_role');
+       top.setApplicationName(Title, BrowseOnly);
+       submitGlobalTopForm();
+
+}
+
+function navigateToROLE(Title, BrowseOnly) {
+
+       document.forms["globalTopForm"].unit.value = 'Role';
+       document.forms["globalTopForm"].event.value = 'new';
+	document.forms["globalTopForm"].runMode.value = "";
+       top.setHelpContext('role');
+       top.setApplicationName(Title, BrowseOnly);
+       submitGlobalTopForm();
+
+}
+
+function navigateToLEAVE(Title, BrowseOnly) {
+
+           document.forms["globalTopForm"].unit.value = 'leavetype';
+           document.forms["globalTopForm"].event.value = 'new';
+	document.forms["globalTopForm"].runMode.value = "";
+       top.setHelpContext('leave_type');
+       top.setApplicationName(Title, BrowseOnly);
+       submitGlobalTopForm();
+
+}
+
+function navigateToEVENT(Title, BrowseOnly) {
+
+           document.forms["globalTopForm"].unit.value = 'events';
+           document.forms["globalTopForm"].event.value = 'new';
+	document.forms["globalTopForm"].runMode.value = "";
+           top.setHelpContext('events');
+           top.setApplicationName(Title, BrowseOnly);
+       submitGlobalTopForm();
+
+
+}
+
+function navigateToVALIDTAB(Title, BrowseOnly) {
+     return false;
+}
+
+function navigateToUDT01(Title, BrowseOnly) {
+
+       document.forms["globalTopForm"].unit.value = 'udt01';
+       document.forms["globalTopForm"].event.value = 'new';
+	document.forms["globalTopForm"].runMode.value = "";
+       top.setHelpContext('udt01');
+       top.setApplicationName(Title, BrowseOnly);
+       submitGlobalTopForm();
+
+}
+
+function navigateToUDT02(Title, BrowseOnly) {
+
+       document.forms["globalTopForm"].unit.value = 'udt02';
+       document.forms["globalTopForm"].event.value = 'new';
+	document.forms["globalTopForm"].runMode.value = "";
+       top.setHelpContext('udt02');
+       top.setApplicationName(Title, BrowseOnly);
+       submitGlobalTopForm();
+
+}
+
+function navigateToUDT03(Title, BrowseOnly) {
+
+       document.forms["globalTopForm"].unit.value = 'udt03';
+       document.forms["globalTopForm"].event.value = 'new';
+	document.forms["globalTopForm"].runMode.value = "";
+       top.setHelpContext('udt03');
+       top.setApplicationName(Title, BrowseOnly);
+       submitGlobalTopForm();
+
+}
+
+function navigateToUDT04(Title, BrowseOnly) {
+       document.forms["globalTopForm"].unit.value = 'UDT04';
+       document.forms["globalTopForm"].event.value = 'new';
+	document.forms["globalTopForm"].runMode.value = "";
+       top.setHelpContext('udt04');
+       top.setApplicationName(Title, BrowseOnly);
+       submitGlobalTopForm();
+
+}
+
+function navigateToUDT05(Title, BrowseOnly) {
+
+       document.forms["globalTopForm"].unit.value = 'udt05';
+       document.forms["globalTopForm"].event.value = 'new';
+	document.forms["globalTopForm"].runMode.value = "";
+       top.setHelpContext('udt05');
+       top.setApplicationName(Title, BrowseOnly);
+       submitGlobalTopForm();
+
+}
+
+function navigateToUDT06(Title, BrowseOnly) {
+
+       document.forms["globalTopForm"].unit.value = 'udt06';
+       document.forms["globalTopForm"].event.value = 'new';
+	document.forms["globalTopForm"].runMode.value = "";
+       top.setHelpContext("udt06");
+       top.setApplicationName(Title, BrowseOnly);
+       submitGlobalTopForm();
+
+}
+
+function navigateToUDT07(Title, BrowseOnly) {
+
+       document.forms["globalTopForm"].unit.value = 'udt07';
+       document.forms["globalTopForm"].event.value = 'new';
+	document.forms["globalTopForm"].runMode.value = "";
+       top.setHelpContext("udt07");
+       top.setApplicationName(Title, BrowseOnly);
+       submitGlobalTopForm();
+
+}
+
+function navigateToUDT08(Title, BrowseOnly) {
+
+       document.forms["globalTopForm"].unit.value = 'UDT08';
+       document.forms["globalTopForm"].event.value = 'new';
+	document.forms["globalTopForm"].runMode.value = "";
+       top.setHelpContext("udt08");
+       top.setApplicationName(Title, BrowseOnly);
+       submitGlobalTopForm();
+
+}
+
+function navigateToUDT09(Title, BrowseOnly) {
+
+       document.forms["globalTopForm"].unit.value = 'Udt09';
+       document.forms["globalTopForm"].event.value = 'new';
+	document.forms["globalTopForm"].runMode.value = "";
+       top.setHelpContext("udt09");
+       top.setApplicationName(Title, BrowseOnly);
+       submitGlobalTopForm();
+
+}
+
+function navigateToUDT10(Title, BrowseOnly) {
+       document.forms["globalTopForm"].unit.value = 'UDT10';
+       document.forms["globalTopForm"].event.value = 'new';
+	document.forms["globalTopForm"].runMode.value = "";
+       top.setHelpContext("udt10");
+       top.setApplicationName(Title, BrowseOnly);
+       submitGlobalTopForm();
+}
+
+function navigateToEMPLOYEE(Title, BrowseOnly) {
+       return false;
+}
+
+function navigateToEMPLCLASS(Title, BrowseOnly){
+
+       document.forms["globalTopForm"].unit.value = 'emplclass';
+       document.forms["globalTopForm"].event.value = 'new';
+	document.forms["globalTopForm"].runMode.value = "";
+       top.setHelpContext("timesheet_class");
+       top.setApplicationName(Title, BrowseOnly);
+       submitGlobalTopForm();
+
+}
+
+function navigateToEMPLGROUP(Title, BrowseOnly) {
+
+      document.forms["globalTopForm"].unit.value = 'emplgroup';
+      document.forms["globalTopForm"].event.value = 'new';
+	document.forms["globalTopForm"].runMode.value = "";
+      top.setHelpContext("employee_groups");
+      top.setApplicationName(Title, BrowseOnly);
+      submitGlobalTopForm();
+
+}
+function navigateToEXPCLASS(Title, BrowseOnly) {
+      document.forms["globalTopForm"].unit.value = 'expclass';
+      document.forms["globalTopForm"].event.value = 'new';
+	document.forms["globalTopForm"].runMode.value = "";
+      top.setHelpContext('expense_class');
+      top.setApplicationName(Title, BrowseOnly);
+      submitGlobalTopForm();
+
+}
+
+function navigateToEMPLINFO(Title, BrowseOnly){
+
+       document.forms["globalTopForm"].unit.value='EmplInfo';
+       document.forms["globalTopForm"].event.value='new';
+	document.forms["globalTopForm"].runMode.value = "";
+       top.setHelpContext("employee_information");
+       top.setApplicationName(Title, BrowseOnly);
+       submitGlobalTopForm();
+
+}
+
+function navigateToCHARGE(Title, BrowseOnly){
+
+       document.forms["globalTopForm"].unit.value='chargeTrees';
+       document.forms["globalTopForm"].event.value='load';
+	document.forms["globalTopForm"].runMode.value = "";
+       top.setHelpContext("maintain_charge_trees");
+       top.setApplicationName(Title, BrowseOnly);
+       submitGlobalTopForm();
+
+}
+
+function navigateToINTERFACE(Title, BrowseOnly){
+       return false;
+}
+
+
+function navigateToEXPORT(Title, BrowseOnly){
+
+       document.forms["globalTopForm"].unit.value = 'export';
+       document.forms["globalTopForm"].event.value = 'load';
+	document.forms["globalTopForm"].runMode.value = "";
+       top.setHelpContext("export_timesheets");
+       top.setApplicationName(Title, BrowseOnly);
+       submitGlobalTopForm();
+
+}
+
+function navigateToCONFIRM(Title, BrowseOnly){
+}
+
+function navigateToUTILITIES(Title, BrowseOnly){
+}
+
+function navigateToUTILCHRG(Title, BrowseOnly){
+}
+
+function navigateToUTILTSSTAT(Title, BrowseOnly){
+
+       document.forms["globalTopForm"].unit.value = 'CHANGETSSTATUS';
+       document.forms["globalTopForm"].event.value = 'load';
+	document.forms["globalTopForm"].runMode.value = "";
+       top.setHelpContext("change_timesheet_status");
+       top.setApplicationName(Title, BrowseOnly);
+       submitGlobalTopForm();
+
+}
+
+function navigateToSSSYNC(Title, BrowseOnly){
+	document.forms["globalTopForm"].unit.value = 'SelfServiceSyncUtil';
+    document.forms["globalTopForm"].event.value = 'new';
+    document.forms["globalTopForm"].runMode.value = "";
+    top.setHelpContext("self_service_sync_util");
+    top.setApplicationName(Title, BrowseOnly);
+    submitGlobalTopForm();
+}
+
+function navigateToUTLCLRTS(Title, BrowseOnly){
+
+       document.forms["globalTopForm"].unit.value = 'UTLCLRTS';
+       document.forms["globalTopForm"].event.value = 'load';
+	document.forms["globalTopForm"].runMode.value = "";
+       top.setHelpContext("clear_timesheet");
+       top.setApplicationName(Title, BrowseOnly);
+       submitGlobalTopForm();
+
+}
+
+function navigateToLNAPPROVE(Title, BrowseOnly){
+
+       document.forms["globalTopForm"].unit.value = 'LLAInquiry';
+       document.forms["globalTopForm"].event.value = 'load';
+	document.forms["globalTopForm"].runMode.value = "";
+       top.setHelpContext("line_approve_inquiry");
+       top.setApplicationName(Title, BrowseOnly);
+       submitGlobalTopForm();
+
+}
+
+function navigateToPREF(Title, BrowseOnly){
+
+       document.forms["globalTopForm"].unit.value = 'preferences';
+       document.forms["globalTopForm"].event.value = 'load';
+	document.forms["globalTopForm"].runMode.value = "";
+       top.setHelpContext("preferences");
+       top.setApplicationName(Title, BrowseOnly);
+       submitGlobalTopForm();
+
+}
+
+function navigateToFLRCHK(Title, BrowseOnly){
+
+       document.forms["globalTopForm"].unit.value = 'floorcheck';
+       document.forms["globalTopForm"].event.value = 'new';
+	document.forms["globalTopForm"].runMode.value = "";
+       top.setHelpContext("floor_check");
+       top.setApplicationName(Title, BrowseOnly);
+       submitGlobalTopForm();
+
+}
+function navigateToIMPORT(Title, BrowseOnly){
+
+       document.forms["globalTopForm"].unit.value = 'importConsole';
+       document.forms["globalTopForm"].event.value = 'load';
+	document.forms["globalTopForm"].runMode.value = "";
+       top.setHelpContext("import_console");
+       top.setApplicationName(Title, BrowseOnly);
+       submitGlobalTopForm();
+
+}
+function navigateToTSSTAT(Title, BrowseOnly){
+
+       document.forms["globalTopForm"].unit.value = 'tsstatus';
+       document.forms["globalTopForm"].event.value = 'new';
+	document.forms["globalTopForm"].runMode.value = "";
+       top.setHelpContext("timesheet_status");
+       top.setApplicationName(Title, BrowseOnly);
+       submitGlobalTopForm();
+
+}
+
+function navigateToBILLBACKUP(Title, BrowseOnly){
+
+       document.forms["globalTopForm"].unit.value = 'BillingBackup';
+       document.forms["globalTopForm"].event.value = 'load';
+	document.forms["globalTopForm"].runMode.value = "";
+       top.setHelpContext("billing_backup");
+       top.setApplicationName(Title, BrowseOnly);
+       submitGlobalTopForm();
+
+}
+
+function navigateToCHARGE_ACT(Title, BrowseOnly){
+
+       document.forms["globalTopForm"].unit.value = 'chargeActivity';
+       document.forms["globalTopForm"].event.value = 'load';
+	document.forms["globalTopForm"].runMode.value = "";
+       top.setHelpContext("charge_activity_inquiry_report");
+       top.setApplicationName(Title, BrowseOnly);
+       submitGlobalTopForm();
+}
+
+function navigateToEMPL_ACT(Title, BrowseOnly){
+
+       document.forms["globalTopForm"].unit.value = 'emplActivity';
+       document.forms["globalTopForm"].event.value = 'load';
+	document.forms["globalTopForm"].runMode.value = "";
+       top.setHelpContext("employee_activity_inquiry_report");
+       top.setApplicationName(Title, BrowseOnly);
+       submitGlobalTopForm();
+
+
+}
+
+function navigateToEXPREPORT(Title, BrowseOnly) {
+
+      document.forms["globalTopForm"].unit.value = "ExpReport";
+      document.forms["globalTopForm"].event.value = "open";
+	document.forms["globalTopForm"].runMode.value = "";
+      top.setHelpContext("expense_report_overall");
+      top.setApplicationName(Title, BrowseOnly);
+      submitGlobalTopForm();
+}
+
+function navigateToPAYMETHOD(Title, BrowseOnly) {
+
+      document.forms["globalTopForm"].unit.value = "paymethod";
+      document.forms["globalTopForm"].event.value = "new";
+	document.forms["globalTopForm"].runMode.value = "";
+      top.setHelpContext("pay_methods");
+      top.setApplicationName(Title, BrowseOnly);
+      submitGlobalTopForm();
+}
+
+function navigateToPERDIEM(Title, BrowseOnly) {
+      document.forms["globalTopForm"].unit.value = 'perdiem'
+      document.forms["globalTopForm"].event.value = 'new';
+	document.forms["globalTopForm"].runMode.value = "";
+      top.setHelpContext('per_diem_schedules');
+      top.setApplicationName(Title, BrowseOnly);
+      submitGlobalTopForm();
+}
+
+function navigateToEXPTYPE(Title, BrowseOnly) {
+      document.forms["globalTopForm"].unit.value = 'exptype'
+      document.forms["globalTopForm"].event.value = 'new';
+	document.forms["globalTopForm"].runMode.value = "";
+      top.setHelpContext('expense_types');
+      top.setApplicationName(Title, BrowseOnly);
+      submitGlobalTopForm();
+}
+
+function navigateToEXPRPTTYPE(Title, BrowseOnly) {
+      document.forms["globalTopForm"].unit.value = "exprpttype";
+      document.forms["globalTopForm"].event.value = "new";
+	document.forms["globalTopForm"].runMode.value = "";
+      top.setHelpContext("expense_report_types");
+      top.setApplicationName(Title, BrowseOnly);
+      submitGlobalTopForm();
+}
+
+function navigateToEXPORTEXP(Title, BrowseOnly) {
+      document.forms["globalTopForm"].unit.value = 'exportexp'
+      document.forms["globalTopForm"].event.value = 'load';
+	document.forms["globalTopForm"].runMode.value = "";
+      top.setHelpContext('export_expense_reports');
+      top.setApplicationName(Title, BrowseOnly);
+      submitGlobalTopForm();
+}
+
+function navigateToEXPSTAT(Title, BrowseOnly){
+    document.forms["globalTopForm"].unit.value = 'exprptstatus';
+    document.forms["globalTopForm"].event.value = 'new';
+	document.forms["globalTopForm"].runMode.value = "";
+    top.setHelpContext("expense_report_status");
+    top.setApplicationName(Title, BrowseOnly);
+    submitGlobalTopForm();
+}
+
+function navigateToAUTHSTAT(Title, BrowseOnly){
+    document.forms["globalTopForm"].unit.value = 'expauthstatus';
+    document.forms["globalTopForm"].event.value = 'new';
+	document.forms["globalTopForm"].runMode.value = "";
+    top.setHelpContext("expense_authorization_status");
+    top.setApplicationName(Title, BrowseOnly);
+    submitGlobalTopForm();
+}
+
+function navigateToUTLEXPSTAT(Title, BrowseOnly){
+    document.forms["globalTopForm"].unit.value = 'changeexprptstatus';
+    document.forms["globalTopForm"].event.value = 'load';
+	document.forms["globalTopForm"].runMode.value = "";
+    top.setHelpContext("change_expense_report_status");
+    top.setApplicationName(Title, BrowseOnly);
+    submitGlobalTopForm();
+}
+
+function navigateToCURRENCY(Title, BrowseOnly){
+    document.forms["globalTopForm"].unit.value = 'currency';
+    document.forms["globalTopForm"].event.value = 'new';
+	document.forms["globalTopForm"].runMode.value = "";
+    top.setHelpContext("currencies");
+    top.setApplicationName(Title, BrowseOnly);
+    submitGlobalTopForm();
+}
+
+function navigateToMIEBDOWN(Title, BrowseOnly){
+    document.forms["globalTopForm"].unit.value = 'mealincidentalbreakdown';
+    document.forms["globalTopForm"].event.value = 'new';
+	document.forms["globalTopForm"].runMode.value = "";
+    top.setHelpContext("meal_incidental_breakdown");
+    top.setApplicationName(Title, BrowseOnly);
+    submitGlobalTopForm();
+}
+
+function navigateToUTILPASS(Title, BrowseOnly){
+    document.forms["globalTopForm"].unit.value = 'passwordutil';
+    document.forms["globalTopForm"].event.value = 'load';
+	document.forms["globalTopForm"].runMode.value = "";
+    top.setHelpContext("password_utility");
+    top.setApplicationName(Title, BrowseOnly);
+    submitGlobalTopForm();
+}
+
+function navigateToBATCHTYPE(Title, BrowseOnly){
+    document.forms["globalTopForm"].unit.value = 'expbatchtype';
+    document.forms["globalTopForm"].event.value = 'new';
+	document.forms["globalTopForm"].runMode.value = "";
+    top.setHelpContext("batch_expense_types");
+    top.setApplicationName(Title, BrowseOnly);
+    submitGlobalTopForm();
+}
+
+function navigateToMAINEXP(Title, BrowseOnly){
+    document.forms["globalTopForm"].unit.value = 'BatchExpenseEdit';
+    document.forms["globalTopForm"].event.value = 'new';
+	document.forms["globalTopForm"].runMode.value = "";
+    top.setHelpContext("maintain_expenses");
+    top.setApplicationName(Title, BrowseOnly);
+    submitGlobalTopForm();
+}
+
+function navigateToTAXSCHD(Title, BrowseOnly){
+    document.forms["globalTopForm"].unit.value = 'taxschedule';
+    document.forms["globalTopForm"].event.value = 'new';
+	document.forms["globalTopForm"].runMode.value = "";
+    top.setHelpContext("tax_schedules");
+    top.setApplicationName(Title, BrowseOnly);
+    submitGlobalTopForm();
+}
+
+function navigateToMAINADV(Title, BrowseOnly){
+    document.forms["globalTopForm"].unit.value = 'AdvanceOutstanding';
+    document.forms["globalTopForm"].event.value = 'new';
+	document.forms["globalTopForm"].runMode.value = "";
+    top.setHelpContext("maintain_advances");
+    top.setApplicationName(Title, BrowseOnly);
+    submitGlobalTopForm();
+}
+
+function navigateToOUTSAG(Title, BrowseOnly){
+    document.forms["globalTopForm"].unit.value = 'outstandingaging';
+    document.forms["globalTopForm"].event.value = 'load';
+	document.forms["globalTopForm"].runMode.value = "";
+    top.setHelpContext("outstanding_aging");
+    top.setApplicationName(Title, BrowseOnly);
+    submitGlobalTopForm();
+}
+
+function navigateToTSBYCHRG(Title, BrowseOnly){
+    document.forms["globalTopForm"].unit.value = 'printtsbychrg';
+    document.forms["globalTopForm"].event.value = 'load';
+	document.forms["globalTopForm"].runMode.value = "";
+    top.setHelpContext("print_ts_by_charge");
+    top.setApplicationName(Title, false);
+    submitGlobalTopForm();
+}
+
+function navigateToLEAVEUTL(Title, BrowseOnly){
+    document.forms["globalTopForm"].unit.value = 'LEAVEUTL';
+    document.forms["globalTopForm"].event.value = 'load';
+	document.forms["globalTopForm"].runMode.value = "";
+    top.setHelpContext("rebuild_leave");
+    top.setApplicationName(Title, BrowseOnly);
+    submitGlobalTopForm();
+}
+
+function navigateToTSTRANSF(Title, BrowseOnly){
+    document.forms["globalTopForm"].unit.value = 'TSTRANSF';
+    document.forms["globalTopForm"].event.value = 'load';
+	document.forms["globalTopForm"].runMode.value = "";
+    top.setHelpContext("timesheet_transfer");
+    top.setApplicationName(Title, BrowseOnly);
+    submitGlobalTopForm();
+}
+
+function navigateToUTILZ_INQ(Title, BrowseOnly){
+    document.forms["globalTopForm"].unit.value = 'UTILZ_INQ';
+    document.forms["globalTopForm"].event.value = 'load';
+	document.forms["globalTopForm"].runMode.value = "";
+    top.setHelpContext("utilization_inquiry_report");
+    top.setApplicationName(Title, BrowseOnly);
+    submitGlobalTopForm();
+}
+
+function navigateToPROCRECC(Title, BrowseOnly) {
+    document.forms["globalTopForm"].unit.value = 'PROCRECC';
+    document.forms["globalTopForm"].event.value = 'new';
+	document.forms["globalTopForm"].runMode.value = "";
+    top.setHelpContext("recurrence_codes");
+    top.setApplicationName(Title, BrowseOnly);
+    submitGlobalTopForm();
+}
+
+function navigateToSSSETUP(Title, BrowseOnly) {
+    document.forms["globalTopForm"].unit.value = 'essconfig';
+    document.forms["globalTopForm"].event.value = 'loadDefaultEssConfig';
+	document.forms["globalTopForm"].runMode.value = "";
+    top.setHelpContext("Config_self_service");
+    top.setApplicationName(Title, BrowseOnly);
+    submitGlobalTopForm();
+}
+
+function navigateToLIFEEVENT(Title, BrowseOnly) {
+
+      document.forms["globalTopForm"].unit.value = "LIFEEVENT";
+      document.forms["globalTopForm"].event.value = "open";
+	document.forms["globalTopForm"].runMode.value = "lifeEvent";
+      top.setHelpContext("life_events_new_hires");
+      top.setApplicationName(Title, BrowseOnly);
+      submitGlobalTopForm();
+}
+
+function navigateToENROLLMENT(Title, BrowseOnly) {
+      document.forms["globalTopForm"].unit.value = "ENROLLMENT";
+      document.forms["globalTopForm"].event.value = "open";
+	  document.forms["globalTopForm"].runMode.value = "benEnroll";
+      top.setHelpContext("benefits_enrollment");
+      top.setApplicationName(Title, BrowseOnly);
+      submitGlobalTopForm();
+}
+
+function navigateToEMERGENCY(Title, BrowseOnly) {
+
+      document.forms["globalTopForm"].unit.value = "EMERGENCY";
+      document.forms["globalTopForm"].event.value = "load";
+ 	  document.forms["globalTopForm"].runMode.value = "";
+	  top.setHelpContext("Emergency_Contacts");
+      top.setApplicationName(Title, BrowseOnly);
+      submitGlobalTopForm();
+}
+
+function navigateToEDSKILLS(Title, BrowseOnly) {
+    document.forms["globalTopForm"].unit.value = 'EDSKILLS';
+    document.forms["globalTopForm"].event.value = 'new';
+	document.forms["globalTopForm"].runMode.value = "";
+    top.setHelpContext("education_skills_training");
+    top.setApplicationName(Title, BrowseOnly);
+    submitGlobalTopForm();
+}
+
+function navigateToADDRESS(Title, BrowseOnly) {
+	document.forms["globalTopForm"].unit.value = "ADDRESS";
+	document.forms["globalTopForm"].event.value = "load";
+	document.forms["globalTopForm"].runMode.value = "";
+	top.setHelpContext("address_phone");
+	top.setApplicationName(Title, BrowseOnly);
+	submitGlobalTopForm();
+}
+
+function navigateToEXPAUTH(Title, BrowseOnly) {
+      document.forms["globalTopForm"].unit.value = "ExpAuth";
+      document.forms["globalTopForm"].event.value = "open";
+ 	  document.forms["globalTopForm"].runMode.value = "";
+	  top.setHelpContext("expense_authorization");
+      top.setApplicationName(Title, BrowseOnly);
+      submitGlobalTopForm();
+}
+
+function navigateToDEPBEN(Title, BrowseOnly) {
+	document.forms["globalTopForm"].unit.value = "DEPBEN";
+	document.forms["globalTopForm"].event.value = "load";
+	document.forms["globalTopForm"].runMode.value = "";
+	top.setHelpContext("beneficiaries");
+	top.setApplicationName(Title, BrowseOnly);
+	submitGlobalTopForm();
+}
+
+function navigateToPAYSTUB(Title, BrowseOnly) {
+      document.forms["globalTopForm"].unit.value = "PAYSTUB";
+      document.forms["globalTopForm"].event.value = "new";
+	document.forms["globalTopForm"].runMode.value = "";
+      top.setHelpContext("payroll_checks");
+      top.setApplicationName(Title, BrowseOnly);
+      submitGlobalTopForm();
+}
+
+function navigateToDESBEN(Title, BrowseOnly) {
+      document.forms["globalTopForm"].unit.value = "DESBEN";
+      document.forms["globalTopForm"].event.value = "load";
+ 	  document.forms["globalTopForm"].runMode.value = "";
+	  top.setHelpContext("designate_beneficiaries");
+      top.setApplicationName(Title, BrowseOnly);
+      submitGlobalTopForm();
+}
+
+function navigateToFEDWH(Title, BrowseOnly) {
+      document.forms["globalTopForm"].unit.value = "FEDWH";
+      document.forms["globalTopForm"].event.value = "load";
+ 	  document.forms["globalTopForm"].runMode.value = "";
+	  top.setHelpContext("Federal_Withholding");
+      top.setApplicationName(Title, BrowseOnly);
+      submitGlobalTopForm();
+}
+
+function navigateToEXPCHECK(Title, BrowseOnly) {
+      document.forms["globalTopForm"].unit.value = "EXPCHECK";
+      document.forms["globalTopForm"].event.value = "new";
+	document.forms["globalTopForm"].runMode.value = "";
+	  top.setHelpContext("expense_checks");
+      top.setApplicationName(Title, BrowseOnly);
+      submitGlobalTopForm();
+}
+
+function navigateToDIRDEP(Title, BrowseOnly) {
+      document.forms["globalTopForm"].unit.value = "DIRDEP";
+      document.forms["globalTopForm"].event.value = "load";
+ 	  document.forms["globalTopForm"].runMode.value = "";
+	  top.setHelpContext("direct_deposit");
+      top.setApplicationName(Title, BrowseOnly);
+      submitGlobalTopForm();
+}
+
+function navigateToRETBEN(Title, BrowseOnly) {
+      document.forms["globalTopForm"].unit.value = "RETBEN";
+      document.forms["globalTopForm"].event.value = "load";
+ 	  document.forms["globalTopForm"].runMode.value = "";
+	  top.setHelpContext("retirement_benefits");
+      top.setApplicationName(Title, BrowseOnly);
+      submitGlobalTopForm();
+}
+
+function navigateToSTATEWH(Title, BrowseOnly) {
+      document.forms["globalTopForm"].unit.value = "STATEWH";
+      document.forms["globalTopForm"].event.value = "load";
+ 	  document.forms["globalTopForm"].runMode.value = "";
+	  top.setHelpContext("State_Withholding");
+      top.setApplicationName(Title, BrowseOnly);
+      submitGlobalTopForm();
+}
+
+function navigateToW2(Title, BrowseOnly) {
+      document.forms["globalTopForm"].unit.value = "W2";
+      document.forms["globalTopForm"].event.value = "load";
+	document.forms["globalTopForm"].runMode.value = "";
+	  top.setHelpContext("electronic_w2");
+      top.setApplicationName(Title, BrowseOnly);
+      submitGlobalTopForm();
+}
+
+function navigateToTOTCMPBEN(Title, BrowseOnly) {
+    document.forms["globalTopForm"].unit.value = 'TOTCMPBEN';
+    document.forms["globalTopForm"].event.value = 'new';
+	document.forms["globalTopForm"].runMode.value = "";
+    top.setHelpContext("total_comp_benefits");
+    top.setApplicationName(Title, BrowseOnly);
+    submitGlobalTopForm();
+}
+
+function navigateToTEXT(Title, BrowseOnly) {
+    document.forms["globalTopForm"].unit.value = 'TEXT';
+    document.forms["globalTopForm"].event.value = 'loadDefaultCustomText';
+	document.forms["globalTopForm"].runMode.value = "";
+    top.setHelpContext("custom_text");
+    top.setApplicationName(Title, BrowseOnly);
+    submitGlobalTopForm();
+}
+
+function navigateToSSSTAT(Title, BrowseOnly){
+       document.forms["globalTopForm"].unit.value = 'SSSTAT';
+       document.forms["globalTopForm"].event.value = 'new';
+	document.forms["globalTopForm"].runMode.value = "";
+       top.setHelpContext("self_service_status");
+       top.setApplicationName(Title, BrowseOnly);
+       submitGlobalTopForm();
+
+}
+function navigateToUTLDBEXPRT(Title, BrowseOnly) {
+      document.forms["globalTopForm"].unit.value = "UTLDBEXPRT";
+      document.forms["globalTopForm"].event.value = "load";
+		document.forms["globalTopForm"].runMode.value = "";
+      top.setHelpContext("custom_text");
+      top.setApplicationName(Title, BrowseOnly);
+      submitGlobalTopForm();
+}
+function navigateToPAYUTL(Title, BrowseOnly){
+       document.forms["globalTopForm"].unit.value = 'PAYUTL';
+       document.forms["globalTopForm"].event.value = 'new';
+	document.forms["globalTopForm"].runMode.value = "";
+       top.setHelpContext("payment_utility");
+       top.setApplicationName(Title, BrowseOnly);
+       submitGlobalTopForm();
+}
+function navigateToMASSTS(Title, BrowseOnly){
+    document.forms["globalTopForm"].unit.value = 'MassCorrectTs';
+    document.forms["globalTopForm"].event.value = 'getDefaultCriteria';
+	document.forms["globalTopForm"].runMode.value = "";
+    top.setHelpContext("mass_correct_ts");
+    top.setApplicationName(Title, BrowseOnly);
+    submitGlobalTopForm();
+}
+function navigateToUTLDBIMPRT(Title, BrowseOnly) {
+      document.forms["globalTopForm"].unit.value = "UTLDBIMPRT";
+      document.forms["globalTopForm"].event.value = "import";
+		document.forms["globalTopForm"].runMode.value = "";
+      top.setHelpContext("custom_text");
+      top.setApplicationName(Title, BrowseOnly);
+      submitGlobalTopForm();
+}
+function navigateToEXPUTL(Title, BrowseOnly){
+       document.forms["globalTopForm"].unit.value = 'EXPUTL';
+       document.forms["globalTopForm"].event.value = 'new';
+	document.forms["globalTopForm"].runMode.value = "";
+       top.setHelpContext("expense_utility");
+       top.setApplicationName(Title, BrowseOnly);
+       submitGlobalTopForm();
+}
+function navigateToCLEAREXP(Title, BrowseOnly){
+       document.forms["globalTopForm"].unit.value = 'CLEAREXP';
+       document.forms["globalTopForm"].event.value = 'load';
+	document.forms["globalTopForm"].runMode.value = "";
+       top.setHelpContext("clear_exp_reports");
+       top.setApplicationName(Title, BrowseOnly);
+       submitGlobalTopForm();
+}
+function navigateToCLEARAUTH(Title, BrowseOnly){
+       document.forms["globalTopForm"].unit.value = 'CLEARAUTH';
+       document.forms["globalTopForm"].event.value = 'load';
+	document.forms["globalTopForm"].runMode.value = "";
+       top.setHelpContext("clear_exp_authorizations");
+       top.setApplicationName(Title, BrowseOnly);
+       submitGlobalTopForm();
+}
+function navigateToUDT11(Title, BrowseOnly) {
+	document.forms["globalTopForm"].unit.value = 'UDT11';
+	document.forms["globalTopForm"].event.value = 'new';
+	document.forms["globalTopForm"].runMode.value = "";
+	top.setHelpContext("udt11");
+	top.setApplicationName(Title, BrowseOnly);
+	submitGlobalTopForm();
+}
+function navigateToUDT12(Title, BrowseOnly) {
+
+       document.forms["globalTopForm"].unit.value = 'UDT12';
+       document.forms["globalTopForm"].event.value = 'new';
+	document.forms["globalTopForm"].runMode.value = "";
+       top.setHelpContext("udt12");
+       top.setApplicationName(Title, BrowseOnly);
+       submitGlobalTopForm();
+}
+function navigateToUDT13(Title, BrowseOnly) {
+	document.forms["globalTopForm"].unit.value = 'UDT13';
+	document.forms["globalTopForm"].event.value = 'new';
+	document.forms["globalTopForm"].runMode.value = "";
+	top.setHelpContext("udt13");
+	top.setApplicationName(Title, BrowseOnly);
+	submitGlobalTopForm();
+}
+function navigateToUDT14(Title, BrowseOnly) {
+	document.forms["globalTopForm"].unit.value = 'UDT14';
+	document.forms["globalTopForm"].event.value = 'new';
+	document.forms["globalTopForm"].runMode.value = "";
+	top.setHelpContext("udt14");
+	top.setApplicationName(Title, BrowseOnly);
+	submitGlobalTopForm();
+}
+function navigateToUDT15(Title, BrowseOnly) {
+	document.forms["globalTopForm"].unit.value = 'UDT15';
+	document.forms["globalTopForm"].event.value = 'new';
+	document.forms["globalTopForm"].runMode.value = "";
+	top.setHelpContext("udt15");
+	top.setApplicationName(Title, BrowseOnly);
+	submitGlobalTopForm();
+}
+function navigateToEXCEPTTS(Title, BrowseOnly){
+       document.forms["globalTopForm"].unit.value = 'EXCEPTTS';
+       document.forms["globalTopForm"].event.value = 'new';
+	document.forms["globalTopForm"].runMode.value = "";
+       top.setHelpContext("exception_based_ts");
+       top.setApplicationName(Title, BrowseOnly);
+       submitGlobalTopForm();
+
+}
+function navigateToINTERIMTS(Title, BrowseOnly){
+    document.forms["globalTopForm"].unit.value = 'INTERIMTS';
+    document.forms["globalTopForm"].event.value = 'new';
+	document.forms["globalTopForm"].runMode.value = "";
+    top.setHelpContext("interim_timesheet");
+    top.setApplicationName(Title, BrowseOnly);
+    submitGlobalTopForm();
+}
+function navigateToPDPROC(Title, BrowseOnly){
+    document.forms["globalTopForm"].unit.value = 'PDPROC';
+    document.forms["globalTopForm"].event.value = 'new';
+	document.forms["globalTopForm"].runMode.value = "";
+    top.setHelpContext("per_diem_preprocessor");
+    top.setApplicationName(Title, BrowseOnly);
+    submitGlobalTopForm();
+}

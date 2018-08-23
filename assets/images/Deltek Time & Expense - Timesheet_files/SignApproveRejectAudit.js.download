@@ -1,0 +1,159 @@
+
+
+   <!--*** SIGN TIMESHEET ***-->
+var finishedSign = false;
+
+function signTimesheet() {
+	if (! checkIfAnyHourCells()) {
+		return;
+	}
+	if (!isOkToClose("sign")){
+		return;
+	}
+	
+	if (document.getElementById('modalFrame').style.visibility == 'visible') {
+		return;
+	}
+	signHandler("OK");
+}
+
+function signHandler(result){
+	if (result != "OK") return;
+	self.frames['submitFrame'].document.open("text/html");
+	self.frames['submitFrame'].document.write("<html><body><form id='signForm' method='post' action='"+frontServlet+"'>" +
+		"<input type='hidden' name='unit' value='TsSign'>" +
+		"<input type='hidden' name='event' value='open'>" +
+		"</form></body></html>");
+	
+	self.frames['submitFrame'].document.close();
+	var signForm = self.frames['submitFrame'].document.getElementById('signForm');   
+	top.setFormSubmitted();
+	signForm.submit();
+}
+
+   <!--*** AUDIT TIMESHEET ***-->
+function auditTS() {
+	if (!isOkToClose("audit")){
+		return;
+	}
+	if (document.getElementById('modalFrame').style.visibility == 'visible') {
+		return;
+	}
+	auditHandler("OK");
+}
+
+function auditHandler(result){
+	if (result != "OK") return;
+
+	self.frames['submitFrame'].document.open("text/html");
+	self.frames['submitFrame'].document.write("<html><body><form id='auditForm' method='post' action='"+frontServlet+"'>" +
+		"<input type='hidden' name='unit' value='TsAudit'>" +
+		"<input type='hidden' name='event' value='new'>" +
+		"</form></body></html>");
+	
+	self.frames['submitFrame'].document.close();
+	top.setFormSubmitted();
+	var auditForm = self.frames['submitFrame'].document.getElementById('auditForm');                   
+	auditForm.submit();
+}
+
+
+var unsavedChangesForLeave = false;
+ <!--*** TIMESHEET LEAVE ***-->
+function getTsLeaveInfo() {
+	unsavedChangesForLeave = checkForUnsavedChanges();
+	if (document.getElementById('modalFrame').style.visibility == 'visible') {
+		return;
+	}
+	leaveHandler("OK");
+}
+
+function leaveHandler(result){
+	if (result != "OK") return;
+
+	self.frames['submitFrame'].document.open("text/html");
+	self.frames['submitFrame'].document.write("<html><body><form id='leaveForm' method='post' action='"+frontServlet+"'>" +
+		"<input type='hidden' name='unit' value='TsLeave'>" +
+		"<input type='hidden' name='event' value='new'>" +
+		"<input type='hidden' name='changed' value='" + unsavedChangesForLeave + "'>" +
+		"</form></body></html>");
+	
+	self.frames['submitFrame'].document.close();
+	top.setFormSubmitted();
+	var leaveForm = self.frames['submitFrame'].document.getElementById('leaveForm');                   
+	leaveForm.submit();
+}
+
+   <!--*** APPROVE TIMESHEET ***-->
+var timesheetApproved = false;
+
+function approveTimesheet() {
+	timesheetApproved = false;
+	timesheetRejected = false;
+	if (!isOkToClose("approve")){
+		return;
+	}
+	if (document.getElementById('modalFrame').style.visibility == 'visible') {
+		return;
+	}
+	approveHandler("OK");
+}
+
+function approveHandler(result){
+	if (result != "OK") return;
+	
+	var approveForm = self.frames['hiddenFrame'].document.getElementById('approveTSForm'); 
+
+	timesheetApproved = true;
+	top.setFormSubmitted();
+	approveForm.submit();
+}
+
+   <!--*** REJECT TIMESHEET ***-->
+var timesheetRejected = false;    
+var reasonForRejection = "";    
+function rejectTimesheet(reason) {
+	timesheetApproved = false;
+	timesheetRejected = false;
+	reasonForRejection = reason;
+	if (document.getElementById('modalFrame').style.visibility == 'visible') {
+		return;
+	}
+	rejectHandler("OK");
+}
+
+function rejectHandler(result){
+	if (result != "OK") return;
+	
+	var rejectForm = self.frames['hiddenFrame'].document.getElementById('rejectTSForm'); 
+	rejectForm.elements['explanationText'].value = reasonForRejection;
+	timesheetRejected = true;
+	top.setFormSubmitted();
+	rejectForm.submit();
+}
+
+var llaRowNumber;
+<!--*** TIMESHEET LINE APPROVE ***-->
+function getLineApprove(rowNumber) {
+	llaRowNumber = rowNumber+"";
+	if (document.getElementById('modalFrame').style.visibility == 'visible') {
+		return;
+	}
+	lineApproveHandler("OK");
+}
+   
+function lineApproveHandler(result){
+	if (result != "OK") return;
+	
+		self.frames['submitFrame'].document.open("text/html");
+		self.frames['submitFrame'].document.write("<html><body><form id='lineApproveForm' method='post' action='"+frontServlet+"'>" +
+		"<input type='hidden' name='unit' value='TsLineApprove'>" +
+		"<input type='hidden' name='event' value='get'>" +
+		"<input type='hidden' name='line_no' value='" + quoteHtml(llaRowNumber) + "'>" +
+		"</form></body></html>");
+	
+	self.frames['submitFrame'].document.close();
+	var lineApproveForm = self.frames['submitFrame'].document.getElementById('lineApproveForm'); 
+	top.setFormSubmitted();
+	lineApproveForm.submit();
+}

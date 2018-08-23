@@ -1,0 +1,1398 @@
+
+<!--****** COPY SELECTED LINES ******-->
+function copySelectedLines() {
+	if (grid.timesheetIsClosed || browseOnly) {
+		return false;
+	}
+	if (!submitActive()){
+		return;
+	}
+	var selectedLines = findSelectedLines();
+	selectAllRows(false);
+	if (selectedLines.length < 1) {
+		return;
+	}
+	for (var m = 0; m < selectedLines.length; m++) {
+		var rowObject = ROA[selectedLines[m]];
+		var newRowObject = ROA[grid.numberOfCompleteTsLines];
+		var udtArray = rowObject.udts;
+		var newUdtArray = newRowObject.udts;
+
+		for (var n = 0; n < udtArray.length; n++) {
+			newUdtArray[n].cv = udtArray[n].cv;
+			if (udtArray[n].cv == "") {
+				newUdtArray[n].innerHTML = "";
+			}
+			else {
+				newUdtArray[n].innerHTML = quoteHtml(udtArray[n].cv);
+			}
+			newUdtArray[n].readOnly = udtArray[n].readOnly;
+			newUdtArray[n].udtIdWhenLoaded = udtArray[n].udtIdWhenLoaded;
+		}
+		for (var k = 1; k < 16; k++) {
+			newRowObject.typ[k] = rowObject.typ[k];
+			newRowObject.src[k] = rowObject.src[k];
+		}
+		with (newRowObject) {
+			readOnly = rowObject.readOnly;
+			overtime = rowObject.overtime;
+			costonly = rowObject.costonly;
+			regular = rowObject.regular;
+			isDefaultArray[1] = rowObject.isDefaultArray[1];
+			isDefaultArray[2] = rowObject.isDefaultArray[2];
+			isDefaultArray[3] = rowObject.isDefaultArray[3];
+			isDefaultArray[7] = rowObject.isDefaultArray[7];
+			isDefaultArray[9] = rowObject.isDefaultArray[9];
+			isDefaultArray[10] = rowObject.isDefaultArray[10];
+			if(!lineCommentsDisabled){
+				hasComment = rowObject.hasComment;
+				short_line_text = rowObject.short_line_text;
+				commentStatus = rowObject.commentStatus;
+				if(hasComment){
+					commentIcon.style.visibility = "visible";
+				}
+			}
+			line_desc = rowObject.line_desc;
+			charge_tree_cd = rowObject.charge_tree_cd;
+			charge_branch_cd = rowObject.charge_branch_cd;
+			charge_cd = rowObject.charge_cd;
+			udt01_link_fl = rowObject.udt01_link_fl;
+			udt02LinkFlag = rowObject.udt02LinkFlag;
+        	}
+		if (newRowObject.costonly) {
+			var hourCells = newRowObject.hrs;
+			for (var h = 0; h < hourCells.length; h++) {
+				hourCells[h].style.backgroundColor = "#cccccc";
+			}
+		}
+		setLineIsCompleteNoUdt10(grid.numberOfCompleteTsLines);
+	}
+	setUnsavedChanges();
+	var udtCells = ROA[grid.numberOfCompleteTsLines].udts;
+	var firstCellCol = 0;
+	while(udtCells[firstCellCol].typ == "0" || udtSizes[firstCellCol] == 0) firstCellCol++;
+	var firstCell = udtCells[firstCellCol];
+	setActiveEntry(firstCell);
+}
+
+<!--*** REVERSE SELECTED LINES ***-->
+function reverseSelectedLines() {
+	if (grid.timesheetIsClosed || browseOnly) {
+		return false;
+	}
+	if (!submitActive()){
+		return;
+	}
+	var selectedLines = findSelectedLines();
+	selectAllRows(false);
+	if (selectedLines.length < 1) {
+		return;
+	}
+	for (var m = 0; m < selectedLines.length; m++) {
+		var rowObject = ROA[selectedLines[m]];
+		var newRowObject = ROA[grid.numberOfCompleteTsLines];
+		var udtArray = rowObject.udts;
+		var newUdtArray = newRowObject.udts;
+		var hourArray = rowObject.hrs;
+		var newHourArray = newRowObject.hrs;
+
+		if(grid.startStopTimeMode == 'DETAIL' && rowObject.startStopTimeFl && startStopArray != null){
+			for(var i = 0; i < startStopArray.length; i++){
+				if(startStopArray[i] != null){
+					for(var j = startStopArray[i].length - 1; j >= 0; j--){
+						if(startStopArray[i][j]['charge'] == rowObject.pkLineNumber){
+							removeFromDayArray(i,j);
+						}
+					}
+				}
+			}
+		}
+
+		for (var k = 1; k < 16; k++) {
+		   newRowObject.typ[k] = rowObject.typ[k];
+		   newRowObject.src[k] = rowObject.src[k];
+		}
+		with (newRowObject) {
+			readOnly = rowObject.readOnly;
+			overtime = rowObject.overtime;
+			costonly = rowObject.costonly;
+			regular = rowObject.regular;
+			isDefaultArray[1] = rowObject.isDefaultArray[1];
+			isDefaultArray[2] = rowObject.isDefaultArray[2];
+			isDefaultArray[3] = rowObject.isDefaultArray[3];
+			isDefaultArray[7] = rowObject.isDefaultArray[7];
+			isDefaultArray[9] = rowObject.isDefaultArray[9];
+			isDefaultArray[10] = rowObject.isDefaultArray[10];
+			if(!lineCommentsDisabled){
+				hasComment = rowObject.hasComment;
+				short_line_text = rowObject.short_line_text;
+				commentStatus = rowObject.commentStatus;
+				if(hasComment){
+					commentIcon.style.visibility = "visible";
+				}
+			}
+			line_desc = rowObject.line_desc;
+			charge_tree_cd = rowObject.charge_tree_cd;
+			charge_branch_cd = rowObject.charge_branch_cd;
+			charge_cd = rowObject.charge_cd;
+			udt01_link_fl = rowObject.udt01_link_fl;
+			udt02LinkFlag = rowObject.udt02LinkFlag;
+			reversed = "Y";
+		}
+		newRowObject.startStopTimeFl = rowObject.startStopTimeFl;
+		for (var n = 0; n < udtArray.length; n++) {
+			newUdtArray[n].cv = udtArray[n].cv;
+			if (udtArray[n].cv == "") {
+				newUdtArray[n].innerHTML = "";
+			}
+			else {
+				newUdtArray[n].innerHTML = quoteHtml(udtArray[n].cv);
+			}
+			newUdtArray[n].readOnly = udtArray[n].readOnly;
+			newUdtArray[n].udtIdWhenLoaded = udtArray[n].udtIdWhenLoaded;
+		}
+		for (var d = 0; d < grid.numberOfDays; d++) {
+			var tmpHours = hourArray[d].hrs;
+			tmpHours = "" + tmpHours;
+			var dex = tmpHours.indexOf(',');
+
+			if(dex != -1) {
+				var myRegExp = /,/g;
+				var newCell = tmpHours.replace(myRegExp, ".");
+				tmpHours = newCell;
+			}
+			if (isNaN(parseFloat(tmpHours))) {
+				tmpHours = "";
+			}
+			if ((tmpHours) && (tmpHours != "")) {
+				newHourArray[d].hrs = tmpHours * -1;
+				newHourArray[d].innerHTML = addDecimalAndZero(tmpHours * -1);
+			}
+			else {
+				newHourArray[d].hrs = "";
+				newHourArray[d].innerHTML = "";
+
+			}
+			if ((tmpHours == "") || isNaN(parseFloat(tmpHours))) {
+				tmpHours = 0;
+			}
+			if (newRowObject.costonly) {
+				newHourArray[d].style.backgroundColor = "#cccccc";
+			}
+			else {
+				if (! newRowObject.overtime) {
+					COA[d].regularTotal += tmpHours * -1;
+				}
+				else {
+					COA[d].overtimeTotal += tmpHours * -1;
+				}
+				COA[d].columnTotal += tmpHours * -1;
+			}
+			newHourArray[d].sts = "O";
+			if (grid.tsHasProcessedCells) {
+				newHourArray[d].crt = "Y";
+			}
+			else {
+				newHourArray[d].crt = "N";
+			}
+			newRowObject.rowTotal += tmpHours * -1;
+
+			newHourArray[d].proratedHrs = null;
+
+			var tmpAmt = hourArray[d].enteredRate1Amt;
+
+			if (isNaN(parseFloat(tmpAmt))) {
+				tmpAmt = "";
+			}
+			if ((tmpAmt) && (tmpAmt != "")) {
+				newHourArray[d].enteredRate1Amt = tmpAmt * -1;
+			}
+			else {
+				newHourArray[d].enteredRate1Amt = tmpAmt;
+			}
+			tmpAmt = hourArray[d].enteredRate2Amt;
+			if (isNaN(parseFloat(tmpAmt))) {
+				tmpAmt = "";
+			}
+			if ((tmpAmt) && (tmpAmt != "")) {
+				newHourArray[d].enteredRate2Amt = tmpAmt * -1;
+			}
+			else {
+				newHourArray[d].enteredRate2Amt = tmpAmt;
+			}
+
+			tmpAmt = hourArray[d].proratedRate1Amt;
+			if (isNaN(parseFloat(tmpAmt))) {
+				tmpAmt = "";
+			}
+			if ((tmpAmt) && (tmpAmt != "")) {
+				newHourArray[d].proratedRate1Amt = tmpAmt * -1;
+			}
+			else {
+				newHourArray[d].proratedRate1Amt = tmpAmt;
+			}
+			tmpAmt = hourArray[d].proratedRate2Amt;
+			if (isNaN(parseFloat(tmpAmt))) {
+				tmpAmt = "";
+			}
+			if ((tmpAmt) && (tmpAmt != "")) {
+				newHourArray[d].proratedRate2Amt = tmpAmt * -1;
+			}
+			else {
+				newHourArray[d].proratedRate2Amt = tmpAmt;
+			}
+			newHourArray[d].rate1 = hourArray[d].rate1;
+			newHourArray[d].rate2 = hourArray[d].rate2;
+			newHourArray[d].rate1Cd = hourArray[d].rate1Cd;
+			newHourArray[d].rate2Cd = hourArray[d].rate2Cd;
+			if (!cellCommentsDisabled && hourArray[d].hasComment) {
+				newHourArray[d].txt = hourArray[d].txt;
+				createHourComment(newHourArray[d], newHourArray[d].txt);
+			}
+			if(grid.startStopTimeMode == 'DETAIL' && newRowObject.startStopTimeFl){
+				newHourArray[d].readOnly = true;
+			}
+		}
+		setLineIsCompleteNoUdt10(grid.numberOfCompleteTsLines);
+	}
+	calculateTotals();
+	setUnsavedChanges();
+	selectAllRows(false);
+	var udtCells = ROA[grid.numberOfCompleteTsLines].udts;
+	var firstCellCol = 0;
+	while(udtCells[firstCellCol].typ == "0" || udtSizes[firstCellCol] == 0) firstCellCol++;
+	var firstCell = udtCells[firstCellCol];
+	setActiveEntry(firstCell);
+}
+
+<!--*** DELETE SELECTED LINES ***-->
+function deleteSelectedLines() {
+	if (grid.timesheetIsClosed || browseOnly) {
+		return false;
+	}
+	if (!submitActive()){
+		return;
+	}
+	var numberOfDeletedRows = 0;
+	var numberOfTsLinesAtStart = grid.numberOfCompleteTsLines;
+	var selectedLines = findSelectedLines();
+	var lastLine = grid.numberOfCompleteTsLines;
+	if (ROA[lastLine].selector.selected == "Y") {
+		if (lastLine == grid.incompleteLineNumber) {
+			grid.aLineIsIncomplete = false;
+
+			grid.incompleteLineNumber = 0;
+			changeRowSelectedStatus(lastLine);
+			resetRow(lastLine);
+			addLine();
+			var udtCells = ROA[grid.numberOfCompleteTsLines].udts;
+			var firstCellCol = 0;
+			while(udtCells[firstCellCol].typ == "0" || udtSizes[firstCellCol] == 0) firstCellCol++;
+			var firstCell = udtCells[firstCellCol];
+			setActiveEntry(firstCell);
+			if (grid.numberOfCompleteTsLines == 0) {
+				enableSaveTS(false);
+				grid.unsavedChanges = false;
+				enableSignButton(false);
+			}
+			return;
+		}
+	}
+	selectAllRows(false);
+	if (selectedLines.length < 1) {
+		return;
+	}
+	var lineHasProcessedCell = false;
+	for (var m = selectedLines.length - 1; m >= 0; m--) {
+		var rowObject = ROA[selectedLines[m]];
+		if (rowObject.noDeleteOrReset) {
+			continue;
+		}
+		if(grid.startStopTimeMode == 'DETAIL' && rowObject.startStopTimeFl && startStopArray != null){
+			for(var i = 0; i < startStopArray.length; i++){
+				if(startStopArray[i] != null){
+					for(var j = startStopArray[i].length - 1; j >= 0; j--){
+						if(startStopArray[i][j]['charge'] == rowObject.pkLineNumber){
+							removeFromDayArray(i,j);
+						}
+					}
+				}
+			}
+		}
+		var hourArray = rowObject.hrs;
+		if (rowObject.previouslySaved) {
+			var d = 0;
+			var s = 0;
+			for (d = 0; d < grid.numberOfDays; d++) {
+				if (hourArray[d].sts != "P" && hourArray[d].sts != "S") {
+					if (!cellCommentsDisabled && hourArray[d].hasComment) {
+						hourArray[d].removeChild(hourArray[d].lastChild);
+						hourArray[d].hasComment = null;
+						hourArray[d].txt = "";
+					}
+					if ((hourArray[d].hrs == "") || isNaN(parseFloat(hourArray[d].hrs))) {
+						hourArray[d].hrs = 0.0;
+					}
+					if (! rowObject.costonly) {
+						if (! rowObject.overtime) {
+							COA[d].regularTotal -= parseFloat(hourArray[d].hrs);
+						}
+						else {
+							COA[d].overtimeTotal -= parseFloat(hourArray[d].hrs);
+						}
+						COA[d].columnTotal -= parseFloat(hourArray[d].hrs);
+					}
+					rowObject.rowTotal -= parseFloat(hourArray[d].hrs);
+
+					if (hourArray[d].hrs != "" && hourArray[d].hrs != 0) {
+						hourArray[d].innerHTML = "0.0";
+						hourArray[d].hrs = "0.0";
+					}
+					else if(hourArray[d].hrs+'x' != "0.0x"){
+						hourArray[d].hrs = "";
+					}
+				}
+				else {
+					lineHasProcessedCell = true;
+					if (!cellCommentsDisabled && hourArray[d].hasComment) {
+						if (! hourArray[d].hadCommentWhenLoaded) {
+							hourArray[d].removeChild(hourArray[d].lastChild);
+							hourArray[d].hasComment = null;
+							hourArray[d].txt = "";
+						}
+						else {
+							hourArray[d].txt = hourArray[d].commentTextWhenLoaded;
+							createHourComment(hourArray[d], hourArray[d].txt);
+						}
+					}
+				}
+			}
+			if (!lineCommentsDisabled && rowObject.hasComment) {
+				if (rowObject.commentTextWhenLoaded) {
+					if (lineHasProcessedCell) {
+						rowObject.short_line_text = rowObject.commentTextWhenLoaded;
+					}
+					else {
+						rowObject.short_line_text = '';
+						rowObject.commentIcon.style.visibility = "hidden";
+					}
+				}
+				else {
+					rowObject.commentIcon.style.visibility = "hidden";
+					rowObject.hasComment = null;
+					rowObject.short_line_text = '';
+				}
+			}
+		}
+		else {
+			rowObject.deleted = "Y";
+			reNumberLines(rowObject.pkLineNumber);
+			grid.numberOfCompleteTsLines--;
+			numberOfDeletedRows++;
+		}
+	}
+	var remainingRowsArray = new Array();
+	var remainingIndex = 0;
+	var firstEmptyRow = 0;
+	if (numberOfDeletedRows > 0) {
+		var c;
+		for (c = 0; c < numberOfTsLinesAtStart; c++) {
+			if (ROA[c].deleted == "Y") {
+				firstEmptyRow = c;
+				break;
+			}
+		}
+		for (var e = c; e < numberOfTsLinesAtStart; e++) {
+			if (ROA[e].deleted != "Y") {
+				remainingRowsArray[remainingIndex] = e;
+				remainingIndex++;
+			}
+			else {
+				ROA[e].deleted = null;
+			}
+		}
+		for (var d = 0; d < remainingRowsArray.length; d++) {
+			resetRow(firstEmptyRow);
+			moveLine(remainingRowsArray[d], firstEmptyRow);
+			firstEmptyRow++;
+		}
+		for (var f = numberOfTsLinesAtStart; f >= grid.numberOfCompleteTsLines; f--) {
+			resetRow(f);
+		}
+	}
+	calculateTotals();
+	setUnsavedChanges();
+	addLine();
+	var udtCells = ROA[grid.numberOfCompleteTsLines].udts;
+	var firstCellCol = 0;
+	while(udtCells[firstCellCol].typ == "0" || udtSizes[firstCellCol] == 0) firstCellCol++;
+	var firstCell = udtCells[firstCellCol];
+	setActiveEntry(firstCell);
+
+	if (grid.numberOfCompleteTsLines == 0) {
+
+		enableSaveTS(false);
+		grid.unsavedChanges = false;
+		enableSignButton(false);
+	}
+
+}
+
+<!--*** RESET SELECTED LINES ***-->
+function resetSelectedLines() {
+	if (grid.timesheetIsClosed || browseOnly) {
+		return false;
+	}
+	if (!submitActive()){
+		return;
+	}
+	var selectedLines = findSelectedLines();
+	var lastLine = grid.numberOfCompleteTsLines;
+	var numberOfDeletedRows = 0;
+	var numberOfTsLinesAtStart = grid.numberOfCompleteTsLines;
+	if (ROA[lastLine].selector.selected == "Y") {
+		if (lastLine == grid.incompleteLineNumber) {
+			grid.aLineIsIncomplete = false;
+
+			grid.incompleteLineNumber = 0;
+			changeRowSelectedStatus(lastLine);
+			resetRow(lastLine);
+			addLine();
+			var udtCells = ROA[grid.numberOfCompleteTsLines].udts;
+			var firstCellCol = 0;
+			while(udtCells[firstCellCol].typ == "0" || udtSizes[firstCellCol] == 0) firstCellCol++;
+			var firstCell = udtCells[firstCellCol];
+			setActiveEntry(firstCell);
+			if (grid.numberOfCompleteTsLines == 0) {
+				enableSaveTS(false);
+				grid.unsavedChanges = false;
+				enableSignButton(false);
+			}
+			return;
+		}
+	}
+	selectAllRows(false);
+	if (selectedLines.length < 1) {
+		return;
+	}
+	var tempArray = new Array();
+	var tempIndex = 0;
+	for (var m = selectedLines.length - 1; m >= 0; m--) {
+		var rowObject = ROA[selectedLines[m]];
+		if (rowObject.noDeleteOrReset) {
+			continue;
+		}
+		if (rowObject.previouslySaved) {
+			var udtArray = rowObject.udts;
+			var hourArray = rowObject.hrs;
+			var n = 0;
+			var d = 0;
+			var hourDiff = 0;
+			for (n = 0; n < udtArray.length; n++) {
+				udtArray[n].cv = udtArray[n].chargeValueWhenLoaded;
+				if (udtArray[n].udtIdWhenLoaded) {
+					rowObject.typ[udtArray[n].typ] = udtArray[n].udtIdWhenLoaded;
+				}
+				else {
+					rowObject.typ[udtArray[n].typ] = udtArray[n].chargeValueWhenLoaded;
+				}
+				if (udtArray[n].cv == null || udtArray[n].cv == "") {
+					udtArray[n].innerHTML = "";
+				}
+				else {
+					udtArray[n].innerHTML = quoteHtml(udtArray[n].chargeValueWhenLoaded);
+				}
+				udtArray[n].readOnly = udtArray[n].readOnlyStatusWhenLoaded;
+			}
+			for (d = 0; d < grid.numberOfDays; d++) {
+				if (hourArray[d].hwl == null || hourArray[d].hwl == "") {
+					hourArray[d].hwl = 0.0;
+				}
+				if ((hourArray[d].hrs == "") || isNaN(parseFloat(hourArray[d].hrs))) {
+					hourArray[d].hrs = 0.0;
+				}
+				hourDiff = hourArray[d].hwl - hourArray[d].hrs;
+				hourDiff = parseFloat(hourDiff);
+				if (hourDiff != 0) {
+					if (hourArray[d].hwl != 0) {
+						hourArray[d].hrs = hourArray[d].hwl;
+						hourArray[d].innerHTML = addDecimalAndZero(hourArray[d].hwl);
+					}
+					else {
+						hourArray[d].hrs = "";
+						hourArray[d].innerHTML = "";
+					}
+					if (! rowObject.costonly) {
+						if (! rowObject.overtime) {
+							COA[d].regularTotal += hourDiff;
+						}
+						else {
+							COA[d].overtimeTotal += hourDiff;
+						}
+						COA[d].columnTotal += hourDiff;
+					}
+					var tmpTotal = parseFloat(rowObject.rowTotal);
+					tmpTotal += hourDiff;
+					rowObject.rowTotal = tmpTotal;
+				}
+				if (hourArray[d].hrs == 0){
+					hourArray[d].hrs = "";
+				}
+				if(!cellCommentsDisabled){
+					if (hourArray[d].hasComment) {
+						if (! hourArray[d].hadCommentWhenLoaded) {
+							hourArray[d].removeChild(hourArray[d].lastChild);
+							hourArray[d].hasComment = null;
+							hourArray[d].txt = "";
+						}
+						else {
+							hourArray[d].txt = hourArray[d].commentTextWhenLoaded;
+							createHourComment(hourArray[d], hourArray[d].txt);
+						}
+					}
+					else {
+						if (hourArray[d].hadCommentWhenLoaded) {
+							hourArray[d].txt = hourArray[d].commentTextWhenLoaded;
+							createHourComment(hourArray[d], hourArray[d].txt);
+						}
+					}
+				}
+			}
+			if (!lineCommentsDisabled && rowObject.hasComment) {
+				if (rowObject.commentTextWhenLoaded) {
+					rowObject.short_line_text = rowObject.commentTextWhenLoaded;
+					rowObject.commentIcon.style.visibility = "visible";
+				}
+				else {
+					rowObject.commentIcon.style.visibility = "hidden";
+					rowObject.hasComment = null;
+					rowObject.short_line_text = '';
+				}
+			}
+		}
+		else {
+			rowObject.deleted = "Y";
+			reNumberLines(rowObject.pkLineNumber);
+			grid.numberOfCompleteTsLines--;
+			numberOfDeletedRows++;
+		}
+	}
+	var remainingRowsArray = new Array();
+	var remainingIndex = 0;
+	var firstEmptyRow = 0;
+	if (numberOfDeletedRows > 0) {
+		var c;
+		for (c = 0; c < numberOfTsLinesAtStart; c++) {
+			if (ROA[c].deleted == "Y") {
+				firstEmptyRow = c;
+				break;
+			}
+		}
+		for (var e = c; e < numberOfTsLinesAtStart; e++) {
+			if (ROA[e].deleted != "Y") {
+				remainingRowsArray[remainingIndex] = e;
+				remainingIndex++;
+			}
+			else {
+				ROA[e].deleted = null;
+			}
+		}
+		for (var d = 0; d < remainingRowsArray.length; d++) {
+			resetRow(firstEmptyRow);
+			moveLine(remainingRowsArray[d], firstEmptyRow);
+			firstEmptyRow++;
+		}
+		for (var f = numberOfTsLinesAtStart; f >= grid.numberOfCompleteTsLines; f--) {
+			resetRow(f);
+		}
+	}
+	calculateTotals();
+	addLine();
+	var udtCells = ROA[grid.numberOfCompleteTsLines].udts;
+	var firstCellCol = 0;
+	while(udtCells[firstCellCol].typ == "0" || udtSizes[firstCellCol] == 0) firstCellCol++;
+	var firstCell = udtCells[firstCellCol];
+	setActiveEntry(firstCell);
+	if (grid.numberOfCompleteTsLines == 0) {
+		enableSaveTS(false);
+		grid.unsavedChanges = false;
+	}
+}
+
+<!--*** MOVE LINE ***-->
+function moveLine(fromRow, toRow, toMemory) {
+
+	var rowObject = ROA[fromRow];
+
+	if(toMemory){
+		ROA[toRow] = new RowObject(ROA[fromRow].lineNumber, new Array(), new Array());
+		for(var i = 0; i < rowObject.udts.length; i++){
+			ROA[toRow].udts[i] = new Array();
+		}
+		for(var i = 0; i < rowObject.hrs.length; i++){
+			ROA[toRow].hrs[i] = new Array();
+		}
+	}
+
+	var newRowObject = ROA[toRow];
+	var udtArray = rowObject.udts;
+	var newUdtArray = newRowObject.udts;
+	var hourArray = rowObject.hrs;
+	var newHourArray = newRowObject.hrs;
+
+
+	for (var k = 1; k < 16; k++) {
+		newRowObject.typ[k] = rowObject.typ[k];
+		newRowObject.src[k] = rowObject.src[k];
+	}
+	with (newRowObject) {
+		lineNumber = toRow + 1;
+		pkLineNumber = rowObject.pkLineNumber;
+		llaStatusCode = rowObject.llaStatusCode;
+		hasComment = rowObject.hasComment;
+		readOnly = rowObject.readOnly;
+		overtime = rowObject.overtime;
+		costonly = rowObject.costonly;
+		regular = rowObject.regular;
+		isDefaultArray[1] = rowObject.isDefaultArray[1];
+		isDefaultArray[2] = rowObject.isDefaultArray[2];
+		isDefaultArray[3] = rowObject.isDefaultArray[3];
+		isDefaultArray[7] = rowObject.isDefaultArray[7];
+		isDefaultArray[9] = rowObject.isDefaultArray[9];
+		isDefaultArray[10] = rowObject.isDefaultArray[10];
+		short_line_text = rowObject.short_line_text;
+		commentStatus = rowObject.commentStatus;
+		line_desc = rowObject.line_desc;
+		charge_tree_cd = rowObject.charge_tree_cd;
+		charge_branch_cd = rowObject.charge_branch_cd;
+		charge_cd = rowObject.charge_cd;
+		udt01_link_fl = rowObject.udt01_link_fl;
+		udt02LinkFlag = rowObject.udt02LinkFlag;
+		previouslySaved = rowObject.previouslySaved;
+		udt17RequiredFlag = rowObject.udt17RequiredFlag;
+		udt27RequiredFlag = rowObject.udt27RequiredFlag;
+		udt19LinkFlag = rowObject.udt19LinkFlag;
+		udt29LinkFlag = rowObject.udt29LinkFlag;
+		rowTotal = rowObject.rowTotal;
+		rowProratedTotal = rowObject.rowProratedTotal;
+        	interim_fl = rowObject.interim_fl;
+	}
+	newRowObject.startStopTimeFl = rowObject.startStopTimeFl;
+	for (var n = 0; n < udtArray.length; n++) {
+		newUdtArray[n].cv = udtArray[n].cv;
+		if (udtArray[n].cv == "") {
+			newUdtArray[n].innerHTML = "";
+		}
+		else {
+			newUdtArray[n].innerHTML = quoteHtml(udtArray[n].cv);
+		}
+		newUdtArray[n].title = udtArray[n].title;
+		newUdtArray[n].readOnly = udtArray[n].readOnly;
+		newUdtArray[n].chargeValueWhenLoaded = udtArray[n].chargeValueWhenLoaded;
+		newUdtArray[n].udtIdWhenLoaded = udtArray[n].udtIdWhenLoaded;
+		newUdtArray[n].readOnlyStatusWhenLoaded = udtArray[n].readOnlyStatusWhenLoaded;
+		if(!toMemory){
+			if(newRowObject.interim_fl){
+				newUdtArray[n].style.color = 'red';
+			} else {
+				newUdtArray[n].style.color = 'black';
+			}
+		}
+	}
+	for (var d = 0; d < grid.numberOfDays; d++) {
+
+		newHourArray[d].hwl = hourArray[d].hwl;
+		newHourArray[d].readOnlyAlways =  hourArray[d].readOnlyAlways;
+		newHourArray[d].readOnly = hourArray[d].readOnly;
+		newHourArray[d].proratedHrs = hourArray[d].proratedHrs;
+		newHourArray[d].enteredRate1Amt = hourArray[d].enteredRate1Amt;
+		newHourArray[d].enteredRate2Amt = hourArray[d].enteredRate2Amt;
+		newHourArray[d].proratedRate1Amt = hourArray[d].proratedRate1Amt;
+		newHourArray[d].proratedRate2Amt = hourArray[d].proratedRate2Amt;
+		newHourArray[d].rate1 = hourArray[d].rate1;
+		newHourArray[d].rate2 = hourArray[d].rate2;
+		newHourArray[d].rate1Cd = hourArray[d].rate1Cd;
+		newHourArray[d].rate2Cd = hourArray[d].rate2Cd;
+		newHourArray[d].previouslySaved = hourArray[d].previouslySaved;
+		newHourArray[d].sts = hourArray[d].sts;
+		newHourArray[d].hasComment = hourArray[d].hasComment;
+		newHourArray[d].txt = hourArray[d].txt;
+		newHourArray[d].hadCommentWhenLoaded = hourArray[d].hadCommentWhenLoaded;
+		newHourArray[d].commentTextWhenLoaded = hourArray[d].commentTextWhenLoaded;
+		newHourArray[d].entered_hrs = hourArray[d].entered_hrs;
+		newHourArray[d].approved_hrs = hourArray[d].approved_hrs;
+		newHourArray[d].hrs = hourArray[d].hrs;
+
+		if (isNaN(parseFloat(hourArray[d].hrs))) {
+			hourArray[d].hrs = "";
+		}
+		if (isNaN(parseFloat(hourArray[d].proratedHrs))) {
+			hourArray[d].proratedHrs = "";
+		}
+		var prorated = currentHourView == 'prorated';
+		var tmpHours =  prorated ? hourArray[d].proratedHrs : hourArray[d].hrs;
+
+		// an empty string or a string of spaces will evaluate to 0
+		if (tmpHours + "x" != "" + "x") {
+			if(prorated){
+				newHourArray[d].proratedHrs = tmpHours;
+			} else {
+				newHourArray[d].hrs = tmpHours;
+			}
+			newHourArray[d].innerHTML = addDecimalAndZero(tmpHours);
+			tmpHours = parseFloat(tmpHours);
+		}
+		else {
+			if(prorated){
+				newHourArray[d].proratedHrs = "";
+			} else {
+				newHourArray[d].hrs = "";
+			}
+			newHourArray[d].innerHTML = "";
+			tmpHours = 0;
+		}
+		if(!toMemory){
+			if (newRowObject.costonly) {
+				newHourArray[d].style.backgroundColor = "#cccccc";
+			}
+			else {
+				if(!prorated){
+					if (! newRowObject.overtime) {
+						COA[d].regularTotal += tmpHours;
+					}
+					else {
+						COA[d].overtimeTotal += tmpHours;
+					}
+					COA[d].columnTotal += tmpHours;
+				}
+			}
+			if(newHourArray[d].sts == "P"){
+				newHourArray[d].style.color = "blue";
+			} else if(newHourArray[d].sts == "R"){
+				newHourArray[d].style.color = "red";
+			} else if(newHourArray[d].sts == "S"){
+				newHourArray[d].style.color = "green";
+			}
+
+			if (grid.tsHasProcessedCells) {
+				newHourArray[d].crt = "Y";
+			} else {
+				newHourArray[d].crt = "N";
+			}
+			if (!cellCommentsDisabled && hourArray[d].hasComment == true) {
+				createHourComment(newHourArray[d], hourArray[d].txt);
+			}
+		}
+	}
+
+	if (!toMemory){
+		if (!lineCommentsDisabled && newRowObject.hasComment) {
+			newRowObject.commentIcon.style.visibility = "visible";
+		}
+		if (grid.lineApproveConfigCode != "DISABLED") {
+			if (newRowObject.llaStatusCode == "PENDING" || newRowObject.llaStatusCode == "APPROVED" ||  newRowObject.llaStatusCode == "REJECTED") {
+				if(!newRowObject.suppressLLAIcon()){
+					var newNode = document.createElement("DIV");
+					newNode.id = "LineApproveIcon" + newRowObject.lineNumber;
+					if (newRowObject.llaStatusCode == "PENDING") {
+						newNode.className = 'llaPending';
+					}
+					else if(newRowObject.llaStatusCode == "APPROVED") {
+						newNode.className = 'llaApproved';
+					}
+					else if(newRowObject.llaStatusCode == "REJECTED") {
+						newNode.className = 'llaRejected';
+					}
+					newNode.onclick = openLineApprove;
+					document.getElementById('rowNum'+toRow).appendChild(newNode);
+					newRowObject.LLAImage = newNode;
+				}
+			}
+		}
+
+	}
+
+
+}
+
+<!--*** RESET ROW ***-->
+function resetRow(rowNum) {
+	editor.value = "";
+	var rowObject = ROA[rowNum];
+	rowObject.rowTotal = 0.0;
+	rowObject.rowProratedTotal = 0.0;
+	rowObject.previouslySaved = false;
+	rowObject.typ[1] = "";
+	rowObject.typ[2] = "";
+	rowObject.typ[3] = "";
+	rowObject.typ[4] = "";
+	rowObject.typ[5] = "";
+	rowObject.typ[6] = "";
+	rowObject.typ[7] = "";
+	rowObject.typ[8] = "";
+	rowObject.typ[9] = "";
+	rowObject.typ[10] = "";
+	rowObject.typ[11] = "";
+	rowObject.typ[12] = "";
+	rowObject.typ[13] = "";
+	rowObject.typ[14] = "";
+	rowObject.typ[15] = "";
+	var hourArray = rowObject.hrs;
+	var tmpHours = 0;
+	for (d = 0; d < grid.numberOfDays; d++) {
+		cellObject = hourArray[d];
+		cellObject.innerHTML = "";
+		cellObject.readOnly = true;
+		var tmpBackground = cellObject.style.backgroundColor;
+		cellObject.style.backgroundImage = "";
+		cellObject.style.backgroundColor = tmpBackground;
+		cellObject.style.color = 'black';
+		cellObject.hasComment = null;
+		cellObject.hadCommentWhenLoaded = null;
+		cellObject.commentTextWhenLoaded = null;
+		cellObject.txt = "";
+		if (cellObject.nonWorkDay != "true" && cellObject.holiday != "true" && cellObject.vacation != "true") {
+			cellObject.style.backgroundColor = "#ffffff";
+		}
+		tmpHours = parseFloat(cellObject.hrs);
+		if (! isNaN(tmpHours)) {
+			if (! rowObject.costonly) {
+				if (! rowObject.overtime) {
+					COA[d].regularTotal -= tmpHours;
+				}
+				else {
+					COA[d].overtimeTotal -= tmpHours;
+				}
+				COA[d].columnTotal -= tmpHours;
+			}
+		}
+		cellObject.hrs = "";
+		cellObject.entered_hrs = null;
+		cellObject.approved_hrs = null;
+		cellObject.proratedHrs = null;
+	}
+
+	for (s = 0; s < rowObject.udts.length; s++) {
+		cellObject = rowObject.udts[s];
+		cellObject.innerHTML = "";
+		cellObject.cv = "";
+		cellObject.readOnly = true;
+		cellObject.readOnlyWhenLoaded = true;
+		cellObject.readOnlyAlways = false;
+	}
+	rowTotalObject = document.getElementById("rt"+rowNum);
+	rowTotalObject.innerHTML = "";
+	rowObject.hasComment = null;
+	rowObject.commentTextWhenLoaded = null;
+	rowObject.short_line_text = '';
+	if (!lineCommentsDisabled){
+		rowObject.commentIcon.style.visibility = "hidden";
+	}
+	if (rowObject.LLAImage != null){
+		document.getElementById('rowNum'+rowNum).removeChild(rowObject.LLAImage);
+		rowObject.LLAImage = null;
+	}
+	rowObject.llaStatusCode = null;
+}
+
+<!--*** ADD LINE TO FAVORITES ***-->
+function addToFavorites() {
+	if (!submitActive()){
+		return;
+	}
+	var chargeInfos = "";
+	var delimiter = '\x1F';
+	var selectedLines = findSelectedLines();
+	selectAllRows(false);
+	for (var m = 0; m < selectedLines.length; m++) {
+		var rowObject = ROA[selectedLines[m]];
+
+                chargeInfos += norm(rowObject.charge_tree_cd) + delimiter +
+                               norm(rowObject.charge_branch_cd) + delimiter +
+                               norm(rowObject.charge_cd) + delimiter +
+                               norm((rowObject.src[1] == 'C' || rowObject.src[1] == 'L' || rowObject.src[1] == 'M') ? rowObject.typ[1] : "") + delimiter +
+	                       norm((rowObject.src[2] == 'C' || rowObject.src[2] == 'L' || rowObject.src[2] == 'M') ? rowObject.typ[2] : "") + delimiter +
+	                       norm((rowObject.src[3] == 'C' || rowObject.src[3] == 'L' || rowObject.src[3] == 'M') ? rowObject.typ[3] : "") + delimiter +
+	                       norm((rowObject.src[4] == 'C' || rowObject.src[4] == 'L' || rowObject.src[4] == 'M') ? rowObject.typ[4] : "") + delimiter +
+	                       norm((rowObject.src[5] == 'C' || rowObject.src[5] == 'L' || rowObject.src[5] == 'M') ? rowObject.typ[5] : "") + delimiter +
+	                       norm((rowObject.src[6] == 'C' || rowObject.src[6] == 'L' || rowObject.src[6] == 'M') ? rowObject.typ[6] : "") + delimiter +
+	                       norm((rowObject.src[7] == 'C' || rowObject.src[7] == 'L' || rowObject.src[7] == 'M') ? rowObject.typ[7] : "") + delimiter +
+	                       norm((rowObject.src[8] == 'C' || rowObject.src[8] == 'L' || rowObject.src[8] == 'M') ? rowObject.typ[8] : "") + delimiter +
+		               norm((rowObject.src[9] == 'C' || rowObject.src[9] == 'L' || rowObject.src[9] == 'M') ? rowObject.typ[9] : "") + delimiter +
+	                       norm((rowObject.src[10] == 'C' || rowObject.src[10] == 'L' || rowObject.src[10] == 'M') ? rowObject.typ[10] : "") + delimiter +
+				norm(rowObject.src[9]) + delimiter +
+				norm(rowObject.short_line_text) + delimiter+
+	                       norm((rowObject.src[11] == 'C' || rowObject.src[11] == 'L' || rowObject.src[11] == 'M') ? rowObject.typ[11] : "") + delimiter +
+	                       norm((rowObject.src[12] == 'C' || rowObject.src[12] == 'L' || rowObject.src[12] == 'M') ? rowObject.typ[12] : "") + delimiter +
+	                       norm((rowObject.src[13] == 'C' || rowObject.src[13] == 'L' || rowObject.src[13] == 'M') ? rowObject.typ[13] : "") + delimiter +
+	                       norm((rowObject.src[14] == 'C' || rowObject.src[14] == 'L' || rowObject.src[14] == 'M') ? rowObject.typ[14] : "") + delimiter +
+	                       norm((rowObject.src[15] == 'C' || rowObject.src[15] == 'L' || rowObject.src[15] == 'M') ? rowObject.typ[15] : "") + delimiter;
+	}
+	self.frames[0].document.forms["addToFavoritesForm"].chargeInfos.value = chargeInfos;
+	self.frames[0].document.forms["addToFavoritesForm"].submit();
+}
+
+function reverseTimesheet() {
+	browseOnly = false;
+	var originalNumberOfLines = grid.numberOfCompleteTsLines;
+	selectAllRows(true);
+	var selectedLines = findSelectedLines();
+	if (!submitActive()){
+		return;
+	}
+	for (var m = 0; m < selectedLines.length; m++) {
+		var rowObject = ROA[selectedLines[m]];
+		var newRowObject = ROA[grid.numberOfCompleteTsLines];
+		var udtArray = rowObject.udts;
+		var newUdtArray = newRowObject.udts;
+		var hourArray = rowObject.hrs;
+		var newHourArray = newRowObject.hrs;
+
+		for (var k = 1; k < 16; k++) {
+			newRowObject.typ[k] = rowObject.typ[k];
+			newRowObject.src[k] = rowObject.src[k];
+		}
+		rowObject.noDeleteOrReset = true;
+		newRowObject.noDeleteOrReset = true;
+		with (newRowObject) {
+			readOnly = true;
+			overtime = rowObject.overtime;
+			costonly = rowObject.costonly;
+			isDefaultArray[1] = rowObject.isDefaultArray[1];
+			isDefaultArray[2] = rowObject.isDefaultArray[2];
+			isDefaultArray[3] = rowObject.isDefaultArray[3];
+			isDefaultArray[7] = rowObject.isDefaultArray[7];
+			isDefaultArray[9] = rowObject.isDefaultArray[9];
+			isDefaultArray[10] = rowObject.isDefaultArray[10];
+			if(!lineCommentsDisabled){
+				hasComment = rowObject.hasComment;
+				short_line_text = rowObject.short_line_text;
+				commentStatus = rowObject.commentStatus;
+				if(hasComment){
+					commentIcon.style.visibility = "visible";
+				}
+			}
+			line_desc = rowObject.line_desc;
+			charge_tree_cd = rowObject.charge_tree_cd;
+			charge_branch_cd = rowObject.charge_branch_cd;
+			charge_cd = rowObject.charge_cd;
+			udt01_link_fl = rowObject.udt01_link_fl;
+			udt02LinkFlag = rowObject.udt02LinkFlag;
+			reversed = "Y";
+		}
+		for (var n = 0; n < udtArray.length; n++) {
+			newUdtArray[n].cv = udtArray[n].cv;
+			if (udtArray[n].cv == "") {
+				newUdtArray[n].innerHTML = "";
+			}
+			else {
+				newUdtArray[n].innerHTML = quoteHtml(udtArray[n].cv);
+			}
+			newUdtArray[n].readOnly = udtArray[n].readOnly;
+		}
+		for (var d = 0; d < grid.numberOfDays; d++) {
+
+
+			var tmpHours = hourArray[d].hrs;
+			tmpHours = "" + tmpHours;
+			var dex = tmpHours.indexOf(',');
+
+			if(dex != -1) {
+				var myRegExp = /,/g;
+				var newCell = tmpHours.replace(myRegExp, ".");
+				tmpHours = newCell;
+			}
+			if (isNaN(parseFloat(tmpHours))) {
+				tmpHours = "";
+			}
+			if ((tmpHours) && (tmpHours != "")) {
+				newHourArray[d].hrs = tmpHours * -1;
+				newHourArray[d].innerHTML = addDecimalAndZero(tmpHours * -1);
+			}
+			else {
+				newHourArray[d].hrs = "";
+				newHourArray[d].innerHTML = "";
+			}
+			if ((tmpHours == "") || isNaN(parseFloat(tmpHours))) {
+				tmpHours = 0;
+			}
+			if (newRowObject.costonly) {
+				newHourArray[d].style.backgroundColor = "#cccccc";
+			}
+			else {
+				if (! newRowObject.overtime) {
+					COA[d].regularTotal += tmpHours * -1;
+				}
+				else {
+					COA[d].overtimeTotal += tmpHours * -1;
+				}
+				COA[d].columnTotal += tmpHours * -1;
+			}
+			var tmpProratedHrs = hourArray[d].proratedHrs;
+			if (isNaN(parseFloat(tmpProratedHrs))) {
+				tmpProratedHrs = "";
+			}
+			if ((tmpProratedHrs) && (tmpProratedHrs != "")) {
+				newHourArray[d].proratedHrs = tmpProratedHrs * -1;
+			}
+			else {
+				newHourArray[d].proratedHrs = tmpProratedHrs;
+			}
+			var tmpAmt = hourArray[d].enteredRate1Amt;
+
+			if (isNaN(parseFloat(tmpAmt))) {
+				tmpAmt = "";
+			}
+			if ((tmpAmt) && (tmpAmt != "")) {
+				newHourArray[d].enteredRate1Amt = tmpAmt * -1;
+			}
+			else {
+				newHourArray[d].enteredRate1Amt = tmpAmt;
+			}
+			tmpAmt = hourArray[d].enteredRate2Amt;
+			if (isNaN(parseFloat(tmpAmt))) {
+				tmpAmt = "";
+			}
+			if ((tmpAmt) && (tmpAmt != "")) {
+				newHourArray[d].enteredRate2Amt = tmpAmt * -1;
+			}
+			else {
+				newHourArray[d].enteredRate2Amt = tmpAmt;
+			}
+
+			tmpAmt = hourArray[d].proratedRate1Amt;
+			if (isNaN(parseFloat(tmpAmt))) {
+				tmpAmt = "";
+			}
+			if ((tmpAmt) && (tmpAmt != "")) {
+				newHourArray[d].proratedRate1Amt = tmpAmt * -1;
+			}
+			else {
+				newHourArray[d].proratedRate1Amt = tmpAmt;
+			}
+			tmpAmt = hourArray[d].proratedRate2Amt;
+			if (isNaN(parseFloat(tmpAmt))) {
+				tmpAmt = "";
+			}
+			if ((tmpAmt) && (tmpAmt != "")) {
+				newHourArray[d].proratedRate2Amt = tmpAmt * -1;
+			}
+			else {
+				newHourArray[d].proratedRate2Amt = tmpAmt;
+			}
+			newHourArray[d].rate1 = hourArray[d].rate1;
+			newHourArray[d].rate2 = hourArray[d].rate2;
+			newHourArray[d].rate1Cd = hourArray[d].rate1Cd;
+			newHourArray[d].rate2Cd = hourArray[d].rate2Cd;
+
+
+			newRowObject.rowTotal += tmpHours * -1;
+
+			if ((''+newHourArray[d].hrs) == "" && ! hourArray[d].readOnly) {
+				newHourArray[d].readOnly = true;
+				newHourArray[d].reversedReadOnly = true;
+			}
+			if ((''+newHourArray[d].hrs) != "") {
+				newHourArray[d].sts = "O";
+				newHourArray[d].crt = "Y";
+				newHourArray[d].readOnly = true;
+				newHourArray[d].reversal_fl = "Y";
+			}
+			if (! hourArray[d].readOnly) {
+				hourArray[d].readOnly = true;
+				hourArray[d].reversedReadOnly = true;
+			}
+			if (!cellCommentsDisabled && hourArray[d].hasComment) {
+				newHourArray[d].txt = hourArray[d].txt;
+				createHourComment(newHourArray[d], newHourArray[d].txt);
+			}
+		}
+		setLineIsCompleteNoUdt10(grid.numberOfCompleteTsLines);
+	}
+	selectAllRows(false);
+
+	for (var u = 0; u < originalNumberOfLines; u++) {
+		changeRowSelectedStatus(u);
+	}
+	selectedLines = findSelectedLines();
+
+	for (var m = 0; m < selectedLines.length; m++) {
+		var rowObject = ROA[selectedLines[m]];
+		var newRowObject = ROA[grid.numberOfCompleteTsLines];
+		var udtArray = rowObject.udts;
+		var newUdtArray = newRowObject.udts;
+		var hourArray = rowObject.hrs;
+		var newHourArray = newRowObject.hrs;
+
+		for (var k = 1; k < 16; k++) {
+		   newRowObject.typ[k] = rowObject.typ[k];
+		   newRowObject.src[k] = rowObject.src[k];
+		}
+		with (newRowObject) {
+			readOnly = false;
+			overtime = rowObject.overtime;
+			costonly = rowObject.costonly;
+			isDefaultArray[1] = rowObject.isDefaultArray[1];
+			isDefaultArray[2] = rowObject.isDefaultArray[2];
+			isDefaultArray[3] = rowObject.isDefaultArray[3];
+			isDefaultArray[7] = rowObject.isDefaultArray[7];
+			isDefaultArray[9] = rowObject.isDefaultArray[9];
+			isDefaultArray[10] = rowObject.isDefaultArray[10];
+			if(!lineCommentsDisabled){
+				hasComment = rowObject.hasComment;
+				short_line_text = rowObject.short_line_text;
+				commentStatus = rowObject.commentStatus;
+				if(hasComment){
+					commentIcon.style.visibility = "visible";
+				}
+			}
+			line_desc = rowObject.line_desc;
+			charge_tree_cd = rowObject.charge_tree_cd;
+			charge_branch_cd = rowObject.charge_branch_cd;
+			charge_cd = rowObject.charge_cd;
+			udt01_link_fl = rowObject.udt01_link_fl;
+			udt02LinkFlag = rowObject.udt02LinkFlag;
+			reversed = "N";
+		}
+		newRowObject.startStopTimeFl = rowObject.startStopTimeFl;
+		for (var n = 0; n < udtArray.length; n++) {
+			newUdtArray[n].cv = udtArray[n].cv;
+			if (udtArray[n].cv == "") {
+				newUdtArray[n].innerHTML = "";
+			}
+			else {
+				newUdtArray[n].innerHTML = quoteHtml(udtArray[n].cv);
+			}
+			// the .prim variable is for primary charge
+			if (udtArray[n].srcCd == "C") {
+				if (! udtArray[n].prim) {
+					newUdtArray[n].readOnly = udtArray[n].readOnly;
+				}
+			}
+		}
+		for (var d = 0; d < grid.numberOfDays; d++) {
+			var tmpHours = hourArray[d].hrs;
+			tmpHours = "" + tmpHours;
+			var dex = tmpHours.indexOf(',');
+
+			if(dex != -1) {
+				var myRegExp = /,/g;
+				var newCell = tmpHours.replace(myRegExp, ".");
+				tmpHours = newCell;
+			}
+			if (isNaN(parseFloat(tmpHours))) {
+				tmpHours = "";
+			}
+			if ((tmpHours) && (tmpHours != "")) {
+				newHourArray[d].hrs = tmpHours * 1;
+				newHourArray[d].innerHTML = addDecimalAndZero(tmpHours * 1);
+			}
+			else {
+				newHourArray[d].hrs = "";
+				newHourArray[d].innerHTML = "";
+			}
+			if ((tmpHours == "") || isNaN(parseFloat(tmpHours))) {
+				tmpHours = 0;
+			}
+
+			newHourArray[d].proratedHrs = null;
+			newHourArray[d].enteredRate1Amt = hourArray[d].enteredRate1Amt;
+			newHourArray[d].enteredRate2Amt = hourArray[d].enteredRate2Amt;
+			newHourArray[d].proratedRate1Amt = hourArray[d].proratedRate1Amt;
+			newHourArray[d].proratedRate2Amt = hourArray[d].proratedRate2Amt;
+			newHourArray[d].rate1 = hourArray[d].rate1;
+			newHourArray[d].rate2 = hourArray[d].rate2;
+			newHourArray[d].rate1Cd = hourArray[d].rate1Cd;
+			newHourArray[d].rate2Cd = hourArray[d].rate2Cd;
+
+
+			if (newRowObject.costonly) {
+				newHourArray[d].style.backgroundColor = "#cccccc";
+			}
+			else {
+				if (! newRowObject.overtime) {
+					COA[d].regularTotal += tmpHours * 1;
+				}
+				else {
+					COA[d].overtimeTotal += tmpHours * 1;
+				}
+				COA[d].columnTotal += tmpHours * 1;
+			}
+			newHourArray[d].sts = "O";
+			newHourArray[d].crt = "Y";
+			newHourArray[d].readOnly = false;
+			newRowObject.rowTotal += tmpHours * 1;
+			if (!cellCommentsDisabled && hourArray[d].hasComment) {
+				newHourArray[d].txt = hourArray[d].txt;
+				createHourComment(newHourArray[d], newHourArray[d].txt);
+			}
+		}
+		setLineIsCompleteNoUdt10(grid.numberOfCompleteTsLines);
+	}
+
+	if(grid.startStopTimeMode == 'DETAIL' && startStopArray != null){
+		for(var i = 0; i < startStopArray.length; i++){
+			if(startStopArray[i] != null){
+				for(var j = startStopArray[i].length - 1; j >= 0; j--){
+					if(!isNaN(startStopArray[i][j]['charge'])){
+						startStopArray[i][j]['charge'] = parseInt(startStopArray[i][j]['charge'], 10) + originalNumberOfLines * 2;
+					}
+				}
+			}
+		}
+	}
+
+	calculateTotals();
+	setUnsavedChanges();
+	selectAllRows(false);
+	statusCodeSpan.innerHTML = quoteHtml(statusCodeSpan.openStatusCode);
+	var udtCells = ROA[grid.numberOfCompleteTsLines].udts;
+	var firstCellCol = 0;
+	while(udtCells[firstCellCol].typ == "0" || udtSizes[firstCellCol] == 0) firstCellCol++;
+	var firstCell = udtCells[firstCellCol];
+	setActiveEntry(firstCell);
+	enableReverseTimesheet(false);
+}
+
+function sortByUdt(udtNum){
+	if (!submitActive()) {
+		return;
+	}
+	if (grid.aLineIsIncomplete) {
+ 		incompleteLineMessage();
+        	return;
+	}
+	selectAllRows(false);
+	var sortArray = new Array();
+	for(var i = 0; i < grid.numberOfCompleteTsLines; i++) {
+		var str = (ROA[i].udts[getUdtOrder(udtNum)].cv == "" ? " " : ROA[i].udts[getUdtOrder(udtNum)].cv.toUpperCase());
+		if(grid.udts1And2AreLinked && udtNum != 2){
+			str += (ROA[i].udts[getUdtOrder(2)].cv == "" ? " " : ROA[i].udts[getUdtOrder(2)].cv.toUpperCase());
+		}
+		if(udtNum != 1){
+			str += (ROA[i].udts[getUdtOrder(1)].cv == "" ? " " : ROA[i].udts[getUdtOrder(1)].cv.toUpperCase());
+		}
+		str += padStartingZeros(ROA[i].lineNumber);
+		str += padStartingZeros(i);
+		sortArray[i] = str;
+	}
+	sortArray.sort();
+
+	//re-drawing all lines
+	for(var i = 0; i < sortArray.length; i++) {
+		var lineNo = parseInt(stripStartingZeros(sortArray[i].substring(sortArray[i].length - 3,sortArray[i].length)));
+		if(lineNo == i) continue; // This line doesn't need to be moved
+		if(ROA["t"+i] == null){
+			moveLine(i, "t"+i, true); //saving line into memory
+		}
+		resetRow(i);
+		if(ROA["t"+lineNo] != null){
+			moveLine("t"+lineNo, i);
+			ROA["t"+lineNo] = null;
+		} else {
+			moveLine(lineNo, i);
+		}
+	}
+	for(var i = 0; i < sortArray.length; i++) {
+		ROA["t"+i] = null;
+	}
+	calculateTotals(currentHourView == 'prorated');
+	var udtCells = ROA[grid.numberOfCompleteTsLines].udts;
+	var firstCellCol = 0;
+	while(udtCells[firstCellCol].typ == "0" || udtSizes[firstCellCol] == 0) firstCellCol++;
+	var firstCell = udtCells[firstCellCol];
+	setActiveEntry(firstCell);
+}
+
+function padStartingZeros(value){
+	value = "" + value;
+	while(value.length < 3){
+		value = "0" + value;
+	}
+	return value;
+}
+
+function stripStartingZeros(value){
+	while(value != "0" && value.substring(0,1) == "0"){
+		value = value.substring(1,value.length);
+	}
+	return value;
+}
+
+function reNumberLines(startWith){
+	for(var i = 0; i < ROA.length; i++) {
+		if(ROA[i].pkLineNumber >= startWith){
+			ROA[i].pkLineNumber--;
+		}
+	}
+	for(var d = 0; d < startStopArray.length; d++){
+		for(var r = 0; r < startStopArray[d].length; r++){
+			if(!isNaN(startStopArray[d][r]['charge']) && parseInt(startStopArray[d][r]['charge'],10) >= startWith){
+				startStopArray[d][r]['charge'] = parseInt(startStopArray[d][r]['charge'], 10) - 1;
+			}
+		}
+	}
+}
+
+function removeFromDayArray(d, idx){
+	var newAr = new Array();
+	var ind = 0;
+		for(var i = 0; i < idx; i++){
+				newAr[ind] = new Array();
+				newAr[ind]['dayNo'] = startStopArray[d][i]['dayNo'];
+				newAr[ind]['charge'] = startStopArray[d][i]['charge'];
+				newAr[ind]['startDate'] = startStopArray[d][i]['startDate'];
+				newAr[ind]['startTime'] = startStopArray[d][i]['startTime'];
+				newAr[ind]['startAmPm'] = startStopArray[d][i]['startAmPm'];
+				newAr[ind]['stopDate'] = startStopArray[d][i]['stopDate'];
+				newAr[ind]['stopTime'] = startStopArray[d][i]['stopTime'];
+				newAr[ind]['stopAmPm'] = startStopArray[d][i]['stopAmPm'];
+				newAr[ind]['comment'] = startStopArray[d][i]['comment'];
+				newAr[ind]['hours'] = startStopArray[d][i]['hours'];
+				newAr[ind]['hoursInt'] = startStopArray[d][i]['hoursInt'];
+
+				newAr[ind]['startYear'] = startStopArray[d][i]['startYear'];
+				newAr[ind]['startMonth'] = startStopArray[d][i]['startMonth'];
+				newAr[ind]['startDay'] = startStopArray[d][i]['startDay'];
+				newAr[ind]['startHrs'] = startStopArray[d][i]['startHrs'];
+				newAr[ind]['startMin'] = startStopArray[d][i]['startMin'];
+				newAr[ind]['startDt'] = startStopArray[d][i]['startDt'];
+				newAr[ind]['stopYear'] = startStopArray[d][i]['stopYear'];
+				newAr[ind]['stopMonth'] = startStopArray[d][i]['stopMonth'];
+				newAr[ind]['stopDay'] = startStopArray[d][i]['stopDay'];
+				newAr[ind]['stopHrs'] = startStopArray[d][i]['stopHrs'];
+				newAr[ind]['stopMin'] = startStopArray[d][i]['stopMin'];
+				newAr[ind]['stopDt'] = startStopArray[d][i]['stopDt'];
+			ind++;
+		}
+		for(var i = idx+1; i < startStopArray[d].length; i++){
+				newAr[ind] = new Array();
+				newAr[ind]['dayNo'] = startStopArray[d][i]['dayNo'];
+				newAr[ind]['charge'] = startStopArray[d][i]['charge'];
+				newAr[ind]['startDate'] = startStopArray[d][i]['startDate'];
+				newAr[ind]['startTime'] = startStopArray[d][i]['startTime'];
+				newAr[ind]['startAmPm'] = startStopArray[d][i]['startAmPm'];
+				newAr[ind]['stopDate'] = startStopArray[d][i]['stopDate'];
+				newAr[ind]['stopTime'] = startStopArray[d][i]['stopTime'];
+				newAr[ind]['stopAmPm'] = startStopArray[d][i]['stopAmPm'];
+				newAr[ind]['comment'] = startStopArray[d][i]['comment'];
+				newAr[ind]['hours'] = startStopArray[d][i]['hours'];
+				newAr[ind]['hoursInt'] = startStopArray[d][i]['hoursInt'];
+
+				newAr[ind]['startYear'] = startStopArray[d][i]['startYear'];
+				newAr[ind]['startMonth'] = startStopArray[d][i]['startMonth'];
+				newAr[ind]['startDay'] = startStopArray[d][i]['startDay'];
+				newAr[ind]['startHrs'] = startStopArray[d][i]['startHrs'];
+				newAr[ind]['startMin'] = startStopArray[d][i]['startMin'];
+				newAr[ind]['startDt'] = startStopArray[d][i]['startDt'];
+				newAr[ind]['stopYear'] = startStopArray[d][i]['stopYear'];
+				newAr[ind]['stopMonth'] = startStopArray[d][i]['stopMonth'];
+				newAr[ind]['stopDay'] = startStopArray[d][i]['stopDay'];
+				newAr[ind]['stopHrs'] = startStopArray[d][i]['stopHrs'];
+				newAr[ind]['stopMin'] = startStopArray[d][i]['stopMin'];
+				newAr[ind]['stopDt'] = startStopArray[d][i]['stopDt'];
+			ind++;
+		}
+
+	startStopArray[d] = newAr;
+}

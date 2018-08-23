@@ -1,0 +1,617 @@
+var textSel=false;
+var inSel=false;
+function onValidateNumberClickXB(obj)
+{
+	if(!inSel){
+		textSel=false;
+	}
+	inSel=false;
+}
+function onValidateNumberDblClickXB(obj)
+{
+	textSel=true;
+}
+function onValidateNumberSelectXB(obj)
+{
+	inSel=true;
+	textSel=true;
+}
+
+<!-- function: onlyNumbersXB                                                   -->
+<!-- parameters: obj  - the field object                                       -->
+<!--             e    - dom event object for non window.event browsers         -->
+<!--             mask - numeric mask, including decimal point and sign         -->
+<!--                    (e.g. '1000.00' for 999.99)                            -->
+<!--             allowPositiveOnly - does not allow to enter "minus"           -->
+<!-- returns: true if character allowed, false if not                          -->
+<!--          Note! it will cancel the dom event for browsers that support it. -->
+<!--          Currently, Netscape 7.x and IE 6 support cancel of onKeyPress.   -->
+function onlyNumbersXB(obj, e, mask, allowPositiveOnly) {
+
+	var keyCode;
+	var returnVal = false;
+
+	if(allowPositiveOnly == null) allowPositiveOnly = false;
+
+	if (window.event) {
+		e = window.event;
+		keyCode = e.keyCode;
+	} else {
+		// a key, such as delete, was pressed; let it pass through
+		if (e.keyCode == e.which) keyCode = null;
+		// else if not a char we don't know what this is; let it pass through
+		else if (e.charCode != e.which) keyCode = 0;
+		// else a char - set it
+		else keyCode = e.which;
+	}
+        
+	<!-- key not recognizable - let it pass (8 and 63272 are Safari 1.2 Backspace and Del keys, 9 - Tab, 25 - Shift-Tab-->
+	if (keyCode==null || keyCode == 0 || keyCode==8 || keyCode==63272 || keyCode==9 || keyCode==25) {
+		returnVal = true;
+	}
+
+	// if a control key was not detected above, returnVal will still be false and
+	// further analysis is required
+	if (returnVal != true) {
+		var maskLen = mask.length;
+		if(obj.value.indexOf('-') == -1) maskLen--;
+		// if minus sign pressed and at first position, return true
+		if (keyCode == 45 && !allowPositiveOnly) {
+			returnVal = true;
+		} else if ((keyCode > 47 && keyCode < 58) || // numbers 0-9
+				   (keyCode == 45 && !allowPositiveOnly) || // minus sign
+				   (top.decimalSymbol == "." && keyCode == 46 && mask.indexOf(top.decimalSymbol)>-1) ||
+				   (top.decimalSymbol == "," && keyCode == 44 && mask.indexOf(top.decimalSymbol)>-1)) {
+			if (obj.value.length < maskLen || textSel) {
+				returnVal = true;
+			}
+		}
+	}
+	if(returnVal==true)
+		textSel=false;	// set to false because accepting the char will cancel the selection
+	if (window.event) {
+		e.returnValue = returnVal;
+		return returnVal;
+	} else {
+		if (returnVal == false && e.preventDefault) e.preventDefault();
+		return returnVal;
+	}
+}
+
+var errorObject; // global var to hold object if an error occurs in validateNumberXB
+
+<!-- function: validateNumberXB                                                -->
+<!-- parameters: obj  - the field object                                       -->
+<!--             mask - numeric mask, including decimal point and sign         -->
+<!--                    (e.g. '1000.00' for 999.99)                            -->
+<!--             allowPositiveOnly - does not allow to enter "minus"           -->
+<!--             customErrorMsg - if true, standard error messages are         -->
+<!--                              not shown, page must show its own error msg  -->
+<!-- returns: void                                                             -->
+<!--          Note! this function will cause an error to be displayed if the   -->
+<!--          number passed in obj.value does not match the mask or contains   -->
+<!--          an invalid numeric character.  It is intended to be called when  -->
+<!--          "full field validation" is required, such as onBlur or onChange. -->
+
+function validateNumberXB(obj, mask, allowPositiveOnly, customErrorMsg) {
+
+	// just return if there is nothing in obj.value
+	if (obj.value.length == 0) {
+		return true;
+	}
+
+	if(allowPositiveOnly == null) allowPositiveOnly = false;
+
+	var enteredValue = obj.value;
+	var indexOfComma = enteredValue.indexOf(",");
+	if(indexOfComma != -1) {
+		var myRegExp = /,/g;
+		enteredValue = enteredValue.replace(myRegExp, ".");
+	}
+
+	if (isNaN(enteredValue)) {
+		errorObject = obj;
+		if(!customErrorMsg){
+			showErrorMessage('E0818',top.E0818Message,'',validateNumberErrXB);
+		}
+		return false;
+	}
+
+	if(allowPositiveOnly && (parseFloat(enteredValue) < 0)){
+		if(!customErrorMsg){
+			showErrorMessage('E1155',top.E1155Message,'',validateNumberErrXB);
+		}
+		return false;
+	}
+
+	if (indexOfComma != -1 && top.decimalSymbol != ".") {
+		var myRegExp = /./g;
+		enteredValue = enteredValue.replace(myRegExp, ",");
+	}
+
+	if (validateNumberMaskXB(obj, mask) == false) {
+		errorObject = obj;
+		if(!customErrorMsg){
+			showErrorMessage('E0819',top.E0819Message,'',validateNumberErrXB);
+		}
+		return false;
+	} else {
+		var maskLen = mask.length;
+		if (obj.value.indexOf("-") != -1) maskLen = maskLen + 1;
+
+		if (obj.value.length > maskLen) {
+			errorObject = obj;
+			if(!customErrorMsg){
+				showErrorMessage('E0820',top.E0820Message,'',validateNumberErrXB);
+			}
+			return false;
+		}
+	}
+
+	return true;
+}
+
+function acceptsCharXB(key, obj, mask) {
+
+	var ret = true;
+	var posAfterDot = 0;
+	var posBeforeDot = 0;
+	var maskLen = 0;
+	var afterDotLen = 0;
+	var beforeDotLen = 0;
+	var i = 0;
+	var pos = obj.value.length;
+	var dotPos = obj.value.indexOf(top.decimalSymbol);
+	var decMaskSymbol = top.decimalSymbol;
+	var keyIsDecSymbol = false;
+
+	// check if trying to add more than one minus sign
+	if (key == 45 && (obj.value.indexOf("-") != -1)){
+		return false;
+	}
+
+	if ((key == 46 && top.decimalSymbol == ".") ||
+		(key == 44 && top.decimalSymbol == ",")) {
+		keyIsDecSymbol = true;
+	}
+
+	// check if trying to key a decimal place when mask has none
+	if (keyIsDecSymbol == true && mask.indexOf(decMaskSymbol) == -1){
+		return false;
+	}
+
+	// check if trying to key more than one decimal place
+	if (keyIsDecSymbol == true && dotPos != -1){
+		return false;
+	}
+
+	if (keyIsDecSymbol) dotPos = pos;
+
+	if (dotPos != -1) posAfterDot = pos - dotPos;
+	maskLen = mask.length;
+	beforeDotLen = maskLen;
+	if ((i = mask.indexOf(decMaskSymbol)) != -1) {
+		afterDotLen = maskLen-i-1;
+		beforeDotLen = i;
+		if (obj.value.indexOf("-") == -1) beforeDotLen = beforeDotLen - 1; // take a - sign into account
+	} else {
+		if (obj.value.indexOf("-") == -1) maskLen = maskLen - 1; // take a - sign into account
+		if (pos >= maskLen && !textSel) {
+			return false;
+		}
+		else return true;
+	}
+
+	// RH - there is a problem here.  Once the mask AFTER the decimal is filled this returns false
+	// even if the cursor is to the left of the decimal.  It shouldn't.  Not sure how to fix at this time.
+	if (posAfterDot > afterDotLen && !textSel){
+		return false;
+	}
+	if ((maskLen > 0) && (pos == maskLen && !textSel)){
+		return false;
+	}
+	// posAfterDot, above, assumes appending to end of string
+	// this validation takes inserting characters before dot into account
+	// UPDATE: took the validation out until we can figure out how to take
+	// cursor position into account - JAA 10/11/2003
+//    if ((dotPos >= 0) && (dotPos > beforeDotLen) && (keyIsDecSymbol == false)) return false;
+	if ((dotPos == -1) && (pos == beforeDotLen) && (keyIsDecSymbol == false)) return false;
+	return ret;
+
+}
+
+function validateNumberErrXB() {
+	// set focus to the field that had an error
+	errorObject.focus();
+	return;
+}
+
+function validateNumberMaskXB(obj, mask) {
+	var posAfterDot = 0;
+	var posBeforeDot = 0;
+	var maskLen = 0;
+	var afterDotLen = 0;
+	var beforeDotLen = 0;
+	var i = 0;
+	var pos = obj.value.length;
+	var dotPos = obj.value.indexOf(top.decimalSymbol);
+	var decMaskSymbol = ".";
+	var commaMaskSymbol=",";//rh
+	var maskDotPos = mask.indexOf(decMaskSymbol);
+	if(maskDotPos<0) // rh
+		maskDotPos = mask.indexOf(commaMaskSymbol); //rh
+	var periodPos = obj.value.indexOf(".");
+	var commaPos = obj.value.indexOf(",");
+	var minusSignPos = obj.value.indexOf("-");
+	if (dotPos != -1) posAfterDot = pos - dotPos - 1;
+	else if (maskDotPos >= 0) dotPos = obj.value.length;
+	maskLen = mask.length;
+	if (minusSignPos == -1) maskLen = maskLen - 1;
+	beforeDotLen = maskLen;
+	if (maskDotPos >= 0) {
+		// has a decimal in mask to deal with
+		afterDotLen = maskLen-maskDotPos;
+		beforeDotLen = maskDotPos;
+		if (minusSignPos == -1) beforeDotLen = beforeDotLen - 1;
+	} else if (maskDotPos <= 0 && (dotPos >= 0 || periodPos >= 0 || commaPos >= 0)) {
+		// does not have a decimal in mask but decimal found in value
+		return false;
+	} else if (maskDotPos <= 0 && dotPos <= 0 && periodPos <= 0 && commaPos <= 0) {
+		// nothing to do as no dec found in mask or value
+		return true;
+	}
+
+	if (posAfterDot > afterDotLen) {
+		return false;
+	}
+
+	if (dotPos > beforeDotLen) {
+		return false;
+	}
+
+	if ((maskLen > 0) && (pos > maskLen)) {
+		return false;
+	}
+
+	return true;
+}
+
+<!--*** Store Value of Field On Focus ***-->
+function storeValueOnFocus(elemRef) {
+	originalValue = elemRef.value;
+}
+
+<!--*** Validate Number On Key Up ***-->
+function validateNumberOnKeyUp(elemRef) {
+	var fieldValue = elemRef.value;
+	var myExp;
+	if (decimalSymbol == ".") {
+			myExp = /^\.$|^$|^\d$|^[0]$|^\d\d$|^\d\.$|^\d\d\.$|^\d\.\d$|^\d\.\d\d$|^\d\d\.\d$|^\d\d\.\d\d$|^\.\d$|^\.\d\d$|^\d\d\d$|^\d\d\d\.$|^\d\d\d\.\d$|^\d\d\d\.\d\d$/;
+	}
+	else if (decimalSymbol == ",") {
+		myExp = /^\,$|^$|^\d$|^[0]$|^\d\d$|^\d\,$|^\d\d\,$|^\d\,\d$|^\d\,\d\d$|^\d\d\,\d$|^\d\d\,\d\d$|^\,\d$|^\,\d\d$|^\d\d\d$|^\d\d\d\,$|^\d\d\d\,\d$|^\d\d\d\,\d\d$/;
+	}
+	var found = myExp.test(fieldValue);
+	if (found) {
+		originalValue = fieldValue;
+		return;
+	}
+	else {
+		elemRef.value = originalValue;
+	}
+}
+
+<!--*** Validate Number On Blur ***-->
+function validateNumberOnBlur(elemRef, roundAmount, dfltValue) {
+	if (! dfltValue) {
+		dfltValue = "0" + decimalSymbol + "00";
+	}
+	if (isNaN(parseFloat(dfltValue))) {
+		dfltValue = "0" + decimalSymbol + "00";
+	}
+	if (isNaN(parseInt(roundAmount))) {
+		roundAmount = 2;
+	}
+	if (elemRef.value.length == 0) {
+		elemRef.value = dfltValue;
+		return;
+	}
+
+	var enteredValue = elemRef.value;
+	var indexOfComma = enteredValue.indexOf(",");
+	if(indexOfComma != -1) {
+		var myRegExp = /,/g;
+		enteredValue = enteredValue.replace(myRegExp, ".");
+	}
+
+	if (isNaN(parseFloat(enteredValue))) {
+		elemRef.value = dfltValue;
+		return;
+	}
+	if (indexOfComma != -1 && decimalSymbol != ".") {
+		var myRegExp = /./g;
+		enteredValue = enteredValue.replace(myRegExp, ",");
+	}
+
+	if(isNaN(roundit(enteredValue, roundAmount))){
+		elemRef.value = dfltValue;
+		return;
+	}
+	enteredValue = roundit(enteredValue, roundAmount);
+
+	if (enteredValue.toString().indexOf(".") == enteredValue.toString().length - 1) {
+		enteredValue = "" + enteredValue + "00";
+	}
+	elemRef.value = enteredValue;
+
+	return;
+}
+
+<!--*** Round Numbers. If the number is a whole number, this function returns it as is. ***-->
+function roundit(Num, Places) {
+	if (Places > 0) {
+		if ((Num.toString().length - Num.toString().lastIndexOf('.')) > (Places + 1)) {
+			var Rounder = Math.pow(10, Places);
+			return Math.round(Num * Rounder) / Rounder;
+		}
+		else return Num;
+	}
+	else return Math.round(Num);
+}
+
+<!--*** Validate Hours On Key Up ***-->
+function validateHoursOnKeyUp(elemRef) {
+	var fieldValue = elemRef.value;
+	var myExp = /^$|^\d$|^[0]\d$|^[1][0-2]$/;
+	var found = myExp.test(fieldValue);
+	if (found) {
+		originalValue = fieldValue;
+		return;
+	}
+	else {
+		elemRef.value = originalValue;
+	}
+}
+
+<!--*** Validate and Format Hours On Blur ***-->
+function validateHoursOnBlur(elemRef, dfltHrs) {
+	if (dfltHrs == null) {
+		dfltHrs = "12";
+	}
+	if (elemRef.value.length == 0) {
+		elemRef.value = dfltHrs;
+		return;
+	}
+	if (elemRef.value.length == 1) {
+		var tmpHour = parseInt(elemRef.value);
+		if (isNaN(tmpHour)) {
+			elemRef.value = dfltHrs;
+		}
+		else {
+			elemRef.value = "0" + elemRef.value;
+		}
+	}
+	else if (elemRef.value.length == 2) {
+		var firstChar = elemRef.value.substring(0,1);
+		var secondChar = elemRef.value.substring(1,2);
+		firstChar = parseInt(firstChar);
+		secondChar = parseInt(secondChar);
+		if (isNaN(firstChar)) {
+			elemRef.value = dfltHrs;
+		}
+		else if (firstChar > 1) {
+			elemRef.value = dfltHrs;
+		}
+		if (isNaN(secondChar)) {
+			elemRef.value = dfltHrs;
+		}
+		else if (secondChar == 2 && firstChar > 1) {
+			elemRef.value = dfltHrs;
+		}
+		else if (secondChar > 2 && firstChar != 0) {
+			elemRef.value = dfltHrs;
+		}
+	}
+	else if (elemRef.value.length > 2) {
+		elemRef.value = dfltHrs;
+	}
+	if (elemRef.value == "00") {
+		elemRef.value = dfltHrs;
+	}
+	return;
+}
+
+<!--*** Validate Minutes On Key Up ***-->
+function validateMinutesOnKeyUp(elemRef) {
+	var fieldValue = elemRef.value;
+	var myExp = /^$|^\d$|^[0-5]\d$/;
+	var found = myExp.test(fieldValue);
+	if (found) {
+		originalValue = fieldValue;
+		return;
+	}
+	else {
+		elemRef.value = originalValue;
+	}
+}
+
+<!--*** Validate and Format Minutes On Blur ***-->
+function validateMinutesOnBlur(elemRef, dfltMins) {
+	if (dfltMins == null) {
+		dfltMins = "00";
+	}
+	if (elemRef.value.length == 0) {
+		elemRef.value = dfltMins;
+		return;
+	}
+	else if (elemRef.value.length == 1) {
+		var tmpHour = parseInt(elemRef.value);
+		if (isNaN(tmpHour)) {
+			elemRef.value = dfltMins;
+			return;
+		}
+		else {
+			elemRef.value = "0" + elemRef.value;
+			return;
+		}
+	}
+	else if (elemRef.value.length == 2) {
+		var firstChar = elemRef.value.substring(0,1);
+		var secondChar = elemRef.value.substring(1,2);
+		firstChar = parseInt(firstChar);
+		secondChar = parseInt(secondChar);
+		if (isNaN(firstChar)) {
+			elemRef.value = dfltMins;
+			return;
+		}
+		else if (firstChar > 5) {
+			elemRef.value = dfltMins;
+			return;
+		}
+		if (isNaN(secondChar)) {
+			elemRef.value = dfltMins;
+			return;
+		}
+		return;
+	}
+	else if (elemRef.value.length > 2) {
+		elemRef.value = dfltMins;
+		return;
+	}
+}
+
+<!--Returns the mask for formatting numbers -->
+function getMask(integerDigits, fractionDigits){
+	var numMask = "1";
+	if (integerDigits == 0) numMask = "0";
+	for(var i=0; i<integerDigits; i++){
+		numMask = numMask + "0";
+	}
+	if (fractionDigits != 0){
+	   numMask = numMask + top.decimalSymbol;
+	   for(var i=0; i<fractionDigits; i++){
+		   numMask = numMask + "0";
+	   }
+	}
+	return numMask;
+}
+
+
+<!--Returns the number with the locale decimal separator replaced with a peroid.-->
+function formatToUSLocale(number,localeDecSeparator) {
+   if (number.length == 0) return number;
+   if (localeDecSeparator == ".") return number;
+   if (number.indexOf(localeDecSeparator) != -1) {
+	   number = number.replace(localeDecSeparator,".");
+   }
+   return roundit(number, 5);
+}
+
+<!--Returns the number US decimal separator replaced with the locale separator.-->
+function formatToLocale(number,localeDecSeparator) {
+   if (number.length == 0) return number;
+   number = roundit(number, 5);
+   if (localeDecSeparator == ".") return number;
+   if (number.indexOf(".") != -1) {
+	   number = number.replace(".",localeDecSeparator);
+   }
+   return number;
+}
+
+<!--Function rounds the number and formats it to the fraction digits.-->
+<!--The number passed in must be in US locale-->
+function round(number, fractionDigits) {
+	if (fractionDigits == 0) return number;
+	if (number.length == 0) number=0;
+	var fractionDigits = parseInt(fractionDigits);
+	<!--Invoke function roundit in TimeAndNumberValidationXB.js-->
+	var rounded = roundit(number,fractionDigits);
+	return formatToFractionDigits(rounded,fractionDigits);
+}
+
+<!-- This function simply takes the number and checks if it contains the number of fraction digits.-->
+<!-- if not, formats the number by appending zeroes equal to the number of fraction digits.-->
+<!--The number passed in must be in US locale-->
+<!--E.g number= 4 and fractionDigits = 2, result = 4.00 -->
+<!--E.g number= 4.1 and fractionDigits = 2, result = 4.10 -->
+<!--E.g number= 4.1 and fractionDigits = 2, result = 4.10 -->
+<!--E.g number= 0 and fractionDigits = 2, result = 0.00 -->
+<!--E.g number= 4.19 and fractionDigits = 2, result = 4.19 -->
+function formatToFractionDigits(number,fractionDigits) {
+	number = roundit(number, fractionDigits);
+	var strNum = number.toString();
+	if (strNum.length == 0) strNum="0";
+
+
+	if (fractionDigits == 0) {
+		  <!-- remove the decimal portion-->
+		   if (strNum.lastIndexOf(".") != -1) {
+			  return strNum.substring(0,strNum.lastIndexOf("."));
+		   } else {
+			  return strNum;
+		   }
+	}
+
+	var appendDigits = 0;
+	var appendStr = "";
+	var append = false;
+	if (strNum.lastIndexOf(".") != -1 &&
+		((strNum.length - strNum.lastIndexOf(".")) - 1) != 0) {
+		 appendDigits = ((strNum.length - strNum.lastIndexOf('.')) - 1);
+		 if (appendDigits < fractionDigits) append = true;
+	} else {
+	   append = true;
+	   if (strNum.lastIndexOf('.') == -1) appendStr = ".";
+	   appendDigits = fractionDigits;
+	}
+	if (append) {
+		<!-- Now append the zeros to the number-->
+		for(var i=0; i<appendDigits; i++) {
+		   appendStr = appendStr + "0";
+		}
+	}
+	return strNum + appendStr;
+}
+
+
+<!-- This function simply takes the number and checks if it contains the number of fraction digits.-->
+<!-- if not, formats the number by appending zeroes equal to the number of fraction digits.-->
+<!--The number passed in is in the locale format-->
+function formatToLocaleAndFractionDigits(number,fractionDigits, localeDecimalSeparator) {
+	number = roundit(formatToUSLocale(number, localeDecimalSeparator), fractionDigits);
+	<!-- First format the given number to the locale, if not already formatted-->
+	var strNum = number.toString();
+	if (strNum.length == 0) strNum="0";
+	number = formatToLocale(strNum,localeDecimalSeparator);
+        strNum = number.toString();
+
+	if (fractionDigits == 0) {
+		  <!-- remove the decimal portion-->
+		   if (strNum.lastIndexOf(localeDecimalSeparator) != -1) {
+			  return strNum.substring(0,strNum.lastIndexOf(localeDecimalSeparator));
+		   } else {
+			  return strNum;
+		   }
+
+	}
+
+	var appendDigits = 0;
+	var appendStr = "";
+	var append = false;
+	if (strNum.lastIndexOf(localeDecimalSeparator) != -1 &&
+		((strNum.length - strNum.lastIndexOf(localeDecimalSeparator)) - 1) != 0) {
+		 appendDigits = ((strNum.length - strNum.lastIndexOf(localeDecimalSeparator)) - 1);
+		 if (appendDigits < fractionDigits) append = true;
+	} else {
+	   append = true;
+	   if (strNum.lastIndexOf(localeDecimalSeparator) == -1) appendStr = localeDecimalSeparator;
+	   appendDigits = fractionDigits;
+	}
+	if (append) {
+		<!-- Now append the zeros to the number-->
+		for(var i=0; i<appendDigits; i++) {
+		   appendStr = appendStr + "0";
+		}
+	}
+	return strNum + appendStr;
+}

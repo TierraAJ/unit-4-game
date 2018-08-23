@@ -1,0 +1,706 @@
+@import url(te6.css);
+
+body {
+	position:absolute;
+	margin:0px;
+	font-family:Arial;
+	font-size:8pt;
+	background-color:#CCCCCC;
+	background-image: url(../../images/processAppBackground.gif);
+	background-repeat: repeat-x;
+}
+
+div {
+	position:absolute;
+}
+
+
+#tsBody {
+	border:solid #000000 2px;
+}
+
+#rowSelectHeader {
+	top:0px;
+	left:0px;
+	width:38px;
+	background:#5998CB;
+	border-bottom:solid #000000 2px;
+	border-right:solid #000000 2px;
+}
+
+#rowNumHeader {
+	top:0px;
+	left:40px;
+	width:38px;
+	background:#5998CB;
+	border-bottom:solid #000000 2px;
+	border-right:solid #000000 2px;
+}
+
+
+#rowNumScroller {
+	overflow:hidden;
+	border-right:solid #000000 2px;
+}
+
+#rowNumFooter {
+	border-top:solid #000000 2px;
+	border-right:solid #000000 2px;
+}
+
+.rowSelector {
+	left:0px;
+	width:37px;
+	background-color:#5998CB;
+	border-top:solid #CCCCCC 1px;
+	border-left:solid #CCCCCC 1px;
+	border-right:solid #000000 2px;
+	border-bottom:solid #000000 2px;
+}
+
+.rowNum {
+	left:40px;
+	width:38px;
+	color:#FFFFFF;
+	text-align:right;
+	background-color:#5998CB;
+	border-bottom:solid #000000 1px;
+}
+
+.rowCommentImg {
+	top:1px;
+	left:2px;
+	width:13px;
+	height:15px;
+	visibility:hidden;
+	background-color: white;
+	background-image: url(../../images/Comments.gif);
+	background-repeat: no-repeat;
+	background-position: center center;
+}
+
+.rowNumFooterText {
+	left:0px;
+	border-bottom:solid #000000 1px;
+	background-color:#5998CB;
+	color: #FFFFFF;
+	text-align:right;
+}
+
+#udtHeaderScroller {
+	top:0px;
+	overflow:hidden;
+	border-bottom:solid #000000 2px;
+}
+
+#udtHeader {
+	top:0px;
+	left:0px;
+}
+
+.udtHeaderText {
+	overflow:hidden;
+	color:#FFFFFF;
+	background-color:#5998CB;
+	text-align:center;
+	border-right:solid #000000 1px;
+}
+
+#udtBodyScroller {
+	overflow:hidden;
+	border-bottom:solid #000000 2px;
+}
+
+.udtColumn {
+	border-right:solid #000000 1px;
+}
+
+.u {
+	left:0px;
+	color:#000000;
+	background-color:#FFFFFF;	
+	border-bottom:solid #000000 1px;
+	white-space:nowrap;
+	overflow:hidden;
+}
+
+#udtFooter {
+	overflow:hidden;
+	border-top:solid #000000 2px;
+}
+
+.udtFooterText {
+	left:0px;
+	background-color:#5998CB;	
+	border-bottom:solid #000000 1px;
+}
+
+#hrsHeaderScroller {
+	top:0px;
+	overflow:hidden;
+	border-bottom:solid #000000 2px;
+}
+
+#hrsHeader {
+	top:0px;
+	left:0px;
+}
+
+.hrsHeaderText {
+	overflow:hidden;
+	color:#FFFFFF;
+	background-color:#5998CB;
+	text-align:center;
+	border-right:solid #000000 1px;
+}
+
+
+#hrsBodyScroller {
+	overflow:hidden;
+	border-bottom:solid #000000 2px;
+}
+
+.d {
+	text-align:right;
+	color:#000000;
+	background-color:#FFFFFF;	
+	border-bottom:solid #000000 1px;
+	border-right:solid #000000 1px;
+	white-space:nowrap;
+}
+
+#hrsFooterScroller {
+	overflow:hidden;
+	border-top:solid #000000 2px;
+}
+
+.hrsFooterText {
+	overflow:hidden;
+	color:#FFFFFF;
+	background-color:#5998CB;
+	text-align:right;
+	border-right:solid #000000 1px;
+	border-bottom:solid #000000 1px;
+}
+
+#rowTotalHeader {
+	top:0px;
+	text-align:center;
+	color:#FFFFFF;
+	background-color:#5998CB;
+	border-left:solid #000000 2px;
+	border-bottom:solid #000000 2px;
+
+}
+
+#rowTotalScroller {
+	overflow:hidden;
+	border-left:solid #000000 2px;
+}
+
+.scroller {
+	overflow:auto;
+}
+
+#vertScrollerContent {
+	width:1px;
+}
+
+
+
+#udtScrollerContent {
+	height:1px;
+}
+
+
+#hrsScrollerContent {
+	height:1px;
+}
+
+#splitter {
+	top:0px;
+	cursor:move;
+	background-color:#DDDDDD;
+	border-left:solid #FFFFFF 1px;
+	border-top:solid #FFFFFF 1px;
+	border-right:solid #999999 1px;
+	border-bottom:solid #999999 1px;
+}
+
+
+.rowTotal {
+	color:#FFFFFF;
+	background-color:#5998CB;
+	text-align:right;
+	border-bottom:solid #000000 1px;
+}
+
+#rowTotalFooter {
+	border-top:solid #000000 2px;
+	border-left:solid #000000 2px;
+}
+
+.rowTotalFooterText {
+	left:0px;
+	border-bottom:solid #000000 1px;
+	background-color:#5998CB;
+	color: #FFFFFF;
+	text-align:right;
+}
+
+.totalLink {
+	left:0px;
+	border-bottom:solid #000000 1px;
+	background-color:#5998CB;
+	color: #FFFFFF;
+	text-align:right;
+	text-decoration: underline;
+	cursor: pointer;
+}
+
+
+.applicationOptions {     
+    height: 25px;
+    background-color:#2A3C75; 
+    color:white;
+    padding-right:20px;
+    white-space:nowrap;
+}
+
+.recordNavigation {     
+	margin-left:auto;
+}
+
+.links{
+	margin-left:10px;
+}
+
+.navFunctionEnabled {
+	color: white;
+	text-decoration: none;
+	cursor:pointer;
+}
+
+
+.navFunctionDisabled {
+	text-decoration: none;
+	color: #999999;
+	cursor:default;
+}
+
+.firstActive{
+    position:static;
+    width: 24px;
+    height: 24px;    
+    background-image: url(../../images/App_top.gif);
+    background-repeat: no-repeat;
+    cursor: pointer;
+}
+.firstPassive{
+    position:static;
+    width: 24px;
+    height: 24px;    
+    background-image: url(../../images/App_top_gray.gif);
+    background-repeat: no-repeat;
+}
+.previousActive{
+    position:static;
+    width: 24px;
+    height: 24px;    
+    background-image: url(../../images/App_previous.gif);
+    background-repeat: no-repeat;
+    cursor: pointer;
+}
+.previousPassive{
+    position:static;
+    width: 24px;
+    height: 24px;    
+    background-image: url(../../images/App_previous_gray.gif);
+    background-repeat: no-repeat;
+}
+.nextActive{
+    position:static;
+    width: 24px;
+    height: 24px;    
+    background-image: url(../../images/App_next.gif);
+    background-repeat: no-repeat;
+    cursor: pointer;
+}
+.nextPassive{
+    position:static;
+    width: 24px;
+    height: 24px;    
+    background-image: url(../../images/App_next_gray.gif);
+    background-repeat: no-repeat;
+}
+.lastActive{
+    position:static;
+    width: 24px;
+    height: 24px;    
+    background-image: url(../../images/App_last.gif);
+    background-repeat: no-repeat;
+    cursor: pointer;
+}
+.lastPassive{
+    position:static;
+    width: 24px;
+    height: 24px;    
+    background-image: url(../../images/App_last_gray.gif);
+    background-repeat: no-repeat;
+}
+
+
+
+.val {
+	position:static;
+        border:solid black 1px;
+        padding-left:3px;
+}
+
+#navBack {
+	width: 18px;
+	height: 18px;
+	background: url(../../images/NavigateBack.gif);
+	background-repeat: no-repeat; 
+	background-position: center center;
+	cursor:pointer;
+}
+
+#navForward {
+	width: 18px;
+	height: 18px;
+	background: url(../../images/NavigateForward.gif);
+	background-repeat: no-repeat; 
+	background-position: center center;
+	cursor:pointer;
+}
+
+.emplSelect {
+	width:300px;
+}
+
+
+.lineFunctionEnabled {
+    color: #000000;
+    text-decoration: none;
+    cursor:pointer;
+}
+
+
+.lineFunctionDisabled {
+	text-decoration: none;
+	color: gray;
+	cursor:default;
+}
+
+.signEnabled {
+	width: 16px;
+	height: 16px;
+	border:solid #999999 1px;
+	background-image: url(../../images/Sign.gif);
+	background-repeat: no-repeat;
+	background-position: center center;
+	cursor:pointer;
+}
+
+.signDisabled {
+	width: 16px;
+	height: 16px;
+	border:solid #999999 1px;
+	background-image: url(../../images/Sign_Disabled.gif);
+	background-repeat: no-repeat;
+	background-position: center center;
+	cursor:default;
+}
+
+
+.approveEnabled {
+	width: 16px;
+	height: 16px;
+	border:solid #999999 1px;
+	background-image: url(../../images/approve.gif);
+	background-repeat: no-repeat;
+	background-position: center center;
+	cursor:pointer;
+}
+
+.approveDisabled {
+	width: 16px;
+	height: 16px;
+	border:solid #999999 1px;
+	background-image: url(../../images/Approve_Disabled.gif);
+	background-repeat: no-repeat;
+	background-position: center center;
+	cursor:default;
+}
+
+.rejectEnabled {
+	width: 16px;
+	height: 16px;
+	border:solid #999999 1px;
+	background-image: url(../../images/Reject.gif);
+	background-repeat: no-repeat;
+	background-position: center center;
+	cursor:pointer;
+}
+
+.rejectDisabled {
+	width: 16px;
+	height: 16px;
+	border:solid #999999 1px;
+	background-image: url(../../images/Reject_Disabled.gif);
+	background-repeat: no-repeat;
+	background-position: center center;
+	cursor:default;
+}
+
+.signApproveBox {
+	position:static;
+	border:solid #000000 1px;
+	width:200px;
+	padding-left:3px;
+}
+
+#editor {
+	font-size:8pt;
+	position:absolute;
+	top:0px;
+	left:0px;
+	visibility:hidden;
+	color:#000000;
+	background-color:#FFFFFF;
+	border:solid #000000 1px;
+	z-index:97;
+}
+
+#binocularsIcon {
+	top:0px;
+	width:19px;
+	height:19px;
+	visibility:hidden;
+	background-image: url(../../images/Grid_lookup.gif);
+	background-repeat: no-repeat;
+	background-position: center center;
+	cursor:pointer;
+	z-index:98;
+}
+
+.commentIcon {
+	top:1px;
+	left:1px;
+	height:16px;
+	width:13px;
+	visibility:hidden;
+	background-image: url(../../images/Comments.gif);
+	background-repeat: no-repeat;
+	background-position: center center;
+	cursor:pointer;
+	z-index:98;
+}
+
+.hiddenFrame {
+	visibility:hidden;
+	width:1px;
+	height:1px;
+}
+
+.llaPending {
+	top:1px;
+	left:1px;
+	height:16px;
+	width:13px;
+	background-image: url(../../images/Line_Approve_Pending.gif);
+	background-repeat: no-repeat;
+	background-position: center center;
+	cursor:pointer;	
+}
+
+.llaApproved {
+	top:1px;
+	left:1px;
+	height:16px;
+	width:13px;
+	background-image: url(../../images/Line_Approve_Approved.gif);
+	background-repeat: no-repeat;
+	background-position: center center;
+	cursor:pointer;	
+}
+
+.llaRejected {
+	top:1px;
+	left:1px;
+	height:16px;
+	width:13px;
+	background-image: url(../../images/Line_Approve_Rejected.gif);
+	background-repeat: no-repeat;
+	background-position: center center;
+	cursor:pointer;	
+}
+
+.clock {
+	top:0px;
+	left:35px;
+	width:15px;
+	height:14px;
+	background-image: url(../../images/TimeInOut.gif);
+	background-repeat: no-repeat;
+	background-position: center center;
+	cursor:pointer;	
+}
+
+.udtResizer {
+	top:0px;
+	width:5px;
+	border-left: dotted #000000 1px;
+	cursor:move;
+}
+
+#udtResizerBody {
+	width:5px;
+	border-left: dotted #000000 1px;
+	visibility:hidden;
+}
+
+.leftScrollButton {
+	position:absolute;
+	top:0px;
+	left:0px;
+	font-size:2pt;
+	width:15px;
+	height:12px;
+	border-left:solid white 2px;
+	border-top:solid white 2px;
+	border-bottom:solid black 2px;
+	border-right:solid black 2px;
+	background-color:#cccccc;
+	background-image: url(../../images/button_left_e.gif);
+	background-repeat: no-repeat;
+	background-position: center center;	
+}
+
+.middleScrollButton {
+	position:absolute;
+	top:0px;
+	left:20px;
+	font-size:2pt;
+	width:15px;
+	height:12px;
+	border-left:solid white 2px;
+	border-top:solid white 2px;
+	border-bottom:solid black 2px;
+	border-right:solid black 2px;
+	background-color:#cccccc;
+}
+
+.rightScrollButton {
+	position:absolute;
+	top:0px;
+	font-size:2pt;
+	width:15px;
+	height:12px;
+	border-left:solid white 2px;
+	border-top:solid white 2px;
+	border-bottom:solid black 2px;
+	border-right:solid black 2px;
+	background-color:#cccccc;
+	background-image: url(../../images/button_right_e.gif);
+	background-repeat: no-repeat;
+	background-position: center center;	
+}
+
+.scrollBar2 {
+	position:absolute;
+	height:16px;
+	border:solid #999999 1px;
+	background-color:#eeeeee;
+}
+
+.vertScrollBar {
+	position:absolute;
+	width:16px;
+	border:solid #999999 1px;
+	background-color:#eeeeee;
+}
+
+.upScrollButton {
+	position:absolute;
+	top:0px;
+	font-size:2pt;
+	width:12px;
+	height:15px;
+	border-left:solid white 2px;
+	border-top:solid white 2px;
+	border-bottom:solid black 2px;
+	border-right:solid black 2px;
+	background-color:#cccccc;
+	background-image: url(../../images/button_up_e.gif);
+	background-repeat: no-repeat;
+	background-position: center center;	
+}
+
+.vertScrollButton {
+	position:absolute;
+	left:0px;
+	top:20px;
+	font-size:2pt;
+	width:12px;
+	height:15px;
+	border-left:solid white 2px;
+	border-top:solid white 2px;
+	border-bottom:solid black 2px;
+	border-right:solid black 2px;
+	background-color:#cccccc;
+}
+
+.downScrollButton {
+	position:absolute;
+	left:0px;
+	font-size:2pt;
+	width:12px;
+	height:15px;
+	border-left:solid white 2px;
+	border-top:solid white 2px;
+	border-bottom:solid black 2px;
+	border-right:solid black 2px;
+	background-color:#cccccc;
+	background-image: url(../../images/button_down_e.gif);
+	background-repeat: no-repeat;
+	background-position: center center;	
+}
+
+#saveSignWarningsIcon {
+	position: static;
+	width:15px;
+	height:13px;
+	background-image: url(../../images/Timesheet_Warnings.GIF);
+	background-repeat: no-repeat;
+	background-position: center center;
+	cursor: pointer;
+}
+
+#colorLegend {
+	border: solid black 1px;
+	background-color:#ffffff;
+}
+
+#holidayLegend {
+	position: static;
+	background-color: yellow;
+	width: 15px;
+	height: 12px;
+}
+
+#vacationLegend {
+	position: static;
+	background-color: #00ff00;
+	width: 15px;
+	height: 12px;
+}
+
+#nonWorkLegend {
+	position: static;
+	background-color: #bbbbbb;
+	width: 15px;
+	height: 12px;
+	white-space:nowrap;
+}

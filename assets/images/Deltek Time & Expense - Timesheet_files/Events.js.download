@@ -1,0 +1,1917 @@
+var actionAfterValid = null;
+var actionAfterSave = null;
+var editorShown = false;
+
+var _inc = grid.hoursIncrement;
+var _mask = "999.99";
+var _thirdkey = 57;
+
+if (_inc == "HUNDREDTH") {
+	_mask = "999.99";
+}
+if (_inc == "TENTH") {
+	_mask = "999.9";
+}
+if (_inc == "QUARTER") {
+	_mask = "999.99";
+}
+if (_inc == "HALF") {
+	_mask = "999.9";
+}
+if (_inc == "WHOLE") {
+	_mask = "999";
+}
+<!--****** PUT EDITOR IN ACTIVE CELL ******-->
+function setActiveEntry(elem){
+	if (!(elem.className == "u" || elem.className == "d")){
+		return;
+	}
+	if (elem.typ == 0) {
+		return;
+	}
+
+	editor.currentCell = elem;
+	var cellValue = "";
+
+	elem.appendChild(editor);
+	editorShown = true;
+	if (elem.className == "d"){
+		if(currentHourView == 'prorated'){
+			cellValue = ROA[elem.row].hrs[elem.col].proratedHrs;
+		} else {
+			cellValue = ROA[elem.row].hrs[elem.col].hrs;
+		}
+		editor.style.paddingLeft = "15px";
+		if (top.is_ie){
+			if (top.is_mac){
+				editor.style.width = 50 - 18 + 'px';
+				editor.style.height = rowHeight - 4 + 'px';
+			} else if(top.is_ie5_5){
+				editor.style.width = 50 - 2 + 'px';
+				editor.style.height = rowHeight - 2 + 'px';
+			} else {
+				editor.style.width = 50 - 19 + 'px';
+				editor.style.height = rowHeight - 5 + 'px';
+			}
+		} else if (top.is_opera){
+			editor.style.width = 50 - 16 + 'px';
+			editor.style.height = rowHeight - 1 + 'px';
+		} else if (top.is_nav7 && top.is_minor < 7.1){
+			editor.style.width = 50 - 1 + 'px';
+			editor.style.height = rowHeight - 1 + 'px';
+		} else if (top.is_safari){
+			editor.style.width = 50 - 16 + 'px';
+			editor.style.height = rowHeight - 2 + 'px';
+			editor.style.marginLeft = "15px";
+		} else {
+			editor.style.width = 50 - 18 + 'px';
+			editor.style.height = rowHeight - 5 + 'px';
+		}
+		editor.style.textAlign = "right";
+		editor.maxLength = 10;
+		if (!cellCommentsDisabled){
+			elem.appendChild(commentIcon);
+			commentIcon.hourCellId = elem.id;
+			if ((! grid.timesheetIsClosed) && (! browseOnly)) {
+				commentIcon.style.visibility = "visible";
+			}
+			else {
+				commentIcon.style.visibility = "hidden";
+			}
+		}
+		//scroll to make cell visible
+		scrollHourCellIntoView(elem);
+	}
+	else {
+		cellValue = ROA[elem.row].udts[elem.col].cv;
+		var colWidth = udtSizes[getCellCol(elem)];
+		if (top.is_ie){
+			if (top.is_mac){
+				editor.style.width = colWidth - 4 + 'px';
+				editor.style.height = rowHeight - 4 + 'px';
+			} else if(top.is_ie5_5){
+				editor.style.width = colWidth - 1 + 'px';
+				editor.style.height = rowHeight - 2 + 'px';
+			} else {
+				editor.style.width = colWidth - 4 + 'px';
+				editor.style.height = rowHeight - 5 + 'px';
+			}
+		} else if (top.is_nav7 && top.is_minor < 7.1){
+			editor.style.width = colWidth - 1 + 'px';
+			editor.style.height = rowHeight - 1 + 'px';
+		} else if (top.is_safari){
+			editor.style.width = colWidth - 1 + 'px';
+			editor.style.height = rowHeight - 1 + 'px';
+			editor.style.marginLeft = "0px";
+		} else {
+			editor.style.width = colWidth - 3 + 'px';
+			editor.style.height = rowHeight - 5 + 'px';
+		}
+		editor.style.paddingLeft = "0px";
+		editor.style.textAlign = "left";
+		editor.maxLength = udtMaxLengths[getCellCol(elem)];
+		elem.appendChild(binocularsIcon);
+		binocularsIcon.style.visibility = "visible";
+		binocularsIcon.style.left = colWidth - 22 + 'px';
+
+		//scroll to make cell visible
+		scrollUdtCellIntoView(elem, colWidth);
+
+	}
+
+
+	editor.style.visibility = "visible";
+	editor.style.backgroundColor = "white";
+	editor.style.color = "black";
+
+	if(cellValue == null) cellValue = "";
+
+
+	editor.originalValue = cellValue;
+	editor.previousValue = cellValue;
+	editor.value = cellValue;
+
+	if (browseOnly){
+		editor.disabled = true;
+	} else {
+		editor.disabled = false;
+	}
+
+	selectAllRows(false);
+	setActiveRow(getCellRow(elem));
+
+	editor.nextCell = elem;
+
+	if (!editor.disabled) {
+		window.focus(); //This ensures focus will be set in the next line!
+		editor.focus();
+	}
+}
+
+<!--****** PROCESS CELL FOCUS ******-->
+function processCellFocus(elem){
+	if (elem == null || elem.target != null){
+		if (elem == null){
+			elem = event.srcElement;
+		} else if (elem.target != null){
+			elem = elem.target;
+		}
+		if (elem.id == null){
+			elem = elem.parentNode;
+		}
+	}
+
+	var currentCell = editor.currentCell;
+
+	if ((currentCell == elem) && editorShown) return;
+
+	if (elem.id == 'editor' || elem.id == 'binocularsIcon' || elem.id == 'commentIcon') return;
+
+	editor.nextCell = elem;
+
+	if (!submitActive()){
+		return;
+	}
+
+	if (canChangeFocus(elem)){
+		setActiveEntry(elem);
+	}
+	else {
+		setActiveEntry(currentCell);
+	}
+}
+
+<!--****** RECALCULATE HOURS OR VALIDATE UDT ******-->
+function submitActive(type){
+	var currentCell = editor.currentCell;
+	hideEditor();
+	if (editor.value != editor.originalValue){
+		if (currentCell.className == "d"){
+			if (trim(editor.value) == "") {
+				if(editor.currentCell.previouslySaved) {
+					if (trim(editor.currentCell.hwl) != "") {
+						editor.value = addDecimalAndZero(0);
+					}
+				}
+			}
+			if (grid.hoursIncrement == "QUARTER"){
+				if (editor.value.indexOf(grid.decimalSymbol+"2") != -1 && editor.value.indexOf(grid.decimalSymbol+"25") == -1){
+					editor.value += "5";
+				} else if (editor.value.indexOf(grid.decimalSymbol+"7") != -1 && editor.value.indexOf(grid.decimalSymbol+"75") == -1){
+					editor.value += "5";
+				}
+			}
+			processHourCellKeyUp();//to validate against hour increment rules
+			currentCell.innerHTML = editor.value;
+			recalculateHourTotals(currentCell);
+			if (!cellCommentsDisabled && currentCell.hasComment) {
+				createHourComment(currentCell, currentCell.txt)
+			}
+			setUnsavedChanges();
+		}
+		else {
+			if (trim(editor.value) == "") {
+				putCellValue(currentCell);
+				setUnsavedChanges();
+				if (checkLineCompletion(currentCell.row)) {
+					setLineIsCompleteNoUdt10(currentCell.row);
+				}
+				else {
+					if (!udtLineIsEmpty(currentCell.row)) {
+						setLineIsIncomplete(currentCell.row);
+					}
+					else {
+						undoIncompleteLineStatus();
+					}
+				}
+			}
+			else {
+				editor.value = editor.value.toUpperCase();
+				if (type) {
+					actionAfterValid = type;
+				}
+				else {
+					actionAfterValid = null;
+				}
+
+				validateUdt(currentCell);
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
+<!--****** DO AFTER VALIDATING ******-->
+function doAfterValid(){
+	if (actionAfterValid == null){
+		return;
+	}
+	if (actionAfterValid == "open"){
+		openCalendar();
+	}
+	else if (actionAfterValid == "search") {
+		openTsSearch();
+	}
+	else if (actionAfterValid == "save") {
+		saveTimesheet();
+	}
+	else if (actionAfterValid == "sign") {
+		signTimesheet();
+	}
+	else if (actionAfterValid == "audit") {
+		auditTS();
+	}
+	else if (actionAfterValid == "leave") {
+		getTsLeaveInfo();
+	}
+	else if (actionAfterValid == "approve") {
+		approveTimesheet();
+	}
+	else if (actionAfterValid == "reject") {
+		openReject();
+	}
+	else if (actionAfterValid == "getts") {
+		getTimesheet();
+	}
+	else if (actionAfterValid == "gettd") {
+		getTimesheetByDate();
+	}
+	else if (actionAfterValid == "getcpp") {
+		changePeriodPrev();
+	}
+	else if (actionAfterValid == "getcpn") {
+		changePeriodNext();
+	}
+	else if (actionAfterValid == "selectline") {
+		rowSelected();
+	}
+	else if (actionAfterValid.substr(0,5) == "getti") {
+		var ind = actionAfterValid.substr(5,10);
+		if (!ind.isNaN(ind)){
+			getTimesheetByIndex(ind);
+		}
+	}
+	actionAfterValid = null;
+}
+
+<!--****** UPDATE TS AFTER SAVE ******-->
+function updateTsAfterSave(llaStatusCodes, udt10ReadOnly) {
+	for (var t = 0; t < grid.numberOfCompleteTsLines; t++) {
+		var rowObject = ROA[t];
+		var udtArray = rowObject.udts;
+		var hourArray = rowObject.hrs;
+
+		for (var d = 0; d < grid.numberOfDays; d++) {
+			var hr = hourArray[d];
+			if((hr.hrs != null && hr.hrs != ' ') || hr.hasComment) {
+				hr.hwl = hr.hrs;
+				hr.previouslySaved = true;
+				if(hr.sts != "P" && hr.sts != "S"){
+					hr.sts = "O";
+				}
+				if (!cellCommentsDisabled && hr.hasComment) {
+					hr.hadCommentWhenLoaded = true;
+					hr.commentTextWhenLoaded = hr.txt;
+				}
+			}
+			if (hr.reversedReadOnly) {
+				hr.reversedReadOnly = false;
+				hr.readOnly = false;
+			}
+		}
+		if (rowObject.noDeleteOrReset) {
+			rowObject.noDeleteOrReset = false;
+		}
+		if (!lineCommentsDisabled && rowObject.hasComment) {
+			rowObject.commentTextWhenLoaded = rowObject.short_line_text;
+			rowObject.hadCommentWhenLoaded = true;
+		}
+		var udtLength = udtArray.length;
+
+		for (var s = 0; s < udtLength; s++) {
+			udtArray[s].chargeValueWhenLoaded = udtArray[s].cv;
+			udtArray[s].udtIdWhenLoaded = rowObject.typ[udtArray[s].typ];
+			if (udtArray[s].typ) {
+				if (udtArray[s].typ == 1 && rowObject.src[1] == "C") {
+					udtArray[s].readOnly = true;
+					udtArray[s].readOnlyStatusWhenLoaded = true;
+				}
+				else if (udtArray[s].typ == 2 && rowObject.src[2] == "C") {
+					udtArray[s].readOnly = true;
+					udtArray[s].readOnlyStatusWhenLoaded = true;
+				}
+				else if (udtArray[s].typ == 10 && udt10ReadOnly[t] == "Y") {
+					udtArray[s].readOnly = true;
+					udtArray[s].readOnlyStatusWhenLoaded = true;
+				}
+			}
+		}
+		if (ROA[t].LLAImage != null){
+			document.getElementById('rowNum'+t).removeChild(ROA[t].LLAImage);
+			ROA[t].LLAImage = null;
+		}
+		if (grid.lineApproveConfigCode != "DISABLED") {
+			if (llaStatusCodes[t] == "PENDING" || llaStatusCodes[t] == "APPROVED" ||  llaStatusCodes[t] == "REJECTED") {
+				var newNode = document.createElement("DIV");
+				newNode.id = "LineApproveIcon" + ROA[t].lineNumber;
+				if (llaStatusCodes[t] == "PENDING") {
+					newNode.className = 'llaPending';
+				}
+				else if(llaStatusCodes[t] == "APPROVED") {
+					newNode.className = 'llaApproved';
+				}
+				else if(llaStatusCodes[t] == "REJECTED") {
+					newNode.className = 'llaRejected';
+				}
+				newNode.onclick = openLineApprove;
+				document.getElementById('rowNum'+t).appendChild(newNode);
+				ROA[t].llaStatusCode = llaStatusCodes[t];
+				ROA[t].LLAImage = newNode;
+			}
+		}
+	}
+	tsDayObjectArray = new Array();
+}
+
+<!--****** DO AFTER SAVING ******-->
+function doAfterSave(llaStatusCodes, udt10ReadOnly){
+	updateTsAfterSave(llaStatusCodes, udt10ReadOnly)
+	if (actionAfterSave == null){
+		return;
+	}
+	if (actionAfterSave == "open"){
+		openCalendar();
+	}
+	else if (actionAfterSave == "search") {
+		openTsSearch();
+	}
+	else if (actionAfterSave == "sign") {
+		signTimesheet();
+	}
+	else if (actionAfterSave == "audit") {
+		auditTS();
+	}
+	else if (actionAfterSave == "leave") {
+		getTsLeaveInfo();
+	}
+	else if (actionAfterSave == "approve") {
+		approveTimesheet();
+	}
+	else if (actionAfterSave == "reject") {
+		openReject();
+	}
+	else if (actionAfterSave == "getts") {
+		getTimesheet();
+	}
+	else if (actionAfterSave == "gettd") {
+		getTimesheetByDate();
+	}
+	else if (actionAfterSave == "getcpp") {
+		changePeriodPrev();
+	}
+	else if (actionAfterSave == "getcpn") {
+		changePeriodNext();
+	}
+	else if (actionAfterSave.substr(0,5) == "getti") {
+		var ind = actionAfterSave.substr(5,10);
+		if (!isNaN(ind)){
+			getTimesheetByIndex(ind);
+		}
+	} else {
+		eval(actionAfterSave);
+	}
+	actionAfterSave = null;
+}
+
+<!--****** EDITOR KEY DOWN ******-->
+function editorKeyDown(ev){
+	if (ev == null) ev = event;
+	if (browseOnly) {
+		//event.returnValue = false;
+		return false;
+	}
+	if (ev.keyCode == 27){
+		editor.value = editor.originalValue;
+	}
+}
+
+<!--****** ROUNDING NUMBERS ******-->
+function roundit(Num, Places) {
+	if (Places > 0) {
+		if ((Num.toString().length - Num.toString().lastIndexOf('.')) > (Places + 1)) {
+			var Rounder = Math.pow(10, Places);
+			return Math.round(Num * Rounder) / Rounder;
+		}
+		else return Num;
+	}
+	else return Math.round(Num);
+}
+
+<!--****** CHECK IF OK TO CHANGE FOCUS ******-->
+function canChangeFocus(nextCell){
+
+	var currentCell = editor.currentCell;
+	var rowNumber = getCellRow(currentCell);
+	var nextRow = getCellRow(nextCell);
+
+	if (nextCell.className == "d"){
+		if (!checkLineCompletion(rowNumber) && !udtLineIsEmpty(rowNumber)) {
+				incompleteLineMessage();
+				return false;
+		}
+		if (nextCell.readOnly) {
+			return false;
+		}
+		if (nextRow >= grid.numberOfCompleteTsLines){
+			return false;
+		}
+		if(udtLineIsEmpty(nextRow)) {
+				return false;
+		}
+	}
+	else {
+		if ((rowNumber != nextRow) && !checkLineCompletion(rowNumber) && !udtLineIsEmpty(rowNumber)) {
+			incompleteLineMessage();
+			return false;
+		}
+		if (nextCell.readOnly) {
+			return false;
+		}
+		if (nextRow > grid.numberOfCompleteTsLines){
+			return false;
+		}
+	}
+	return true;
+}
+
+<!--****** RECALCULATE HOUR TOTALS ******-->
+function recalculateHourTotals(elem) {
+	var cellValue;
+	var posIndex;
+	var rowNum = getCellRow(elem);
+	var colNum = getCellCol(elem);
+	setUnsavedChanges();
+	var cellValueStr = elem.innerHTML;
+
+	var dex = cellValueStr.indexOf(',');
+
+	if(dex != -1) {
+		var myRegExp = /,/g;
+		var newCell = cellValueStr.replace(myRegExp, ".");
+		cellValueStr = newCell;
+	}
+
+	cellValue = parseFloat(cellValueStr);
+
+	if (isNaN(cellValue)) {
+		cellValue = 0;
+		if(elem.previouslySaved){
+			cellValueStr = addDecimalAndZero(0);
+		} else {
+			cellValueStr = "";
+		}
+	}
+	else {
+		if ((cellValueStr == "0") || (cellValueStr == "0.0") || (cellValueStr == "0.00")) {
+			cellValueStr = addDecimalAndZero(0);
+		}
+		else {
+			cellValueStr = addDecimalAndZero(cellValue);
+		}
+	}
+	elem.innerHTML = cellValueStr;
+
+	var tmpHrs = ROA[rowNum].hrs[colNum].hrs;
+
+	if (cellValue == 0) {
+		cellValue = 0.0;
+	}
+	ROA[rowNum].hrs[colNum].hrs = cellValueStr;
+
+	if (trim(elem.innerHTML) == "") {
+		ROA[rowNum].hrs[colNum].hrs = "";
+	}
+	if (tmpHrs == "" || tmpHrs == null) {
+		tmpHrs = "0";
+	}
+	tmpHrs = "" + tmpHrs;
+	var dex = tmpHrs.indexOf(',');
+
+	if(dex != -1) {
+		var myRegExp = /,/g;
+		var newCell = tmpHrs.replace(myRegExp, ".");
+		tmpHrs = newCell;
+	}
+	tmpCellValue = cellValue - parseFloat(tmpHrs);
+	tmpCellValue = roundit(tmpCellValue,2);
+	if(ROA[rowNum].hrs[colNum].sts != "P" && ROA[rowNum].hrs[colNum].sts != "S") {
+		ROA[rowNum].hrs[colNum].sts = "O";
+	}
+
+	var rowTotal = ROA[rowNum].getRowTotal();
+	var strRowTotal;
+	rowTotal += tmpCellValue;
+	rowTotal = roundit(rowTotal,2);
+	ROA[rowNum].setRowTotal(rowTotal);
+	var sRowTotalId = "rt" + rowNum;
+	if (! ROA[rowNum].costonly) {
+		if (rowTotal != 0) {
+			strRowTotal = addDecimalAndZero(rowTotal);
+		}
+		else {
+			strRowTotal = "";
+		}
+		document.getElementById(sRowTotalId).innerHTML = strRowTotal;
+	}
+	else {
+		document.getElementById(sRowTotalId).innerHTML = "";
+	}
+
+	var isOvertime = ROA[rowNum].overtime;
+	var isCostonly = ROA[rowNum].costonly;
+	var strCount;
+		var total;
+	if (isOvertime == false && isCostonly == false) {
+		total = COA[colNum].getRegularColumnTotal();
+		total += tmpCellValue;
+		total = roundit(total,2);
+		COA[colNum].setRegularColumnTotal(total);
+		sRegOrOTTotal = 'DT0_' + colNum;
+		if (total != 0) {
+			strCount = addDecimalAndZero(total);
+		}
+		else {
+			strCount = "";
+		}
+		document.getElementById(sRegOrOTTotal).innerHTML = strCount;
+
+		total = COA[colNum].getColumnTotal();
+		total += tmpCellValue;
+		total = roundit(total,2);
+		COA[colNum].setColumnTotal(total);
+		sColumnTotal = 'DT2_' + colNum;
+		if (total != 0) {
+			strCount = addDecimalAndZero(total);
+		}
+		else {
+			strCount = "";
+		}
+		document.getElementById(sColumnTotal).innerHTML = strCount;
+
+		var tmpTotal = document.getElementById("grandTotal0").innerHTML;
+		posIndex = tmpTotal.indexOf(',');
+		if(posIndex != -1) {
+			var myRegExp = /,/g;
+			var newCell = tmpTotal.replace(myRegExp, ".");
+			tmpTotal = newCell;
+		}
+		total = parseFloat(tmpTotal);
+		if (isNaN(total)) {
+		   total = 0.0;
+		}
+		total += tmpCellValue;
+		total = roundit(total,2);
+		if (total != 0) {
+			strCount = addDecimalAndZero(total);
+		}
+		else {
+			strCount = "";
+		}
+		document.getElementById("grandTotal0").innerHTML = strCount;
+
+		var tmpTotal = document.getElementById("grandTotal2").innerHTML;
+		posIndex = tmpTotal.indexOf(',');
+		if(posIndex != -1) {
+			var myRegExp = /,/g;
+			var newCell = tmpTotal.replace(myRegExp, ".");
+			tmpTotal = newCell;
+		}
+		total = parseFloat(tmpTotal);
+		if (isNaN(total)) {
+		   total = 0.0;
+		}
+		total += tmpCellValue;
+		total = roundit(total,2);
+		if (total != 0) {
+			strCount = addDecimalAndZero(total);
+		}
+		else {
+			strCount = "";
+		}
+		document.getElementById("grandTotal2").innerHTML = strCount;
+	}
+	else if (isOvertime == true && isCostonly == false) {
+		var total = COA[colNum].getOvertimeColumnTotal();
+		total += tmpCellValue;
+		total = roundit(total,2);
+		COA[colNum].setOvertimeColumnTotal(total);
+		sRegOrOTTotal = 'DT1_' + colNum;
+		if (total != 0) {
+			strCount = addDecimalAndZero(total);
+		}
+		else {
+			strCount = "";
+		}
+		document.getElementById(sRegOrOTTotal).innerHTML = strCount;
+
+		total = COA[colNum].getColumnTotal();
+		total += tmpCellValue;
+		total = roundit(total,2);
+		COA[colNum].setColumnTotal(total);
+		sColumnTotal = 'DT2_' + colNum;
+		if (total != 0) {
+			strCount = addDecimalAndZero(total);
+		}
+		else {
+			strCount = "";
+		}
+		document.getElementById(sColumnTotal).innerHTML = strCount;
+
+		var tmpTotal = document.getElementById("grandTotal1").innerHTML;
+		posIndex = tmpTotal.indexOf(',');
+		if(posIndex != -1) {
+			var myRegExp = /,/g;
+			var newCell = tmpTotal.replace(myRegExp, ".");
+			tmpTotal = newCell;
+		}
+		total = parseFloat(tmpTotal);
+		if (isNaN(total)) {
+		   total = 0.0;
+		}
+		total += tmpCellValue;
+		total = roundit(total,2);
+				if (total != 0) {
+			strCount = addDecimalAndZero(total);
+		}
+		else {
+			strCount = "";
+		}
+		document.getElementById("grandTotal1").innerHTML = strCount;
+
+		var tmpTotal = document.getElementById("grandTotal2").innerHTML;
+		posIndex = tmpTotal.indexOf(',');
+		if(posIndex != -1) {
+			var myRegExp = /,/g;
+			var newCell = tmpTotal.replace(myRegExp, ".");
+			tmpTotal = newCell;
+		}
+		total = parseFloat(tmpTotal);
+		if (isNaN(total)) {
+		   total = 0.0;
+		}
+		total += tmpCellValue;
+		total = roundit(total,2);
+		if (total != 0) {
+			strCount = addDecimalAndZero(total);
+		}
+		else {
+			strCount = "";
+		}
+		document.getElementById("grandTotal2").innerHTML = strCount;
+	}
+	grid.tsHasHourCells = true;
+}
+
+<!--****** VALIDATE UDT ******-->
+function validateUdt(elem){
+	udt10RowNumber = getCellRow(elem);
+	if (getUdtType(elem) != 0) {
+		var jsCommandString = "validateUdt" + getUdtType(elem) + "(" + udt10RowNumber + ", '" + trim(quoteJavascript(editor.value)) + "', 'M');";
+		top.setFormSubmitted();
+		eval(jsCommandString);
+	}
+}
+
+<!--****** UDT HAS BEEN VALIDATED ******-->
+function udtHasBeenValidated(udtIsValid, value) {
+	if(! udtIsValid) {
+		setActiveEntry(editor.currentCell);
+		return false;
+	}
+	var elem = editor.currentCell;
+	var rowNum = getCellRow(elem);
+	var colNum = getCellCol(elem);
+	if (isPrimaryCharge(elem)) {
+		getLineDefaults(elem, value);
+	}
+	else {
+		setUnsavedChanges();
+		if (checkLineCompletion(rowNum)) {
+			setLineIsComplete(rowNum);
+		}
+		else {
+			setLineIsIncomplete(rowNum);
+		}
+		if (canChangeFocus(editor.nextCell)){
+			setActiveEntry(editor.nextCell);
+		}
+		else {
+			setActiveEntry(editor.currentCell);
+		}
+		doAfterValid();
+	}
+}
+
+<!--****** TRANSFER EDITOR VALUE TO CELL ******-->
+function putCellValue(cell){
+	var tmpStr = trim(editor.value);
+
+	ROA[getCellRow(cell)].udts[getCellCol(cell)].cv = tmpStr;
+	ROA[getCellRow(cell)].typ[getUdtType(cell)] = tmpStr;
+	cell.innerHTML = quoteHtml(tmpStr);
+}
+
+<!--****** BINOCULARS ICON CLICK ******-->
+function processBinocularsIconClick() {
+	if (browseOnly) {
+		//event.returnValue = false;
+		return;
+	}
+	var elem = editor.currentCell;
+	var elemId = elem.id;
+	var udttype = getUdtType(elem);
+	var rowNum = getCellRow(elem);
+	var rowObject = ROA[rowNum];
+	if ((udttype == "01") || (udttype == "02")) {
+		if (udttype == "01") {
+			if ((! grid.udts1And2AreLinked) || (rowObject.typ[2] == "")) {
+				openChargeLookup(elem, udttype);
+				return false;
+			}
+		}
+		else if (udttype == "02") {
+			if (grid.udts1And2AreLinked) {
+				openChargeLookup(elem, udttype);
+				return false;
+			}
+		}
+	}
+	openUdtLookup(elem, udttype);
+}
+
+
+<!--****** HANDLE KEY DOWN EVENTS ******-->
+
+var focusIsSet = false;
+function handleKeyDown(ev) {
+	if(modalFrameIsVisible()){
+		return false;
+	}
+	if(!focusIsSet && !editor.disabled){
+		//workaround for invisible cursor in IE after opening from desktop
+		focusIsSet = true;
+		window.focus();
+		editor.focus();
+	}
+	var currentCell = editor.currentCell;
+	if (currentCell.className == "d"){
+		sourceElement = currentCell;
+		return processHourCellKeyDown(currentCell, ev);
+	}
+	else {
+		sourceElement = currentCell;
+		return processUdtCellKeyDown(currentCell, ev);
+	}
+}
+
+function handleKeyPress(ev){
+	if(modalFrameIsVisible()){
+		return false;
+	}
+	if (top.is_mac && ((top.is_nav7 && top.is_minor.indexOf("7.0") != -1)) && (ev.keyCode == 9 || ev.keyCode == 37 || ev.keyCode == 38 || ev.keyCode == 39 || ev.keyCode == 40 )){
+		handleKeyDown(ev);
+	}
+	if (ev){
+		var code = ev.keyCode;
+		if(code == 9){
+			ev.preventDefault();
+			ev.stopPropagation();
+		}
+		if(code == 8 && ev.target != editor){
+			ev.preventDefault();
+			ev.stopPropagation();
+			return false;
+		}
+	}
+}
+
+
+<!--****** UDT KEY DOWN EVENTS ******-->
+function processUdtCellKeyDown(currentCell, ev) {
+	if (ev == null) ev = event;
+	var code = ev.keyCode;
+	var netscape = false;
+	if ((top.is_nav7up || top.is_moz) && code == 0){
+		code = ev.which;
+		netscape = true;
+	}
+	if(top.is_safari && code == 0 && ev.charCode == 25){
+		//Shift-Tab on Safari
+		code = 9;
+	}
+		//alert('keyCode='+ev.keyCode+', which='+ev.which);
+	if (code == 9){
+		if (ev.shiftKey) {
+			udtGoLeft(currentCell);
+		}
+		else {
+			udtGoRight(currentCell);
+		}
+		if (typeof event == "object") {
+			event.returnValue=false;
+			event.cancelBubble = true;
+		} else {
+			ev.preventDefault();
+			ev.stopPropagation();
+		}
+		return false;
+	}
+	else if (code == 39) {
+		if (typeof event == "object") {
+			event.returnValue=false;
+			event.cancelBubble = true;
+		} else {
+			ev.preventDefault();
+			ev.stopPropagation();
+		}
+		udtGoRight(currentCell);
+		return false;
+	}
+	else if (code == 37) {
+		if (typeof event == "object") {
+			event.returnValue=false;
+			event.cancelBubble = true;
+		} else {
+			ev.preventDefault();
+			ev.stopPropagation();
+		}
+		udtGoLeft(currentCell);
+		return false;
+	}
+	else if (code == 38 && (!netscape || ev.which == 0)) {
+		if (typeof event == "object") {
+			event.returnValue=false;
+		} else {
+			ev.preventDefault();
+			ev.stopPropagation();
+		}
+		udtGoUp(currentCell);
+		return false;
+	}
+	else if ((code == 40) || (code == 13)) {
+		if (typeof event == "object") {
+			event.returnValue=false;
+		} else {
+			ev.preventDefault();
+			ev.stopPropagation();
+		}
+		udtGoDown(currentCell);
+		return false;
+	}
+	else if (code == 8) {
+		if (typeof event == "object") {
+			if (event.srcElement != editor){
+				event.returnValue=false;
+				return false;
+			}
+
+		} else {
+			if (ev.target != editor){
+				ev.preventDefault();
+				ev.stopPropagation();
+				return false;
+			}
+		}
+	}
+}
+
+<!--****** UDT GO RIGHT ******-->
+function udtGoRight(elem){
+	var colNum = getCellCol(elem);
+	var rowNum = getCellRow(elem);
+	if (colNum < grid.numberOfUdts - 1) {
+		colNum++;
+		var elem = ROA[rowNum].udts[colNum];
+		while ((elem.readOnly == true || usedButNotShownUdts[parseInt(udtTypeArray[colNum], 10)]) && (colNum < grid.numberOfUdts - 1)) {
+			colNum++;
+			elem = ROA[rowNum].udts[colNum];
+		}
+		if ((colNum == grid.numberOfUdts - 1) && (elem.readOnly == true || usedButNotShownUdts[parseInt(udtTypeArray[colNum], 10)])) {
+			var elem = ROA[rowNum].hrs[0];
+			colNum = elem.col;
+				while ((elem.readOnly) && (colNum < grid.numberOfDays - 1)) {
+					colNum++;
+					elem = ROA[rowNum].hrs[colNum];
+				}
+			processCellFocus(elem);
+		}
+		else {
+			processCellFocus(elem);
+		}
+	}
+	else {
+		var elem = ROA[rowNum].hrs[0];
+		colNum = getCellCol(elem);
+		if (elem.readOnly == true) {
+			while ((elem.readOnly) && (colNum < grid.numberOfDays - 1)) {
+				colNum++;
+				elem = ROA[rowNum].hrs[colNum];
+			}
+		}
+		processCellFocus(elem);
+	}
+}
+
+<!--****** UDT GO LEFT ******-->
+function udtGoLeft(elem){
+	var colNum = elem.col;
+	if (colNum > 0) {
+		 var rowNum = elem.row;
+		 colNum--;
+		 var elem = ROA[rowNum].udts[colNum];
+			while ((elem.readOnly  || usedButNotShownUdts[parseInt(udtTypeArray[colNum], 10)]) && (colNum > 0)) {
+				colNum--;
+				elem = ROA[rowNum].udts[colNum];
+			}
+		 processCellFocus(elem);
+	}
+}
+
+<!--****** UDT GO UP ******-->
+function udtGoUp(elem){
+	var rowNum = elem.row;
+	if (rowNum > 0) {
+		 var colNum = elem.col;
+		 rowNum--;
+		 var targetCell = ROA[rowNum].udts[colNum];
+			while ((targetCell.readOnly) && (rowNum > 0)) {
+				rowNum--;
+				targetCell = ROA[rowNum].udts[colNum];
+			}
+		 processCellFocus(targetCell);
+	}
+}
+
+<!--****** UDT GO DOWN ******-->
+function udtGoDown(elem){
+	var rowNum = elem.row;
+	if (rowNum < grid.numberOfCompleteTsLines) {
+		 var colNum = elem.col;
+		 rowNum++;
+		 var targetCell = ROA[rowNum].udts[colNum];
+			while ((targetCell.readOnly) && (rowNum < grid.numberOfCompleteTsLines)) {
+				rowNum++;
+				targetCell = ROA[rowNum].udts[colNum];
+			}
+		 processCellFocus(targetCell);
+	}
+}
+
+<!--****** HOUR KEY DOWN EVENTS ******-->
+function processHourCellKeyDown(currentCell, ev) {
+	if (ev == null) ev = event;
+	var code = ev.keyCode;
+	if ((top.is_nav7up || top.is_moz) && code == 0){
+		code = ev.which;
+	}
+	if (code == 44 && (ev.charCode == 44 || top.is_safari)){
+		code = 188;
+	}
+	if (code == 45 && (ev.charCode == 45 || top.is_safari)){
+		code = 189;
+	}
+	if (code == 46 && ev.charCode == 46){
+		code = 190;
+	}
+	if(top.is_safari && code == 0 && ev.charCode == 25){
+		//Shift-Tab on Safari
+		code = 9;
+	}
+	//var obj = event.srcElement;
+
+	if (code == 9){
+		if (ev.shiftKey) {
+			hourGoLeft(currentCell);
+		}
+		else {
+			hourGoRight(currentCell);
+		}
+		if (typeof event == "object") {
+			event.returnValue=false;
+			event.cancelBubble=true;
+		} else {
+			ev.preventDefault();
+			ev.stopPropagation();
+		}
+		return false;
+	}
+	else if (code == 39) {
+		if (typeof event == "object") {
+			event.returnValue=false;
+			event.cancelBubble=true;
+		} else {
+			ev.preventDefault();
+			ev.stopPropagation();
+		}
+		hourGoRight(currentCell);
+		return false;
+	}
+	else if (code == 37) {
+		if (typeof event == "object") {
+			event.returnValue=false;
+			event.cancelBubble=true;
+		} else {
+			ev.preventDefault();
+			ev.stopPropagation();
+		}
+		hourGoLeft(currentCell);
+		return false;
+	}
+	else if (code == 38) {
+		if (typeof event == "object") {
+			event.returnValue=false;
+			event.cancelBubble=true;
+		} else {
+			ev.preventDefault();
+			ev.stopPropagation();
+		}
+		hourGoUp(currentCell);
+		return false;
+	}
+	else if ((code == 40) || (code == 13)) {
+		if (typeof event == "object") {
+			event.returnValue=false;
+			event.cancelBubble=true;
+		} else {
+			ev.preventDefault();
+			ev.stopPropagation();
+		}
+		hourGoDown(currentCell);
+		return false;
+	}
+	else {
+		if (browseOnly){
+			if (typeof event == "object") {
+				event.returnValue=false;
+			} else {
+				ev.preventDefault();
+			}
+			return;
+		}
+
+		obj = editor;
+		if (typeof event == "object") {
+			event.returnValue=false;
+		} else {
+			ev.preventDefault();
+			ev.stopPropagation();
+		}
+
+		  //for numeric keypad
+		if ((code > 95) && (code < 106)){
+			code -= 48;
+		}
+		if ((code == 109) || (code == 110)){
+			code += 80;
+		}
+		if (code == 8 && !(top.is_nav7 && top.is_minor < 7.1)){
+			obj.value = obj.value.substring(0, obj.value.length - 1);
+		}
+		else if (code == 27){
+			obj.value = obj.originalValue;
+		}
+		else if (code == 46){
+			obj.value = "";
+		}
+		else if ((((code > 47) && (code < 58)) || ((code > 95) && (code < 106)) || (code == 189) || ((grid.decimalSymbol == ",") && (code == 188)) || (code == 109) || ((grid.decimalSymbol == ".") && (code == 190)) || (code == 110) || (code == 8))) {
+			if (obj.value == obj.originalValue) {
+				//first keystroke
+				obj.value = "";
+			}
+
+			if (!(top.is_nav7 && top.is_minor < 7.1)) {
+				if (acceptsChar(code, obj) != false) {
+
+					if ((grid.decimalSymbol == ".") && (code == 190)){
+						obj.value+=".";
+					}
+					else if (code == 189){
+						obj.value="-";
+					}
+					else if ((grid.decimalSymbol == ",") && (code == 188)) {
+						obj.value+=",";
+					}
+					else {
+						obj.value+=String.fromCharCode(code);
+					}
+				}
+				}
+		}
+	}
+	enableSignButton(checkIfAnyHourCells());
+}
+
+function processHourCellKeyUp(ev) {
+	if (editor.currentCell.className != 'd') return;
+	var fieldValue = editor.value;
+	var myExp = "";
+
+	 if (grid.hoursIncrement == "WHOLE") {
+	myExp = "/^$|^\\.$|^\\d$|^[0]$|^\\d\\d$|^\\d\\d\\d$|^\\d\\.$|^\\d\\d\\.$|^\\d\\d\\d\\.$|^\\d\\.[0]$|^\\d\\.[0][0]$|^\\d\\d\\.[0]$|^\\d\\d\\d\\.[0]$|^\\d\\d\\.[0][0]$|^\\d\\d\\d\\.[0][0]$|^\\.[0]$|^\\.[0][0]$|^[-]$|^[-]\\.$|^[-]\\d$|^[-]\\d\\d$|^[-]\\d\\d\\d$|^[-]\\d\\.$|^[-]\\d\\d\\.$|^[-]\\d\\d\\d\\.$|^[-]\\d\\.[0]$|^[-]\\d\\.[0][0]$|^[-]\\d\\d\\.[0]$|^[-]\\d\\d\\d\\.[0]$|^[-]\\d\\d\\.[0][0]$|^[-]\\d\\d\\d\\.[0][0]$|^[-]\\.[0]$|^[-]\\.[0][0]$/";
+	 }
+	 else if (grid.hoursIncrement == "HALF") {
+	myExp = "/^\\.$|^$|^\\d$|^[0]$|^\\d\\d$|^\\d\\d\\d$|^\\d\\.$|^\\d\\d\\.$|^\\d\\d\\d\\.$|^\\d\\.[5]$|^\\d\\.[5][0]$|^\\.[5]$|^\\.[5][0]$|^\\d\\d\\.[5]$|^\\d\\d\\d\\.[5]$|^\\d\\d\\.[5][0]$|^\\d\\d\\d\\.[5][0]$|^\\d\\.[0]$|^\\d\\.[0][0]$|^\\d\\d\\.[0]$|^\\d\\d\\d\\.[0]$|^\\d\\d\\.[0][0]$|^\\d\\d\\d\\.[0][0]$|^\\.[0]$|^\\.[0][0]$|^\\.[0]$|^\\.[0][0]$|^\\d\\.$|^\\d\\d\\.$|^\\d\\d\\d\\.$|^[-]\\.$|^[-]$|^[-]\\d$|^[-]\\d\\d$|^[-]\\d\\d\\d$|^[-]\\d\\.$|^[-]\\d\\d\\.$|^[-]\\d\\d\\d\\.$|^[-]\\d\\.[5]$|^[-]\\d\\.[5][0]$|^[-]\\.[5]$|^[-]\\.[5][0]$|^[-]\\d\\d\\.[5]$|^[-]\\d\\d\\d\\.[5]$|^[-]\\d\\d\\.[5][0]$|^[-]\\d\\d\\d\\.[5][0]$|^[-]\\d\\.[0]$|^[-]\\d\\.[0][0]$|^[-]\\d\\d\\.[0]$|^[-]\\d\\d\\d\\.[0]$|^[-]\\d\\d\\.[0][0]$|^[-]\\d\\d\\d\\.[0][0]$|^[-]\\.[0]$|^[-]\\.[0][0]$|^[-]\\.[0]$|^[-]\\.[0][0]$|^[-]\\d\\.$|^[-]\\d\\d\\.$|^[-]\\d\\d\\d\\.$/";
+	 }
+	 else if (grid.hoursIncrement == "QUARTER") {
+	myExp = "/^$|^\\d$|^[0]$|^\\d\\d$|^\\d\\d\\d$|^\\d\\.$|^\\d\\d\\.$|^\\d\\d\\d\\.$|^\\.$|^\\d\\.[2]$|^\\d\\.[5]$|^\\d\\.[7]$|^\\d\\d\\.[2]$|^\\d\\d\\d\\.[2]$|^\\d\\d\\.[5]$|^\\d\\d\\d\\.[5]$|^\\d\\d\\.[7]$|^\\d\\d\\d\\.[7]$|^\\d\\.[2][5]$|^\\d\\.[5][0]$|^\\d\\.[7][5]$|^\\d\\d\\.[2][5]$|^\\d\\d\\d\\.[2][5]$|^\\d\\d\\.[5][0]$|^\\d\\d\\d\\.[5][0]$|^\\d\\d\\.[7][5]$|^\\d\\d\\d\\.[7][5]$|^\\.[2]$|^\\.[5]$|^\\.[7]$|^\\.[2][5]$|^\\.[5][0]$|^\\.[7][5]$|^\\d\\.[0]$|^\\d\\.[0][0]$|^\\d\\d\\.[0]$|^\\d\\d\\d\\.[0]$|^\\d\\d\\.[0][0]$|^\\d\\d\\d\\.[0][0]$|^\\.[0]$|^\\.[0][0]$|^\\.[0]$|^\\.[0][0]$|^[-]$|^[-]\\d$|^[-]\\d\\d$|^[-]\\d\\d\\d$|^[-]\\d\\.$|^[-]\\d\\d\\.$|^[-]\\d\\d\\d\\.$|^[-]\\.$|^[-]\\d\\.[2]$|^[-]\\d\\.[5]$|^[-]\\d\\.[7]$|^[-]\\d\\d\\.[2]$|^[-]\\d\\d\\d\\.[2]$|^[-]\\d\\d\\.[5]$|^[-]\\d\\d\\d\\.[5]$|^[-]\\d\\d\\.[7]$|^[-]\\d\\d\\d\\.[7]$|^[-]\\d\\.[2][5]$|^[-]\\d\\.[5][0]$|^[-]\\d\\.[7][5]$|^[-]\\d\\d\\.[2][5]$|^[-]\\d\\d\\d\\.[2][5]$|^[-]\\d\\d\\.[5][0]$|^[-]\\d\\d\\d\\.[5][0]$|^[-]\\d\\d\\.[7][5]$|^[-]\\d\\d\\d\\.[7][5]$|^[-]\\.[2]$|^[-]\\.[5]$|^[-]\\.[7]$|^[-]\\.[2][5]$|^[-]\\.[5][0]$|^[-]\\.[7][5]$|^[-]\\d\\.[0]$|^[-]\\d\\.[0][0]$|[-]^\\d\\d\\.[0]$|[-]^\\d\\d\\d\\.[0]$|^[-]\\d\\d\\.[0][0]$|^[-]\\d\\d\\d\\.[0][0]$|^[-]\\.[0]$|^[-]\\.[0][0]$|^[-]\\.[0]$|^[-]\\.[0][0]$/";
+	 }
+	 else if (grid.hoursIncrement == "TENTH") {
+	myExp = "/^$|^\\.$|^\\d$|^[0]$|^\\d\\d$|^\\d\\d\\d$|^\\d\\.$|^\\d\\d\\.$|^\\d\\d\\d\\.$|^\\d\\.\\d$|^\\d\\d\\.\\d$|^\\d\\d\\d\\.\\d$|^\\.\\d$|\\.\\d[0]$|\\d\\.\\d[0]$|^\\d\\d\\.\\d[0]$|^\\d\\d\\d\\.\\d[0]$|^\\d\\.[0]$|^\\d\\.[0][0]$|^\\d\\d\\.[0]$|^\\d\\d\\d\\.[0]$|^\\d\\d\\.[0][0]$|^\\d\\d\\d\\.[0][0]$|^\\.[0]$|^\\.[0][0]$|^[-]$|^[-]\\.$|^[-]\\d$|^[-]\\d\\d$|^[-]\\d\\d\\d$|^[-]\\d\\.$|^[-]\\d\\d\\.$|^[-]\\d\\d\\d\\.$|^[-]\\d\\.\\d$|^[-]\\d\\d\\.\\d$|^[-]\\d\\d\\d\\.\\d$|^[-]\\.\\d$|^[-]\\.\\d[0]$|^[-]\\d\\.\\d[0]$|^[-]\\d\\d\\.\\d[0]$|^[-]\\d\\d\\d\\.\\d[0]$|^[-]\\d\\.[0]$|^[-]\\d\\.[0][0]$|^[-]\\d\\d\\.[0]$|^[-]\\d\\d\\d\\.[0]$|^[-]\\d\\d\\.[0][0]$|^[-]\\d\\d\\d\\.[0][0]$|^[-]\\.[0]$|^[-]\\.[0][0]$/";
+	 }
+	 else if (grid.hoursIncrement == "HUNDREDTH") {
+	myExp = "/^\\.$|^$|^\\d$|^[0]$|^\\d\\d$|^\\d\\d\\d$|^\\d\\.$|^\\d\\d\\.$|^\\d\\d\\d\\.$|^\\d\\.\\d$|^\\d\\.\\d\\d$|^\\d\\d\\.\\d$|^\\d\\d\\d\\.\\d$|^\\d\\d\\.\\d\\d$|^\\d\\d\\d\\.\\d\\d$|^\\.\\d$|^\\.\\d\\d$|^[-]\\.$|^[-]$|^[-]\\d$|^[-]\\d\\d$|^[-]\\d\\d\\d$|^[-]\\d\\.$|^[-]\\d\\d\\.$|^[-]\\d\\d\\d\\.$|^[-]\\d\\.\\d$|^[-]\\d\\.\\d\\d$|^[-]\\d\\d\\.\\d$|^[-]\\d\\d\\d\\.\\d$|^[-]\\d\\d\\.\\d\\d$|^[-]\\d\\d\\d\\.\\d\\d$|^[-]\\.\\d$|^[-]\\.\\d\\d$/";
+	 }
+	if (grid.decimalSymbol != "."){
+		var ar = myExp.split('.');
+		myExp = ar.join(grid.decimalSymbol);
+	}
+	myExp = eval(myExp);
+	found = myExp.test(fieldValue);
+	 if ((!found)) {
+	editor.value = editor.previousValue;
+	 }
+	 editor.previousValue = editor.value;
+}
+
+<!--****** HOUR CELL FORMATTING ******-->
+function acceptsChar(key, obj) {
+	var ret = false;
+	var posAfterDot = 0;
+	var posBeforeDot = 0;
+	var maskLen = 0;
+	var afterDotLen = 0;
+	var beforeDotLen = 0;
+	var i = 0;
+	var pos = obj.value.length;
+	var dotPos = obj.value.indexOf(grid.decimalSymbol);
+
+	if (obj.value.indexOf('-') == 0){
+		pos--;
+		if (dotPos != -1){
+			dotPos--;
+		}
+	}
+	ret = (((key == 190) && (grid.decimalSymbol == ".")) || ((key == 188) && (grid.decimalSymbol == ",")) ||((key == 189) && (pos == 0)) || ((48 <= key) && (key <= 57)) || ((key > 95) && (key < 106)));
+
+	if (((key == 190) && (grid.decimalSymbol == ".")) && (dotPos != -1)){
+		return false;
+	}
+	if (((key == 188) && (grid.decimalSymbol == ",")) && (dotPos != -1)){
+			return false;
+	}
+
+	if ((key == 189) && (obj.value.indexOf('-') != -1)){
+		return false;
+	}
+	if ((key == 190) && (grid.decimalSymbol == ".")){
+		dotPos = pos;
+	}
+	else if ((key == 188) && (grid.decimalSymbol == ",")){
+		dotPos = pos;
+	}
+	if (dotPos != -1){
+		posAfterDot = pos - dotPos;
+	}
+	maskLen = _mask.length;
+	beforeDotLen = maskLen;
+
+	if ((i = _mask.indexOf('.')) != -1) {
+		afterDotLen = maskLen-i-1;beforeDotLen = i;
+	}
+	if (posAfterDot > afterDotLen){
+		return false;
+	}
+	if ((maskLen > 0) && (pos == maskLen)) {
+		return false;
+	}
+	if ((dotPos == -1) && (pos == beforeDotLen) && (key != 190)){
+		return false;
+	}
+	if (_inc == "HALF"){
+		if (posAfterDot == 1) {
+			if ((key != 48) && (key != 53)) {
+				ret = false;
+			}
+		}
+	}
+	else if (_inc == "QUARTER") {
+		if (posAfterDot == 1){
+			if ((key != 48) && (key != 50) && (key != 53) && (key != 55)) {
+			ret = false;
+			}
+			else {
+			_thirdkey = key;
+			}
+		}
+		else if (posAfterDot == 2){
+			if ((_thirdkey == 50) || (_thirdkey == 55)){
+			if (key != 53) {
+				ret = false;
+			}
+			}
+			else if (key != 48) {
+			ret = false;
+			}
+		}
+		else {
+			_thirdkey = 57;
+		}
+	}
+	return ret;
+}
+
+<!--****** HOUR GO RIGHT ******-->
+function hourGoRight(elem){
+	var colNum = elem.col;
+	if (colNum < grid.numberOfDays - 1) {
+		var rowNum = elem.row;
+		colNum++;
+		var elem = ROA[rowNum].hrs[colNum];
+			while ((elem.readOnly == true) && (colNum < grid.numberOfDays - 1)) {
+				colNum++;
+				elem = ROA[rowNum].hrs[colNum];
+			}
+		processCellFocus(elem);
+	}
+}
+
+<!--****** HOUR GO LEFT ******-->
+function hourGoLeft(elem){
+	var colNum = elem.col;
+	var rowNum = elem.row;
+	if (colNum > 0) {
+		colNum--;
+		var elem = ROA[rowNum].hrs[colNum];
+			while ((elem.readOnly) && (colNum > 0)) {
+				colNum--;
+				elem = ROA[rowNum].hrs[colNum];
+			}
+		if ((colNum == 0) && (elem.readOnly == true)) {
+			var elem = ROA[rowNum].udts[grid.numberOfUdts - 1];
+			colNum = elem.col;
+				while ((elem.readOnly || usedButNotShownUdts[parseInt(udtTypeArray[colNum], 10)]) && (colNum > 0)) {
+					colNum--;
+					elem = ROA[rowNum].udts[colNum];
+				}
+			processCellFocus(elem);
+		}
+		else {
+			processCellFocus(elem);
+		}
+	}
+	else {
+		var elem = ROA[rowNum].udts[grid.numberOfUdts - 1];
+		colNum = elem.col;
+			while ((elem.readOnly  || usedButNotShownUdts[parseInt(udtTypeArray[colNum], 10)]) && (colNum > 0)) {
+				colNum--;
+				elem = ROA[rowNum].udts[colNum];
+			}
+		processCellFocus(elem);
+	}
+}
+
+<!--****** HOUR GO UP ******-->
+function hourGoUp(elem){
+	var rowNum = getCellRow(elem);
+	var colNum = getCellCol(elem);
+	if (rowNum > 0) {
+		rowNum--;
+		var hourCells = ROA[rowNum].hrs;
+		var targetCell = hourCells[colNum];
+		processCellFocus(targetCell);
+	}
+}
+
+<!--****** HOUR GO DOWN ******-->
+function hourGoDown(elem){
+	var rowNum = elem.row;
+	var colNum = elem.col;
+	if (rowNum < grid.numberOfCompleteTsLines - 1) {
+		rowNum++;
+		var hourCells = ROA[rowNum].hrs;
+		var targetCell = hourCells[colNum];
+		processCellFocus(targetCell);
+	}
+}
+
+
+<!--****** UDT01 VALIDATION ******-->
+function validateUdt01(rowNum, udt1Id) {
+	if(!self.frames['hiddenFrame'].pageIsLoaded) return;
+	var tmpRowObject = ROA[rowNum];
+
+	var tmpUdt2Value;
+	var tmpUdt3Value;
+	var tmpUdt7Value;
+	var tmpUdt9Value;
+
+	//************************************************************************
+	//  If udt01 is primary charge and user has entered a line of udts either with charge lookup,
+	//  ambiguous lookup or manual entry and if user then enters another udt01 (replacing the first)
+	//  it will clear out the values that were associated with the first udt01.  If the new udt01 is
+	//  a primary charge it will get line defaults.  If the new udt01 is not the primary charge user
+	//  will end up with a line that just has the new udt01.
+	//************************************************************************
+
+	if (tmpRowObject.src[1] == "C") {
+		tmpUdt2Value = "";
+		tmpUdt3Value = "";
+		tmpUdt7Value = "";
+		tmpUdt9Value = "";
+	} else {
+		tmpUdt2Value = tmpRowObject.typ[2];
+		tmpUdt3Value = tmpRowObject.typ[3];
+		tmpUdt7Value = tmpRowObject.typ[7];
+		tmpUdt9Value = tmpRowObject.typ[9];
+	}
+	var form = self.frames['hiddenFrame'].document.forms['udtValidationForm'];
+	form.event.value = 'udt01Validation';
+	form.udt01Id.value = udt1Id;
+	form.udt02Id.value = tmpUdt2Value;
+	form.isDefaultUdt2.value = tmpRowObject.isDefaultArray[2];
+	form.udt03Id.value = tmpUdt3Value;
+	form.isDefaultUdt3.value = tmpRowObject.isDefaultArray[3];
+	form.udt07Id.value = tmpUdt7Value;
+	form.isDefaultUdt7.value = tmpRowObject.isDefaultArray[7];
+	form.udt09Id.value = tmpUdt9Value;
+	form.isDefaultUdt9.value = tmpRowObject.isDefaultArray[9];
+	form.rowNum.value = rowNum;
+	top.setFormSubmitted();
+	form.submit();
+}
+
+<!--****** UDT02 VALIDATION ******-->
+function validateUdt02(rowNum, udt2Id) {
+	if(!self.frames['hiddenFrame'].pageIsLoaded) return;
+	var tmpRowObject = ROA[rowNum];
+
+	//************************************************************************
+	//   If udt02 is primary charge and user has entered a line of udts either with charge lookup,
+	//   ambiguous lookup or manual entry and if user then enters another udt02 (replacing the first)
+	//   it will clear out the values that were associated with the first udt02.  The line will be populated
+	//   with line defaults appropriate to the new udt02
+	//************************************************************************
+
+	var tmpUdt2Value;
+	var tmpUdt3Value;
+	var tmpUdt7Value;
+	var tmpUdt9Value;
+	if (tmpRowObject.src[2] == "C") {
+		tmpUdt1Value = "";
+		tmpUdt3Value = "";
+		tmpUdt7Value = "";
+		tmpUdt9Value = "";
+	}
+	else {
+		tmpUdt1Value = tmpRowObject.typ[1];
+		tmpUdt3Value = tmpRowObject.typ[3];
+		tmpUdt7Value = tmpRowObject.typ[7];
+		tmpUdt9Value = tmpRowObject.typ[9];
+	}
+
+	var form = self.frames['hiddenFrame'].document.forms['udtValidationForm'];
+	form.event.value = 'udt02Validation';
+	form.udt02Id.value = udt2Id;
+	form.udt01Id.value = tmpUdt1Value;
+	form.isDefaultUdt1.value = tmpRowObject.isDefaultArray[1];
+	form.udt03Id.value = tmpUdt3Value;
+	form.isDefaultUdt3.value = tmpRowObject.isDefaultArray[3];
+	form.udt07Id.value = tmpUdt7Value;
+	form.isDefaultUdt7.value = tmpRowObject.isDefaultArray[7];
+	form.udt09Id.value = tmpUdt9Value;
+	form.isDefaultUdt9.value = tmpRowObject.isDefaultArray[9];
+	form.rowNum.value = rowNum;
+	top.setFormSubmitted();
+	form.submit();
+}
+
+<!--****** UDT03 VALIDATION ******-->
+function validateUdt03(rowNum, udt3Id) {
+	if(!self.frames['hiddenFrame'].pageIsLoaded) return;
+	var tmpRowObject = ROA[rowNum];
+
+	var form = self.frames['hiddenFrame'].document.forms['udtValidationForm'];
+	form.event.value = 'udt03Validation';
+	form.udt03Id.value = udt3Id;
+	form.udt09Id.value = tmpRowObject.typ[9];
+	form.isDefaultUdt9.value = tmpRowObject.isDefaultArray[9];
+	form.rowNum.value = rowNum;
+	top.setFormSubmitted();
+	form.submit();
+}
+
+<!--****** UDT04 VALIDATION ******-->
+function validateUdt04(rowNum, udt04Id) {
+	if(!self.frames['hiddenFrame'].pageIsLoaded) return;
+	var tmpRowObject = ROA[rowNum];
+
+	var form = self.frames['hiddenFrame'].document.forms['udtValidationForm'];
+	form.event.value = 'udt04Validation';
+	form.udt04Id.value = udt04Id;
+	form.rowNum.value = rowNum;
+	top.setFormSubmitted();
+	form.submit();
+}
+
+<!--****** UDT05 VALIDATION ******-->
+function validateUdt05(rowNum, udt05Id) {
+	if(!self.frames['hiddenFrame'].pageIsLoaded) return;
+	var tmpRowObject = ROA[rowNum];
+
+	var form = self.frames['hiddenFrame'].document.forms['udtValidationForm'];
+	form.event.value = 'udt05Validation';
+	form.udt05Id.value = udt05Id;
+	form.rowNum.value = rowNum;
+	top.setFormSubmitted();
+	form.submit();
+}
+
+<!--****** UDT06 VALIDATION ******-->
+function validateUdt06(rowNum, udt06Id) {
+	if(!self.frames['hiddenFrame'].pageIsLoaded) return;
+	var tmpRowObject = ROA[rowNum];
+
+	var form = self.frames['hiddenFrame'].document.forms['udtValidationForm'];
+	form.event.value = 'udt06Validation';
+	form.udt06Id.value = udt06Id;
+	form.rowNum.value = rowNum;
+	top.setFormSubmitted();
+	form.submit();
+}
+
+<!--****** UDT07 VALIDATION ******-->
+function validateUdt07(rowNum, udt07Id) {
+	if(!self.frames['hiddenFrame'].pageIsLoaded) return;
+	var tmpRowObject = ROA[rowNum];
+
+	var form = self.frames['hiddenFrame'].document.forms['udtValidationForm'];
+	form.event.value = 'udt07Validation';
+	form.udt07Id.value = udt07Id;
+	form.udt01Id.value = tmpRowObject.typ[1];
+	form.isDefaultUdt1.value = tmpRowObject.isDefaultArray[1];
+	form.udt02Id.value = tmpRowObject.typ[2];
+	form.isDefaultUdt2.value = tmpRowObject.isDefaultArray[2];
+	form.rowNum.value = rowNum;
+	top.setFormSubmitted();
+	form.submit();
+}
+
+<!--****** UDT08 VALIDATION ******-->
+function validateUdt08(rowNum, udt08Id) {
+	if(!self.frames['hiddenFrame'].pageIsLoaded) return;
+	var tmpRowObject = ROA[rowNum];
+
+	var form = self.frames['hiddenFrame'].document.forms['udtValidationForm'];
+	form.event.value = 'udt08Validation';
+	form.udt08Id.value = udt08Id;
+	form.rowNum.value = rowNum;
+	top.setFormSubmitted();
+	form.submit();
+}
+
+<!--****** UDT09 VALIDATION ******-->
+function validateUdt09(rowNum, udt9Id) {
+	if(!self.frames['hiddenFrame'].pageIsLoaded) return;
+	var tmpRowObject = ROA[rowNum];
+
+	var form = self.frames['hiddenFrame'].document.forms['udtValidationForm'];
+	form.event.value = 'udt09Validation';
+	form.udt09Id.value = udt9Id;
+	form.udt01Id.value = tmpRowObject.typ[1];
+	form.isDefaultUdt1.value = tmpRowObject.isDefaultArray[1];
+	form.udt02Id.value = tmpRowObject.typ[2];
+	form.isDefaultUdt2.value = tmpRowObject.isDefaultArray[2];
+	form.udt03Id.value = tmpRowObject.typ[3];
+	form.isDefaultUdt3.value = tmpRowObject.isDefaultArray[3];
+	form.rowNum.value = rowNum;
+	top.setFormSubmitted();
+	form.submit();
+}
+
+<!--****** UDT00 VALIDATION ******-->
+function validateUdt10(rowNum, udt10Id, src) {
+	if(!self.frames['hiddenFrame'].pageIsLoaded) return;
+	var tmpRowObject = ROA[rowNum];
+
+	var form = self.frames['hiddenFrame'].document.forms['udtValidationForm'];
+	form.event.value = 'udt10Validation';
+	form.udt10Id.value = udt10Id;
+	form.rowNum.value = rowNum;
+	form.src.value = (src != null ? src : "M");
+	top.setFormSubmitted();
+	form.submit();
+}
+
+<!--****** UDT11 VALIDATION ******-->
+function validateUdt11(rowNum, udt11Id) {
+	if(!self.frames['hiddenFrame'].pageIsLoaded) return;
+	var tmpRowObject = ROA[rowNum];
+
+	var form = self.frames['hiddenFrame'].document.forms['udtValidationForm'];
+	form.event.value = 'udt11Validation';
+	form.udt11Id.value = udt11Id;
+	form.rowNum.value = rowNum;
+	top.setFormSubmitted();
+	form.submit();
+}
+
+<!--****** UDT12 VALIDATION ******-->
+function validateUdt12(rowNum, udt12Id) {
+	if(!self.frames['hiddenFrame'].pageIsLoaded) return;
+	var tmpRowObject = ROA[rowNum];
+
+	var form = self.frames['hiddenFrame'].document.forms['udtValidationForm'];
+	form.event.value = 'udt12Validation';
+	form.udt12Id.value = udt12Id;
+	form.rowNum.value = rowNum;
+	top.setFormSubmitted();
+	form.submit();
+}
+
+<!--****** UDT13 VALIDATION ******-->
+function validateUdt13(rowNum, udt13Id) {
+	if(!self.frames['hiddenFrame'].pageIsLoaded) return;
+	var tmpRowObject = ROA[rowNum];
+
+	var form = self.frames['hiddenFrame'].document.forms['udtValidationForm'];
+	form.event.value = 'udt13Validation';
+	form.udt13Id.value = udt13Id;
+	form.rowNum.value = rowNum;
+	top.setFormSubmitted();
+	form.submit();
+}
+
+<!--****** UDT14 VALIDATION ******-->
+function validateUdt14(rowNum, udt14Id) {
+	if(!self.frames['hiddenFrame'].pageIsLoaded) return;
+	var tmpRowObject = ROA[rowNum];
+
+	var form = self.frames['hiddenFrame'].document.forms['udtValidationForm'];
+	form.event.value = 'udt14Validation';
+	form.udt14Id.value = udt14Id;
+	form.rowNum.value = rowNum;
+	top.setFormSubmitted();
+	form.submit();
+}
+
+<!--****** UDT15 VALIDATION ******-->
+function validateUdt15(rowNum, udt15Id) {
+	if(!self.frames['hiddenFrame'].pageIsLoaded) return;
+	var tmpRowObject = ROA[rowNum];
+
+	var form = self.frames['hiddenFrame'].document.forms['udtValidationForm'];
+	form.event.value = 'udt15Validation';
+	form.udt15Id.value = udt15Id;
+	form.rowNum.value = rowNum;
+	top.setFormSubmitted();
+	form.submit();
+}
+
+
+var nextTSIndex = null;
+<!--****** GET TIMESHEET ******-->
+function getTimesheet() {
+	if(top.isFormSubmitted()) return;
+	if(!self.frames[1].document.forms["supervisorForm"]) return;
+	if(!self.frames[1].document.forms["supervisorForm"].recordIndex) return;
+	if (!isOkToClose("getts")){
+		nextTSIndex = document.getElementById('selectElement').selectedIndex;
+		document.getElementById('selectElement').selectedIndex = grid.recordIndex;
+		return;
+	}
+
+	var optionIndex = selectElement.selectedIndex;
+	if(nextTSIndex != null){
+		optionIndex = nextTSIndex;
+	}
+	nextTSIndex = null;
+		document.getElementById('selectElement').selectedIndex = optionIndex;
+	self.frames[1].document.forms["supervisorForm"].recordIndex.value = optionIndex;
+	self.frames[1].document.forms["supervisorForm"].screenWidth.value= screen.width;
+	grid.searchMode = true;
+	top.setFormSubmitted();
+	self.frames[1].document.forms["supervisorForm"].submit();
+}
+
+<!--****** GET TIMESHEET BY INDEX ******-->
+function getTimesheetByIndex(index) {
+	if(top.isFormSubmitted()) return;
+	if (!isOkToClose("getti"+index)){
+		return;
+	}
+	if(!self.frames[1].document.forms["supervisorForm"]) return;
+	if(!self.frames[1].document.forms["supervisorForm"].recordIndex) return;
+	self.frames[1].document.forms["supervisorForm"].recordIndex.value = index;
+	self.frames[1].document.forms["supervisorForm"].screenWidth.value= screen.width;
+	grid.searchMode = true;
+	top.setFormSubmitted();
+	self.frames[1].document.forms["supervisorForm"].submit();
+}
+
+<!--****** GET TIMESHEET BY DATE ******-->
+function getTimesheetByDate() {
+	if(top.isFormSubmitted()) return;
+	if (!isOkToClose("gettd")){
+		return;
+	}
+	self.frames[1].document.forms["jspPage2"].year.value = grid.selectedYear;
+	self.frames[1].document.forms["jspPage2"].month.value = grid.selectedMonth;
+	self.frames[1].document.forms["jspPage2"].date.value= grid.selectedDate;
+
+	var emplName = document.getElementById("emplName");
+	emplName.innerHTML = grid.loginFullName;
+	emplName.style.borderStyle = 'solid';
+	selectElement = null;
+	grid.searchMode = false;
+	top.setFormSubmitted();
+	self.frames[1].document.forms["jspPage2"].submit();
+}
+<!--****** CHANGE TO PREVIOUS PERIOD ******-->
+function changePeriodPrev() {
+	if(top.isFormSubmitted()) return;
+	if (!isOkToClose("getcpp")){
+		return;
+	}
+	if (self.frames[1].document.forms["changePeriodForm"]) {
+		self.frames[1].document.forms["changePeriodForm"].direction.value = "previous";
+		self.frames[1].document.forms["changePeriodForm"].recordIndex.value = grid.recordIndex;
+		top.setFormSubmitted();
+		self.frames[1].document.forms["changePeriodForm"].submit();
+	}
+}
+<!--****** CHANGE TO NEXT PERIOD ******-->
+function changePeriodNext() {
+	if(top.isFormSubmitted()) return;
+	if (!isOkToClose("getcpn")){
+		return;
+	}
+	if (self.frames[1].document.forms["changePeriodForm"]) {
+		self.frames[1].document.forms["changePeriodForm"].direction.value = "next";
+		self.frames[1].document.forms["changePeriodForm"].recordIndex.value = grid.recordIndex;
+		top.setFormSubmitted();
+		self.frames[1].document.forms["changePeriodForm"].submit();
+	}
+}
+<!--****** GET FAVORITIES AUTO ******-->
+function getFavoritesAuto() {
+	fromChargeLookup = true;
+	tmpRowObject = ROA[grid.numberOfCompleteTsLines];
+	self.frames[0].document.forms["getFavoritesForm"].autoload.value = "Y";
+	top.setFormSubmitted();
+	self.frames[0].document.forms["getFavoritesForm"].submit();
+}
+<!--****** GET FAVORITES MANUAL ******-->
+function getFavorites() {
+	if (grid.aLineIsIncomplete) {
+		incompleteLineMessage();
+		return false;
+	}
+	fromChargeLookup = true;
+	tmpRowObject = ROA[grid.numberOfCompleteTsLines];
+	self.frames[0].document.forms["getFavoritesForm"].autoload.value = "N";
+	top.setFormSubmitted();
+	self.frames[0].document.forms["getFavoritesForm"].submit();
+}
+
+var okToCloseAction = "";
+var closeAnyway = false;
+<!--****** CHECK IF OK TO CLOSE TIMESHEET ******-->
+function isOkToClose(action, noDialog){
+	if (!pageIsLoaded){
+		return true;
+	}
+	if (closeAnyway){
+		closeAnyway = false;
+		return true;
+	}
+	okToCloseAction = action;
+	if (!submitActive(action)){
+		return false;
+	}
+	if(noDialog){
+		if(checkForUnsavedChanges()){
+			return false;
+		} else {
+			return true;
+		}
+	}
+	if (grid.aLineIsIncomplete) {
+		incompleteLineMessage2(okToCloseHandler1);
+		return false;
+	}
+	return okToCloseHandler1("SKIP");
+}
+
+function okToCloseHandler1(result){
+	if (result != "SKIP"){
+		messageHandler2(result);
+
+		if (returnFalse) {
+			returnFalse = false;
+			return false;
+		}
+	}
+
+	if (okToCloseAction != "save"){
+		if (checkForUnsavedChanges()) {
+			actionAfterSave = okToCloseAction;
+			unsavedChangesMessage(okToCloseHandler2);
+			return false;
+		}
+		else {
+			returnFalse = false;
+			if(okToCloseAction !=null && okToCloseAction.indexOf(')') != -1){
+				eval(okToCloseAction);
+				return false;
+			}
+			return true;
+		}
+	}
+	return okToCloseHandler2("SKIP");
+}
+
+function okToCloseHandler2(result){
+	if (result != "SKIP") {
+		messageHandler3(result);
+		if (returnFalse) {
+			returnFalse = false;
+			return false;
+		}
+	}
+	if (okToCloseAction == "sign") {
+		returnFalse = false;
+		return false;
+	} else 	if (okToCloseAction.indexOf('(') != -1){
+		eval(okToCloseAction);
+	} else {
+		actionAfterValid = okToCloseAction;
+		closeAnyway = true;
+		doAfterValid();
+	}
+	returnFalse = false;
+	return true;
+}
+
+function hideEditor(){
+	if(editorShown && editor.currentCell != null){
+		editorShown = false;
+		editor.currentCell.removeChild(editor);
+		if (editor.currentCell.className == "d"){
+			if (!cellCommentsDisabled){
+				editor.currentCell.removeChild(commentIcon);
+			}
+		} else {
+			try{
+				editor.currentCell.removeChild(binocularsIcon);
+			}catch(e){}
+		}
+	}
+}
+
+function handleFirstRecordClick() {
+	getTimesheetByIndex(1);
+	return false;
+}
+function handlePreviousRecordClick() {
+	getTimesheetByIndex(grid.recordIndex - 1);
+	return false;
+}
+function handleNextRecordClick() {
+	getTimesheetByIndex(grid.recordIndex + 1);
+	return false;
+}
+function handleLastRecordClick() {
+	getTimesheetByIndex(grid.numberOfSearchIds - 1 + firstBrowsableTS);
+	return false;
+}
+
+var currentHourView = 'entered';
+var reverseTSBefore;
+var browseOnlyBefore = browseOnly;
+function toggleHourView(){
+	if (currentHourView == 'entered'){
+		currentHourView = 'prorated';
+		document.getElementById('hourViewToggle').value = proratedButtonLabel;
+		refreshHours(true);
+		browseOnlyBefore = browseOnly;
+		browseOnly = true;
+		reverseTSBefore = reverseTimesheetEnabled;
+		if (reverseTimesheetEnabled) {
+			enableReverseTimesheet(false);
+		}
+
+	} else {
+		currentHourView = 'entered';
+		document.getElementById('hourViewToggle').value = enteredButtonLabel;
+		refreshHours(false);
+		browseOnly = browseOnlyBefore;
+		reverseTimesheetEnabled = reverseTSBefore;
+		if (reverseTimesheetEnabled) {
+			enableReverseTimesheet(true);
+		}
+	}
+}
+
+function refreshHours(prorated){
+	var value;
+	hideEditor();
+	for(var r = 0; r < grid.numberOfCompleteTsLines; r++){
+		for (var c = 0; c < grid.numberOfDays; c++){
+			if (prorated){
+				value = ROA[r].hrs[c].proratedHrs;
+				if (value != null) {
+					ROA[r].hrs[c].innerHTML = value;
+				}
+			} else {
+				value = ROA[r].hrs[c].hrs;
+				if (value == null) value = "";
+				ROA[r].hrs[c].innerHTML = value;
+			}
+			if (!cellCommentsDisabled && ROA[r].hrs[c].hasComment) {
+				createHourComment(ROA[r].hrs[c], ROA[r].hrs[c].txt);
+			}
+		}
+	}
+	calculateTotals(prorated);
+}
+
+function rowNumHeaderClick(obj){
+	var checked = obj.checked;
+	obj.checked = false;
+	selectAllRows(checked);
+	var selectedLinesArray = findSelectedLines();
+	obj.checked = (selectedLinesArray.length != 0);
+}
+
+function getUdtOrder(udtType){
+	for(var i = 0; i < udtTypeArray.length; i++){
+		if (udtTypeArray[i] == udtType){
+			return i;
+		}
+	}
+	return -1;
+}
+
+function findPrimaryCell(currentCell){
+	var row = getCellRow(currentCell);
+	if(grid.udts1And2AreLinked && !usedButNotShownUdts[2]){
+		return ROA[row].udts[getUdtOrder(2)];
+	} else {
+		return ROA[row].udts[getUdtOrder(1)];
+	}
+}
+
+function modalFrameIsVisible(){
+	return (document.getElementById('modalFrame').style.visibility == 'visible');
+}

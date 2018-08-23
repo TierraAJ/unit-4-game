@@ -1,0 +1,85 @@
+document.onkeypress=backButtonPressed;
+document.onkeydown=backButtonPressed;
+
+function backButtonPressed(e) {
+	var keyCode;
+	var tagName;
+	var type;
+	var readOnly;
+	if (window.event && !e) {
+		e = window.event;
+		keyCode = e.keyCode;
+		if(e.srcElement){
+			tagName=e.srcElement.tagName;
+			type=e.srcElement.type;
+			readOnly=e.srcElement.readOnly;
+		}
+		else if(keyCode==8){ // no srcElement but a keycode so don't accept bksp
+			e.returnValue = false;
+			return false;
+		}
+		else{
+			//alert("ret true");
+			return true;
+		}
+
+		//alert("1. tagname="+tagName+" type="+type+" keycode="+keyCode);
+		if((tagName=="INPUT" && (type=="text" || type=="password" || type=="file") && !readOnly)
+				|| (tagName=="TEXTAREA" && !readOnly))
+			return true;
+		if (keyCode == 8) {
+			e.returnValue = false;
+			return false;
+		}
+	}
+	else if(e){
+		tagName=e.target.tagName;
+		type=e.target.type;
+		keyCode = e.which;
+		readOnly=e.target.readOnly;
+		//alert("2. tagname="+tagName+" type="+type+" keycode="+keyCode);
+
+		//Preventing form submission when pressed "Enter" in input field in Safari
+		if(top.is_safari && ((tagName=="INPUT" && (type=="text" || type=="password" || type=="file")) || (tagName=="SELECT")) && (keyCode == 13 || keyCode == 3)){
+			if (e.preventDefault) {
+				e.preventDefault();
+				return false;
+			}
+		}
+		
+		if((tagName=="INPUT" && (type=="text" || type=="password" || type=="file") && !readOnly)
+				|| (tagName=="TEXTAREA" && !readOnly))
+			return true;
+		if (keyCode == 8) {
+			if (e.preventDefault) {
+				e.preventDefault();
+				return false;
+			}
+		}
+	}
+	return;
+}
+
+function showUnderline(obj) {
+	var cName = obj.className;
+	if (cName != 'passiveLink') {
+		obj.style.textDecoration = "underline";
+	}
+}
+function hideUnderline(obj) {
+	obj.style.textDecoration = "none";
+} 
+
+//Compares two numbers
+//returns -1 if first number is less than second
+//0 if numbers are equal
+//1 if first number is greater than second
+//IMPORTANT - will not work correctly for numbers that have more than 5 meaningful digits after decimal point!
+function compareNumbers(num1, num2){
+	var rounder = Math.pow(10,5);
+	var int1 = Math.round(num1 * rounder);
+	var int2 = Math.round(num2 * rounder);
+	if(int1 < int2) return -1;
+	if(int1 > int2) return 1;
+	return 0;
+}

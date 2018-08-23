@@ -1,0 +1,188 @@
+function saveTS() {
+
+	var saveForm = self.frames['hiddenFrame'].document.getElementById("saveTSForm");
+	saveForm.elements['resizedUdts'].disabled = true;
+	if(grid.resizedUdts.length > 0){
+		saveForm.elements['resizedUdts'].disabled = false;
+	}
+	var newCells = '';
+	saveForm.tsHead.value = norm(TS.ts_schedule_cd) + '\x1F' +
+				norm(TS.year_no_cd) + '\x1F' +
+				norm(TS.period_no_cd) + '\x1F' +
+				norm(TS.class_cd) + '\x1F' +
+				norm(TS.work_schedule_cd) + '\x1F';
+
+        saveForm.tsLines.value = '';
+	saveForm.tsCells.value = '';
+	for(var i = 0; i < grid.numberOfCompleteTsLines; i++) {
+
+		saveForm.tsLines.value += norm(ROA[i].pkLineNumber) + '\x1F' +
+					  norm(ROA[i].line_desc) + '\x1F' +
+					  norm(ROA[i].charge_tree_cd) + '\x1F' +
+					  norm(ROA[i].charge_branch_cd) + '\x1F' +
+					  norm(ROA[i].charge_cd) + '\x1F' +
+					  norm(ROA[i].typ[1]) + '\x1F' +
+					  norm(ROA[i].typ[2]) + '\x1F' +
+					  norm(ROA[i].typ[3]) + '\x1F' +
+					  norm(ROA[i].typ[4]) + '\x1F' +
+					  norm(ROA[i].typ[5]) + '\x1F' +
+					  norm(ROA[i].typ[6]) + '\x1F' +
+					  norm(ROA[i].typ[7]) + '\x1F' +
+					  norm(ROA[i].typ[8]) + '\x1F' +
+					  norm(ROA[i].typ[9]) + '\x1F' +
+					  norm(ROA[i].typ[10]) + '\x1F' +
+					  norm(ROA[i].etc_hrs) + '\x1F' +
+					  norm(ROA[i].billable_fl) + '\x1F' +
+					  norm(ROA[i].short_line_text) + '\x1F' +
+					  norm(ROA[i].src[1]) + '\x1F' +
+					  norm(ROA[i].src[2]) + '\x1F' +
+					  norm(ROA[i].src[3]) + '\x1F' +
+					  norm(ROA[i].src[4]) + '\x1F' +
+					  norm(ROA[i].src[5]) + '\x1F' +
+					  norm(ROA[i].src[6]) + '\x1F' +
+					  norm(ROA[i].src[7]) + '\x1F' +
+					  norm(ROA[i].src[8]) + '\x1F' +
+					  norm(ROA[i].src[9]) + '\x1F' +
+					  norm(ROA[i].src[10]) + '\x1F' +
+					  norm(ROA[i].lineNumber) + '\x1F' +
+					  norm(ROA[i].typ[11]) + '\x1F' +
+					  norm(ROA[i].typ[12]) + '\x1F' +
+					  norm(ROA[i].typ[13]) + '\x1F' +
+					  norm(ROA[i].typ[14]) + '\x1F' +
+					  norm(ROA[i].typ[15]) + '\x1F' +
+					  norm(ROA[i].src[11]) + '\x1F' +
+					  norm(ROA[i].src[12]) + '\x1F' +
+					  norm(ROA[i].src[13]) + '\x1F' +
+					  norm(ROA[i].src[14]) + '\x1F' +
+					  norm(ROA[i].src[15]) + '\x1F' +
+					  norm(ROA[i].interim_fl ? "Y" : "N")+ '\x1F';
+
+
+		for(var f = 0; f < ROA[i].hrs.length; f++) {
+			var hourObject = ROA[i].hrs[f];
+			if((hourObject.hrs != null && hourObject.hrs != '') || hourObject.hasComment || hourObject.rate1 || hourObject.rate2) {
+				var enteredHrs = '0';
+				if(hourObject.hrs != null && hourObject.hrs != '') {
+					enteredHrs = "" + hourObject.hrs;
+				} else {
+					hourObject.sts = "O";
+				}
+				if (enteredHrs.indexOf(',') != -1) {
+					var myRegExp = /\,/g;
+					enteredHrs = enteredHrs.replace(myRegExp, ".");
+				}
+				var proratedHours = '';
+				if (hourObject.proratedHrs != null && hourObject.proratedHrs  != '') {
+					proratedHours = hourObject.proratedHrs;
+
+					proratedHours = '' + proratedHours;
+					if (proratedHours.indexOf(',') != -1) {
+						var myRegExp = /\,/g;
+						proratedHours = proratedHours.replace(myRegExp, ".");
+					}
+				}
+
+				var tmp = norm(ROA[i].pkLineNumber) + '\x1F' +
+					norm(hourObject.hrs_dt) + '\x1F' +
+					norm(enteredHrs) + '\x1F' +
+					norm(hourObject.crt) + '\x1F' +
+					norm(hourObject.sts) + '\x1F' +
+					norm(hourObject.txt) + '\x1F'+
+					norm(hourObject.rate1) + '\x1F' +
+					norm(hourObject.rate1Cd) + '\x1F' +
+					norm(hourObject.rate2) + '\x1F' +
+					norm(hourObject.rate2Cd) + '\x1F' +
+					norm(hourObject.reversal_fl) + '\x1F' +
+					norm(proratedHours) + '\x1F' +
+					norm(hourObject.enteredRate1Amt) + '\x1F' +
+					norm(hourObject.enteredRate2Amt) + '\x1F' +
+					norm(hourObject.proratedRate1Amt) + '\x1F' +
+					norm(hourObject.proratedRate2Amt) + '\x1F';
+
+				if(hourObject.previouslySaved == true) {
+					saveForm.tsCells.value += tmp;
+				}
+				else {
+					newCells += tmp;
+				}
+			}
+		}
+	}
+	saveForm.tsCells.value += newCells;
+
+	if(grid.resizedUdts.length > 0){
+		var resizedUdtsStr = "";
+		for(var i = 0; i < 16; i++){
+			if(grid.resizedUdts[i]){
+				resizedUdtsStr += udtTypeArray[i]+ '\x1F' + Math.round(udtSizes[i]/8)+ '\x1F';
+			}
+		}
+		saveForm.resizedUdts.value = resizedUdtsStr;
+	}
+
+	if(loadedSplitterPosition != oldSplitterPosition){
+		saveForm.splitterPos.disabled = false;
+		var splitterPix = rowNumWidth + 1;
+		var newSplitterPos = 0;
+		for(var i = 0; i < udtSizes.length; i++){
+			if(udtSizes[i] != 0){
+				splitterPix += udtSizes[i];
+				newSplitterPos++;
+				if(splitterPix > oldSplitterPosition){
+					break;
+				}
+			}
+		}
+		saveForm.splitterPos.value = newSplitterPos;
+	} else {
+		saveForm.splitterPos.enabled = false;
+	}
+
+        saveForm.tsDays.value = '';
+	if(grid.startStopTimeMode != null && grid.startStopTimeMode != 'DISABLED'){
+		for (var i = 0; i < startStopArray.length; i++) {
+			var daysArray = startStopArray[i];
+			if(daysArray != null){
+				for(var j = 0; j < daysArray.length; j++){
+					saveForm.tsDays.value +=
+					 norm(daysArray[j]['dayNo']) + '\x1F' +
+					 norm(daysArray[j]['charge']) + '\x1F' +
+					 norm(daysArray[j]['startYear']) + '\x1F' +
+					 norm(daysArray[j]['startMonth']) + '\x1F' +
+					 norm(daysArray[j]['startDay']) + '\x1F' +
+					 norm(daysArray[j]['startHrs']) + '\x1F' +
+					 norm(daysArray[j]['startMin']) + '\x1F' +
+					 norm(daysArray[j]['stopYear']) + '\x1F' +
+					 norm(daysArray[j]['stopMonth']) + '\x1F' +
+					 norm(daysArray[j]['stopDay']) + '\x1F' +
+					 norm(daysArray[j]['stopHrs']) + '\x1F' +
+					 norm(daysArray[j]['stopMin']) + '\x1F' +
+					 norm(daysArray[j]['comment']) + '\x1F';
+				}
+			}
+		}
+	
+	} else {
+		for (var z = 0; z < tsDayObjectArray.length; z++) {
+			var daysArray = tsDayObjectArray[z];
+			saveForm.tsDays.value += norm(daysArray[0]) + '\x1F' +
+				 norm(daysArray[1]) + '\x1F' +
+				 norm(daysArray[2]) + '\x1F' +
+				 norm(daysArray[3]) + '\x1F' +
+				 norm(daysArray[4]) + '\x1F' +
+				 norm(daysArray[5]) + '\x1F' +
+				 norm(daysArray[6]) + '\x1F' +
+				 norm(daysArray[7]) + '\x1F' ;
+		}
+	}
+
+	top.setFormSubmitted();
+	saveForm.submit();
+}
+
+function norm(value) {
+	if(value == null) return "0$X";
+	if(value == '') return "0$X";
+	if(value == ' ') return "0$X";
+	return value;
+}

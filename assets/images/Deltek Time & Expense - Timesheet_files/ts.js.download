@@ -1,0 +1,830 @@
+
+function syncVertScroll() {
+	var newTop;
+	var newMyTop;
+	if (top.is_mac && top.is_ie5up){
+		newMyTop = vertScrollerContent.offsetTop;
+		newTop = newMyTop +'px';
+		udtBody.myTop = newMyTop;
+		rowTotal0.myOffsetTop = rowTotal0.offsetTop;
+	} else if (top.is_safari) {
+		newTop = -udtBody.myTop+'px';
+	} else {
+		newTop = -vertScroller.scrollTop+'px';
+	}
+	rowNumBody.style.top = newTop;
+	udtBody.style.top = newTop;
+	hrsBody.style.top = newTop;
+	rowTotalBody.style.top = newTop;
+}
+
+
+function syncUdtScroll() {
+	var newLeft;
+	var newMyLeft;
+	if (top.is_mac && top.is_ie5up){
+		newMyLeft = udtScrollerContent.offsetLeft;
+		newLeft = newMyLeft +'px';
+		udtBody.myLeft = newMyLeft;
+		udtScrollerContent.myOffsetLeft = udtScrollerContent.offsetLeft;
+	} else if (top.is_safari) {
+		newLeft = -udtBody.myLeft+'px';
+	} else {
+		newLeft = -udtScroller.scrollLeft+'px';
+		udtBody.myLeft = -udtScroller.scrollLeft;
+	} 
+	udtBody.style.left = newLeft;
+	udtHeader.style.left = newLeft;
+}
+
+function syncHrsScroll() {
+	var newLeft;
+	var newMyLeft;
+	if (top.is_mac && top.is_ie5up){
+		newMyLeft = hrsScrollerContent.offsetLeft;
+		newLeft = newMyLeft +'px';
+		hrsBody.myLeft = newMyLeft;
+	} else if (top.is_safari) {
+		newLeft = -hrsBody.myLeft+'px';
+	} else {
+		newLeft = -hrsScroller.scrollLeft+'px';
+	}
+	hrsBody.style.left = newLeft;
+	hrsHeader.style.left = newLeft;
+	hrsFooter.style.left = newLeft;
+}
+
+var udtResizing = -1;
+var udrResizer = null;
+
+function udtResizeMD(ev){
+	var target;
+	if (ev == null) {
+		target = event.srcElement;
+	} else {
+		target = ev.target;
+	}
+
+	udtResizer = target;	
+	udtResizing = getResizerCol(target);
+	udtResizerBody.style.left = udtResizer.style.left;
+	udtResizerBody.style.visibility = "visible";
+}
+
+
+var splitterIsMoving = false;
+var newSplitterPosition = 0;
+function splitterMD(ev){
+	splitterIsMoving = true;
+	newSplitterPosition = oldSplitterPosition;
+}
+
+function documentMM(ev){
+	if (splitterIsMoving) {
+		var newClientX;
+		if(typeof ev != 'object'){
+			newClientX = event.clientX;
+		} else {
+			newClientX = ev.clientX;
+		}
+		if (newClientX > rowNumWidth && newClientX > minHrsLeft && newClientX < maxSplitterPos){
+			newSplitterPosition = newClientX;
+			splitter.style.left = newClientX+'px';
+		}
+	} else if (udtResizing != -1) {
+		var newClientX;
+		if(typeof ev != 'object'){
+			newClientX = event.clientX;
+		} else {
+			newClientX = ev.clientX;
+		}
+		var newResizerPosition = newClientX - rowNumWidth - udtBody.myLeft;
+		var headerCol = document.getElementById('udtHeaderText'+udtResizing);
+		var columnLeft = stripPx(headerCol.style.left);
+		if (newResizerPosition > columnLeft + 10) {
+			udtResizer.style.left = newResizerPosition+'px';
+			udtResizerBody.style.left = newResizerPosition+'px';
+		}
+	}
+}
+
+function documentMU(ev){
+	if (splitterIsMoving) {
+		splitterIsMoving = false;
+		var delta = newSplitterPosition - oldSplitterPosition;
+		oldSplitterPosition = newSplitterPosition;
+		udtWidth += delta;
+		udtHeaderScroller.style.width = udtWidth+'px';
+		udtBodyScroller.style.width = udtWidth+'px';
+		udtFooter.style.width = udtWidth+'px';	
+
+		if (top.is_safari) {
+			scrollBar1.style.width = udtWidth+'px';
+			initScrollBar1(udtWidth, innerDivWidth1);
+		}
+		else {
+			udtScroller.style.width = udtWidth+'px';
+		}
+		
+		hrsLeft += delta;
+		hrsWidth -= delta;
+		hrsHeaderScroller.style.left = hrsLeft+'px';
+		hrsHeaderScroller.style.width = hrsWidth+'px';
+		hrsBodyScroller.style.left = hrsLeft+'px';
+		hrsBodyScroller.style.width = hrsWidth+'px';
+		hrsFooterScroller.style.left = hrsLeft+'px';
+		hrsFooterScroller.style.width = hrsWidth+'px';
+		
+		if (top.is_safari) {
+			scrollBar2.style.left = hrsLeft+'px';
+			scrollBar2.style.width = hrsWidth+'px';
+			initScrollBar2(hrsWidth);
+		}
+		else {
+			hrsScroller.style.left = hrsLeft+'px';
+			hrsScroller.style.width = hrsWidth+'px';		
+		}
+	}
+	else if (udtResizing != -1) {
+		udtResizerBody.style.visibility = 'hidden';
+		var resizerLeft = stripPx(udtResizer.style.left);
+		var headerCol = document.getElementById('udtHeaderText'+udtResizing);
+		var columnLeft = stripPx(headerCol.style.left);
+		var delta = resizerLeft - columnLeft - udtSizes[udtResizing] + thinBorder;
+		udtSizes[udtResizing] = resizerLeft - columnLeft + thinBorder;
+		headerCol.style.width = udtSizes[udtResizing] - thinBorder + 'px';		
+		document.getElementById('udtColumn'+udtResizing).style.width = udtSizes[udtResizing] - thinBorder + 'px';
+		for (var i = 0; i < ROA.length; i++){
+			ROA[i].udts[udtResizing].style.width = udtSizes[udtResizing] - thinBorder + 'px'
+		}
+		for (var i = udtResizing + 1; i < numberOfUdts; i++){
+			headerCol = document.getElementById('udtHeaderText'+i); 
+			headerCol.style.left = stripPx(headerCol.style.left) + delta + 'px';
+			var udtColumn = document.getElementById('udtColumn'+i);
+			udtColumn.style.left = stripPx(udtColumn.style.left) + delta + 'px';
+			var colResizer = document.getElementById('udtResizer'+i);
+			colResizer.style.left = stripPx(colResizer.style.left) + delta + 'px';
+		}
+		var lastCol = document.getElementById('udtHeaderTextLast');
+		lastCol.style.left = stripPx(lastCol.style.left) + delta + 'px';
+		lastCol = document.getElementById('udtColumnLast');
+		lastCol.style.left = stripPx(lastCol.style.left) + delta + 'px';
+		if (editor.currentCell != null && editor.currentCell.className == 'u' && editor.currentCell.col == udtResizing){
+			editor.style.width = stripPx(editor.style.width) + delta + 'px';
+			binocularsIcon.style.left = stripPx(binocularsIcon.style.left) + delta + 'px';
+		}
+		grid.resizedUdts[udtResizing] = true;
+		udtResizing = -1;
+		if (top.is_safari) {
+			initScrollBar1(udtWidth, (parseInt(lastCol.style.left) + 100));
+		}
+	}	
+}
+
+
+function showUnderline(obj) {
+	var cName = obj.className;
+	if (cName != 'navFunctionDisabled' && cName != 'lineFunctionDisabled') {
+		obj.style.textDecoration = "underline";
+	}
+}
+function hideUnderline(obj) {
+	obj.style.textDecoration = "none";
+} 
+
+
+function cellMD(obj){
+	if (editor.currentCell == obj) return;
+	editor.style.top='0px';
+	editor.style.left='0px';
+	if (top.is_ie) {
+		editor.style.width='95px';
+		editor.style.height='15px';
+	} else {
+		editor.style.width='99px';
+		editor.style.height='19px';
+	}
+	obj.appendChild(editor);
+	editor.style.textAlign = 'right';
+	editor.style.visibility = "visible";
+	editor.currentCell = obj;
+	obj.appendChild(binocularsIcon);
+	binocularsIcon.style.left = '78px';
+	binocularsIcon.style.top = '0px';
+	binocularsIcon.style.visibility = "visible";
+}
+
+
+function getCellRow(obj){
+	var id = obj.id;
+	var pos = id.indexOf('_');
+	return parseInt(id.substring(3,pos));
+}
+
+function getSelectorRow(obj){
+	var id = obj.id;
+	return parseInt(id.substring(11));
+}
+
+function getCommentIconRow(obj){
+	var id = obj.id;
+	return parseInt(id.substring(10));
+}
+
+function getLineApproveRow(obj){
+	var id = obj.id;
+	var displayLineNo = parseInt(id.substring(15));
+	return ROA[displayLineNo-1].pkLineNumber;
+}
+
+
+function getCellCol(obj){
+	var id = obj.id;
+	var pos = id.indexOf('_');
+	return parseInt(id.substring(pos+1));
+}
+
+function getUdtType(obj){
+	return udtTypeArray[getCellCol(obj)];
+}
+
+function getResizerCol(obj){
+	return parseInt(obj.id.substring(10));
+}
+
+function scrollUdtCellIntoView(elem, colWidth){
+		if (top.is_mac && top.is_ie5up){
+			var offsLeft = elem.offsetParent.offsetLeft;
+			var newLeft;
+			if (offsLeft < (-udtBody.myLeft)){
+				newLeft = -offsLeft;
+				udtBody.myLeft = newLeft;
+				udtBody.style.left = newLeft+'px';
+				udtHeader.style.left = newLeft+'px';
+			} else if ((offsLeft + colWidth) > (udtWidth - udtBody.myLeft)){
+				newLeft = -(offsLeft + colWidth - udtWidth);
+				udtBody.myLeft = newLeft;
+				udtBody.style.left = newLeft+'px';
+				udtHeader.style.left = newLeft+'px';
+			}
+			var offsTop = elem.offsetTop;
+			var newTop;
+			if (offsTop < (-udtBody.myTop)){
+				newTop = -offsTop;
+				udtBody.myTop = newTop;
+				rowNumBody.style.top = newTop+'px';
+				udtBody.style.top = newTop+'px';
+				hrsBody.style.top = newTop+'px';
+				rowTotalBody.style.top = newTop+'px';
+
+			} else if ((offsTop + rowHeight) > (bodyHeight -udtBody.myTop)){
+				newTop = -(offsTop + rowHeight - bodyHeight);
+				udtBody.myTop = newTop;
+				rowNumBody.style.top = newTop+'px';
+				udtBody.style.top = newTop+'px';
+				hrsBody.style.top = newTop+'px';
+				rowTotalBody.style.top = newTop+'px';
+			}
+		} else if (top.is_safari){
+			var offsLeft = elem.offsetParent.offsetLeft;
+			if (offsLeft < udtBody.myLeft) {
+				udtBody.myLeft = offsLeft;
+				syncUdtScroll();
+			} else if ((offsLeft + colWidth) > (udtWidth + udtBody.myLeft)){
+				udtBody.myLeft = offsLeft + colWidth - udtWidth;
+				syncUdtScroll();
+			}
+			var offsTop = elem.offsetTop;
+			if (offsTop < udtBody.myTop){
+				udtBody.myTop = offsTop;
+				syncVertScroll();
+			} else if ((offsTop + rowHeight) > (bodyHeight + udtBody.myTop)) {
+				udtBody.myTop = offsTop + rowHeight - bodyHeight;
+				syncVertScroll();
+			}
+		} else {
+			var offsLeft = elem.offsetParent.offsetLeft;
+			if (offsLeft < udtScroller.scrollLeft) {
+				udtScroller.scrollLeft = offsLeft;
+				syncUdtScroll();
+			} else if ((offsLeft + colWidth) > (udtWidth + udtScroller.scrollLeft)){
+				udtScroller.scrollLeft = offsLeft + colWidth - udtWidth;
+				syncUdtScroll();
+			}
+			var offsTop = elem.offsetTop;
+			if (offsTop < vertScroller.scrollTop){
+				vertScroller.scrollTop = offsTop;
+				syncVertScroll();
+			} else if ((offsTop + rowHeight) > (bodyHeight + vertScroller.scrollTop)) {
+				vertScroller.scrollTop = offsTop + rowHeight - bodyHeight;
+				syncVertScroll();
+			}
+		}
+}
+
+
+function scrollHourCellIntoView(elem){
+	var colWidth = 50;
+		if (top.is_mac && top.is_ie5up){
+			var offsLeft = elem.offsetParent.offsetLeft;
+			var newLeft;
+			if (offsLeft < (-hrsBody.myLeft)){
+				newLeft = -offsLeft
+				hrsBody.myLeft = newLeft;
+				hrsBody.style.left = newLeft+'px';
+				hrsHeader.style.left = newLeft+'px';
+				hrsFooter.style.left = newLeft+'px';
+			} else if ((offsLeft + colWidth) > (hrsWidth - hrsBody.myLeft)){
+				newLeft = -(offsLeft + colWidth - hrsWidth);
+				hrsBody.myLeft = newLeft;
+				hrsBody.style.left = newLeft+'px';
+				hrsHeader.style.left = newLeft+'px';
+				hrsFooter.style.left = newLeft+'px';
+			}
+			var offsTop = elem.offsetTop;
+			var newTop;
+			if (offsTop < (-udtBody.myTop)){
+				newTop = -offsTop;
+				udtBody.myTop = newTop;
+				rowNumBody.style.top = newTop+'px';
+				udtBody.style.top = newTop+'px';
+				hrsBody.style.top = +newTop+'px';
+				rowTotalBody.style.top = newTop+'px';
+
+			} else if ((offsTop + rowHeight) > (bodyHeight - udtBody.myTop)){
+				newTop = -(offsTop + rowHeight - bodyHeight);
+				udtBody.myTop = newTop;
+				rowNumBody.style.top = newTop+'px';
+				udtBody.style.top = newTop+'px';
+				hrsBody.style.top = newTop+'px';
+				rowTotalBody.style.top = newTop+'px';
+			}
+		} else if (top.is_safari){
+			var offsLeft = elem.offsetParent.offsetLeft; 
+			if (offsLeft < hrsBody.myLeft) {
+				hrsBody.myLeft = offsLeft;
+				syncHrsScroll();
+			} else if ((offsLeft + colWidth) > (hrsWidth + hrsBody.myLeft)){
+				hrsBody.myLeft = offsLeft + colWidth - hrsWidth;
+				syncHrsScroll();
+			}
+			var offsTop = elem.offsetTop;
+			if (offsTop < udtBody.myTop){
+				udtBody.myTop = offsTop;
+				syncVertScroll();
+			} else if ((offsTop + rowHeight) > (bodyHeight + udtBody.myTop)) {
+				udtBody.myTop = offsTop + rowHeight - bodyHeight;
+				syncVertScroll();
+			}
+		} else {
+			var offsLeft = elem.offsetParent.offsetLeft;
+			if (offsLeft < hrsScroller.scrollLeft) {
+				hrsScroller.scrollLeft = offsLeft;
+				syncHrsScroll();
+			} else if ((offsLeft + colWidth) > (hrsWidth + hrsScroller.scrollLeft)){
+				hrsScroller.scrollLeft = offsLeft + colWidth - hrsWidth;
+				syncHrsScroll();
+			}
+			var offsTop = elem.offsetTop;
+			if (offsTop < vertScroller.scrollTop){
+				vertScroller.scrollTop = offsTop;
+				syncVertScroll();
+			} else if ((offsTop + rowHeight) > (bodyHeight + vertScroller.scrollTop)) {
+				vertScroller.scrollTop = offsTop + rowHeight - bodyHeight;
+				syncVertScroll();
+			}
+		}
+}
+
+function scrollToTopLeft(){
+	if (top.is_mac && top.is_ie5up){
+
+		udtBody.myTop = 0;
+		rowNumBody.style.top = '0px';
+		udtBody.style.top = '0px';
+		hrsBody.style.top = '0px';
+		rowTotalBody.style.top = '0px';
+
+		udtBody.myLeft = 0;
+		udtBody.style.left = '0px';
+		udtHeader.style.left = '0px';
+		
+		hrsBody.myLeft = 0;
+		hrsBody.style.left = '0px';
+		hrsHeader.style.left = '0px';
+		hrsFooter.style.left = '0px';
+	} else {
+		vertScroller.scrollTop = 0;
+		syncVertScroll();
+
+		udtScroller.scrollLeft = 0;
+		syncUdtScroll();
+		
+		hrsScroller.scrollLeft = 0;
+		syncHrsScroll();
+	}
+}
+
+function stripPx(str){
+	var pos = str.indexOf('px');
+	if (pos == -1) {
+		pos = str.indexOf('PX');
+	}
+	if (pos == -1) {
+		return parseInt(str);
+	} else {
+		return parseInt(str.substring(0, pos));
+	}
+}
+
+
+
+function handleMD1(_scrollButton) {
+	nowScrolling = true;
+	activeScrollButton = _scrollButton;
+	document.onmousemove = handleMM1
+}
+
+function handleMD2(_scrollButton) {
+	nowScrolling = true;
+	activeScrollButton = _scrollButton;
+	document.onmousemove = handleMM2
+}
+
+function handleMU() {
+	nowScrolling = false;
+	activeScrollButton = null;
+	document.onmousemove = documentMM;	
+}
+
+function handleMM1(evt) {
+	if (! nowScrolling) {
+		return;
+	}
+	evt = (evt) ? evt : ((event) ? event : null);
+	
+	tmpX = parseInt(evt.clientX);
+	tmpX -= midPoint1 + 15;
+	tmpX -= scrollBarLeft1;
+	if (tmpX < minScrollPoint) {
+		tmpX = minScrollPoint;
+	}
+	if (tmpX > maxScrollPoint1) {
+		tmpX = maxScrollPoint1;
+	}
+	activeScrollButton.style.left = tmpX + "px";
+	diff = tmpX - startingPosition1;
+	tmpX = Math.floor(diff * ratio1);
+	udtBody.myLeft = -tmpX;
+	syncUdtScroll();
+}
+
+function handleMM2(evt) {
+	if (! nowScrolling) {
+		return;
+	}
+	evt = (evt) ? evt : ((event) ? event : null);
+	tmpX = parseInt(evt.clientX);
+	tmpX -= midPoint2 + 15;
+	tmpX -= scrollBarLeft2;
+	if (tmpX < minScrollPoint) {
+		tmpX = minScrollPoint;
+	}
+	if (tmpX > maxScrollPoint2) {
+		tmpX = maxScrollPoint2;
+	}
+	activeScrollButton.style.left = tmpX + "px";
+	diff = tmpX - startingPosition2;
+	tmpX = Math.floor(diff * ratio2);
+	hrsBody.myLeft = -tmpX;
+	syncHrsScroll();
+}
+
+
+function leftButtonClicked1(_increment) {
+	middleButtonLeft = parseInt(middleScrollButton1.style.left);
+	if (middleButtonLeft < 20) {
+		middleButtonLeft = 20;
+	}
+	middleButtonLeft -= _increment;	
+	if (middleButtonLeft < minScrollPoint) {
+		middleButtonLeft = minScrollPoint;
+	}	
+	middleScrollButton1.style.left = middleButtonLeft + "px";
+	
+	diff = middleButtonLeft - startingPosition1;
+	
+	tmpX = Math.floor(diff * ratio1);
+	
+	udtBody.myLeft = -tmpX;
+	syncUdtScroll();
+}
+
+function rightButtonClicked1(_increment) {
+	middleButtonLeft = parseInt(middleScrollButton1.style.left);
+	if (isNaN(middleButtonLeft)) {
+		middleButtonLeft = 20;
+	}
+	middleButtonLeft += _increment;
+	if (middleButtonLeft > maxScrollPoint1) {
+		middleButtonLeft = maxScrollPoint1;
+	}
+	middleScrollButton1.style.left = middleButtonLeft + "px";
+	
+	diff = middleButtonLeft - startingPosition1;
+	
+	tmpX = Math.floor(diff * ratio1);
+	
+	udtBody.myLeft = -tmpX;
+	syncUdtScroll();
+	
+}
+
+
+function leftButtonClicked2(_increment) {
+	middleButtonLeft = parseInt(middleScrollButton2.style.left);
+	if (middleButtonLeft < 20) {
+		middleButtonLeft = 20;
+	}
+	middleButtonLeft -= _increment;	
+	if (middleButtonLeft < minScrollPoint) {
+		middleButtonLeft = minScrollPoint;
+	}	
+	middleScrollButton2.style.left = middleButtonLeft + "px";
+	
+	diff = middleButtonLeft - startingPosition1;
+	
+	tmpX = Math.floor(diff * ratio2);
+	
+	
+	hrsBody.myLeft = -tmpX;
+	syncHrsScroll();
+}
+
+function rightButtonClicked2(_increment) {
+	middleButtonLeft = parseInt(middleScrollButton2.style.left);
+	if (isNaN(middleButtonLeft)) {
+		middleButtonLeft = 20;
+	}
+	middleButtonLeft += _increment;
+	if (middleButtonLeft > maxScrollPoint2) {
+		middleButtonLeft = maxScrollPoint2;
+	}
+	middleScrollButton2.style.left = middleButtonLeft + "px";
+	
+	diff = middleButtonLeft - startingPosition2;
+	
+	tmpX = Math.floor(diff * ratio2);
+	
+	
+	hrsBody.myLeft = -tmpX;
+	syncHrsScroll();
+}
+
+
+var moveRightIntervalId = null;
+
+function rightButton1MD() {    
+	moveRightIntervalId = window.setInterval("rightButtonClicked1(10)", 100);
+}
+function rightButton1MU() {
+	window.clearInterval(moveRightIntervalId);
+}
+function rightButton2MD() {    
+	moveRightIntervalId = window.setInterval("rightButtonClicked2(10)", 100);
+}
+function rightButton2MU() {
+	window.clearInterval(moveRightIntervalId);
+}
+
+var moveLeftIntervalId = null;
+
+function leftButton1MD() {    
+	moveLeftIntervalId = window.setInterval("leftButtonClicked1(10)", 100);
+}
+function leftButton1MU() {
+	window.clearInterval(moveLeftIntervalId);
+}
+function leftButton2MD() {    
+	moveLeftIntervalId = window.setInterval("leftButtonClicked2(10)", 100);
+}
+function leftButton2MU() {
+	window.clearInterval(moveLeftIntervalId);
+}
+
+function scrollBar1Clicked(evt) {
+	evt = (evt) ? evt : ((event) ? event : null);	
+	tmpX = parseInt(evt.clientX);
+	tmpX -= parseInt(scrollBar1.style.left) + 14;
+	
+	var tmpLeft = parseInt(middleScrollButton1.style.left);
+	
+	if (tmpX < 20 || tmpX > rightButtonLeft1) {
+		return;
+	}
+	else if (tmpX > tmpLeft + scrollButtonWidth1) {
+		rightButtonClicked1(scrollButtonWidth1);
+	}
+	else if (tmpX < tmpLeft) {
+		leftButtonClicked1(scrollButtonWidth1);
+	}
+}
+
+function scrollBar2Clicked(evt) {
+	evt = (evt) ? evt : ((event) ? event : null);	
+	tmpX = parseInt(evt.clientX);
+	tmpX -= scrollBarLeft2 + 13;
+	
+	var tmpLeft = parseInt(middleScrollButton2.style.left);
+	
+
+	
+	if (tmpX < 20 || tmpX > rightButtonLeft2) {
+	     
+		return;
+	}
+	else if (tmpX > tmpLeft + scrollButtonWidth2) {
+		rightButtonClicked2(scrollButtonWidth2);
+	}
+	else if (tmpX < tmpLeft) {
+		leftButtonClicked2(scrollButtonWidth2);
+	}
+}
+
+
+function handleMMVert(evt) {
+	if (! nowScrolling) {
+		return;
+	}
+	evt = (evt) ? evt : ((event) ? event : null);
+	tmpX = parseInt(evt.clientY);
+	tmpX -= vertMidPoint;
+	tmpX -= vertScrollBarTop + 100;
+	if (tmpX < minScrollPoint) {
+		tmpX = minScrollPoint;
+	}
+	if (tmpX > maxVertScrollPoint) {
+		tmpX = maxVertScrollPoint;
+	}
+	vertScrollButton.style.top = tmpX + "px";
+	diff = tmpX - vertStartPosition;
+	tmpX = Math.floor(diff * vertRatio);
+	
+	udtBody.myTop = -tmpX;
+	syncVertScroll();
+}
+
+function upButtonClicked(_increment) {
+	vertScrollButtonTop = parseInt(vertScrollButton.style.top);
+	if (vertScrollButtonTop < 20) {
+		vertScrollButtonTop = 20;
+	}
+	vertScrollButtonTop -= _increment;	
+	if (vertScrollButtonTop < minScrollPoint) {
+		vertScrollButtonTop = minScrollPoint;
+	}	
+	vertScrollButton.style.top = vertScrollButtonTop + "px";
+	diff = vertScrollButtonTop - vertStartPosition;
+	tmpX = Math.floor(diff * vertRatio);
+	udtBody.myTop = -tmpX;
+	syncVertScroll();
+}
+
+function downButtonClicked(_increment) {
+	vertScrollButtonTop = parseInt(vertScrollButton.style.top);
+	if (isNaN(vertScrollButtonTop)) {
+		vertScrollButtonTop = 20;
+	}
+	vertScrollButtonTop += _increment;
+	if (vertScrollButtonTop > maxVertScrollPoint) {
+		vertScrollButtonTop = maxVertScrollPoint;
+	}
+	vertScrollButton.style.top = vertScrollButtonTop + "px";
+	diff = vertScrollButtonTop - vertStartPosition;
+	tmpX = Math.floor(diff * vertRatio);
+	udtBody.myTop = -tmpX;
+	syncVertScroll();
+}
+
+function handleMDVert() {
+	nowScrolling = true;
+	document.onmousemove = handleMMVert
+}
+
+function handleMUVert() {
+	nowScrolling = false;
+	document.onmousemove = documentMM;	
+}
+
+var moveUpIntervalId = null;
+function upButtonMD() {    
+	moveUpIntervalId = window.setInterval("upButtonClicked(10)", 100);
+}
+function upButtonMU() {
+	window.clearInterval(moveUpIntervalId);
+}
+
+var moveDownIntervalId = null;
+function downButtonMD() {    
+	moveDownIntervalId = window.setInterval("downButtonClicked(10)", 100);
+}
+function downButtonMU() {
+	window.clearInterval(moveDownIntervalId);
+}
+
+function vertScrollBarClicked(evt) {
+	evt = (evt) ? evt : ((event) ? event : null);	
+	tmpX = parseInt(evt.clientY);
+	tmpX -= parseInt(vertScrollBar.style.top) + 100;
+	
+	var tmpTop = parseInt(vertScrollButton.style.top);
+	
+	if (tmpX < 20 || tmpX > downButtonTop) {
+		return;
+	}
+	else if (tmpX > tmpTop + vertScrollButtonHeight) {
+		downButtonClicked(vertScrollButtonHeight);
+	}
+	else if (tmpX < tmpTop) {
+		upButtonClicked(vertScrollButtonHeight);
+	}
+}
+
+
+function onResize(){
+        if(modalFrameIsVisible()) return;
+	var winWidth = top.getToolbarFrame().document.getElementById('toolbarMainTable').clientWidth;
+	if (winWidth == 0) {
+		winWidth = top.getToolbarFrame().innerWidth;
+	}
+	tsWidth = winWidth - (top.showMenu ? 100 : 0) - 50;
+        
+	hrsWidth = Math.max(50, Math.min((tsWidth - rowTotalWidth - oldSplitterPosition - splitterWidth), maxHrsWidth));
+	udtWidth = tsWidth-rowNumWidth-rowTotalWidth-splitterWidth-hrsWidth;
+	hrsWidth = tsWidth - rowNumWidth - rowTotalWidth - udtWidth - splitterWidth;
+	hrsLeft = udtWidth+rowNumWidth+splitterWidth;
+	oldSplitterPosition = udtWidth+rowNumWidth;
+	minHrsLeft = tsWidth-rowTotalWidth-maxHrsWidth-splitterWidth;
+	maxSplitterPos = tsWidth - rowTotalWidth - splitterWidth;
+
+	tsBody.style.width=tsWidth+'px';
+	udtHeaderScroller.style.width=udtWidth+'px';
+	udtBodyScroller.style.width=udtWidth+'px';
+	udtFooter.style.width=udtWidth+'px';
+	udtScroller.style.width=udtWidth+'px';
+	hrsHeaderScroller.style.width=hrsWidth+'px';
+	hrsHeaderScroller.style.left=hrsLeft+'px';
+	hrsBodyScroller.style.width=hrsWidth+'px';
+	hrsBodyScroller.style.left=hrsLeft+'px';
+	hrsFooterScroller.style.width=hrsWidth+'px';
+	hrsFooterScroller.style.left=hrsLeft+'px';
+	hrsScroller.style.width=hrsWidth+'px';
+	hrsScroller.style.left=hrsLeft+'px';
+	splitter.style.left=oldSplitterPosition+'px';
+	var rowTotalLeft = tsWidth-rowTotalWidth;
+	document.getElementById('rowTotalHeader').style.left=rowTotalLeft+'px';
+	document.getElementById('rowTotalScroller').style.left=rowTotalLeft+'px';
+	document.getElementById('rowTotalFooter').style.left=rowTotalLeft+'px';
+	document.getElementById('vertScroller').style.left=(tsWidth-22)+'px';
+
+	document.getElementById('headerTable').style.width=tsWidth+'px';
+	signApproveTable.style.width=tsWidth+'px';
+
+	var height = window.innerHeight || (document.documentElement||document.body).clientHeight;
+	grid.visibleRows = Math.floor((height - 270) / rowHeight);
+	grid.visibleRows = Math.max(grid.visibleRows, minTsRowNum);
+	grid.visibleRows = Math.min(grid.visibleRows, numberOfRows);
+	bodyHeight = grid.visibleRows * rowHeight;
+	tsBody.style.height = headerHeight+bodyHeight+footerHeight+'px';
+	rowNumScroller.style.height = bodyHeight + 'px';
+	rowNumFooter.style.top = headerHeight+bodyHeight + 'px';
+	udtBodyScroller.style.height = bodyHeight + 'px';
+	udtResizerBody.style.height = bodyHeight + 'px';
+        udtFooter.style.top = headerHeight+bodyHeight + 'px';
+	udtScroller.style.top = headerHeight+bodyHeight+footerHeight-scrollerHeight + 'px';
+	hrsBodyScroller.style.height = bodyHeight + 'px';
+        hrsFooterScroller.style.top = headerHeight+bodyHeight + 'px';
+	hrsScroller.style.top = headerHeight+bodyHeight+footerHeight-scrollerHeight + 'px';
+	
+        vertScroller.style.height = bodyHeight+'px';
+        rowTotalScroller.style.height = bodyHeight+'px';
+        rowTotalFooter.style.top = headerHeight+bodyHeight+'px';
+	splitter.style.height = headerHeight+bodyHeight+footerHeight-thickBorder+'px';
+
+	if(top.is_safari){
+		scrollBar1.style.top = headerHeight+bodyHeight+footerHeight+22-scrollerHeight+'px';
+		scrollBar2.style.top = headerHeight+bodyHeight+footerHeight+22-scrollerHeight+'px';
+        	vertScrollBar.style.height = bodyHeight+'px';
+		downScrollButton.style.top = bodyHeight-18+'px';
+		vertScrollButtonHeight = Math.floor(bodyHeight/4);
+		maxVertScrollPoint = bodyHeight - 23 - vertScrollButtonHeight;
+		outerDivHeight = bodyHeight;
+		vertScrollAmount = outerDivHeight - innerDivHeight;
+		vertRatio = vertScrollAmount/vertScrollBarHeight;
+		changeVertScrollBar();
+		vertScrollButton.style.top = rowHeight+"px";
+	}
+
+        signApproveDiv.style.top = tsTop+headerHeight+bodyHeight+footerHeight+10 + 'px';
+	scrollToTopLeft();
+}

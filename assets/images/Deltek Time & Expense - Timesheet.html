@@ -1,0 +1,327 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!-- saved from url=(0050)https://te.sysplus.com/DeltekTC/TimeCollection.msv -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+
+<meta http-equiv="Content-Type" content="text/html">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Style-Type" content="text/css">
+
+<title>Deltek Time &amp; Expense - Timesheet</title>
+
+<script type="text/javascript" src="./Deltek Time &amp; Expense - Timesheet_files/BrowserSniffer.js.download"></script>
+<script type="text/javascript" src="./Deltek Time &amp; Expense - Timesheet_files/CommonXB.js.download"></script>
+
+<script>
+	
+	var formSubmitted = false;
+
+	
+	var decimalSymbol = "";
+
+	var showMenu = true;
+	var popupWindow;
+	var printWindows = new Array();
+	var loggingOff = false;
+	var C0007Message = 'The system is still processing your previous request.  Do you wish to continue with your current request?  If you select \'Yes,\' the previous request will be cancelled.';
+	var I0026Message = 'This screen is not available in your browser version.';
+	var F0000Message = 'Deltek Time & Expense';
+	var E0818Message = 'This field supports numeric values only.';
+	var E0819Message = 'Data entered does not match mask.';
+	var E0820Message = 'Value is too large.';
+	var E1155Message = 'Number cannot be negative.';
+
+	var errorMsgJsp = '/DeltekTC/com/deltek/tc/messages/ErrMessageDisplay.jsp';
+	var emptyHtml = '/DeltekTC/com/deltek/tc/framework/empty.html';
+	var lookupJsp = '/DeltekTC/com/deltek/tc/lookupsearch/openLookup.jsp'
+	var calendarJsp = '/DeltekTC/com/deltek/tc/framework/calendarXB.jsp'
+
+	function maximize() {
+		//if (is_ie){
+			showMenu = false;
+			//frames['mainFrame'].cols = '0, *';
+			document.getElementById('mainFrame').cols = '0, *';
+		//} else {
+		//	window.location.href = "/DeltekTC/com/deltek/tc/framework/frames.jsp?showmenu=no";
+		//}
+	}
+
+	function minimize() {
+		//if (is_ie){
+			showMenu = true;
+			//frames['mainFrame'].cols = '100, *';
+			document.getElementById('mainFrame').cols = '100, *';
+			if (document.getElementById('navigationFrame').src.indexOf('empty') != -1){
+				document.getElementById('navigationFrame').src = "/DeltekTC/com/deltek/tc/framework/navigation2.jsp";
+			}
+		//} else {
+		//	window.location.href = "/DeltekTC/com/deltek/tc/framework/frames.jsp?showmenu=yes";
+		//}
+	}
+
+	function getToolbarFrame(){
+		return frames['toolbarFrame'];
+	}
+
+	function getUnitFrame(){
+		return frames['unitFrame'];
+	}
+
+	function getNavigationFrame(){
+		return frames['navigationFrame'];
+	}
+
+	function setApplicationName(appName, readOnly) {
+		var applicationName;
+		var toolbar = getToolbarFrame();
+		if (toolbar && toolbar.document.getElementById("appName1") && toolbar.document.getElementById("appName2")) {
+			document.title = 'Deltek Time & Expense - ' + appName;
+			if(readOnly) {
+				appName += '-Read Only';
+			}
+			toolbar.document.getElementById("appName1").innerHTML = appName;
+			toolbar.document.getElementById("appName2").innerHTML = appName;
+		}
+		else {
+			setTimeout("setApplicationName('"+appName+"',"+readOnly+")",300);
+		}
+	}
+
+	function hideNavMenu(){
+		maximize();
+		var toolbar = getToolbarFrame();
+		if (toolbar && toolbar.document.getElementById("showImg")) {
+			toolbar.document.getElementById("hideImg").style.display ='none';
+			toolbar.document.getElementById("showImg").style.display ='';
+			toolbar.document.getElementById("firstCell").className = "showHide";
+			toolbar.document.getElementById("secondCell").className = "coloredBG";
+			toolbar.document.getElementById("thirdCell").className = "coloredBG";
+
+			toolbar.document.getElementById("appName2").style.display = "none";
+			toolbar.document.getElementById("appName1").style.display = "";
+		}
+	}
+
+	function showNavMenu(){
+		minimize();
+		var toolbar = getToolbarFrame();
+		if (toolbar && toolbar.document.getElementById("showImg")) {
+			toolbar.document.getElementById("hideImg").style.display ='';
+			toolbar.document.getElementById("showImg").style.display ='none';
+			toolbar.document.getElementById("firstCell").className = "transparentBG";
+			toolbar.document.getElementById("secondCell").className = "transparentBG";
+			toolbar.document.getElementById("thirdCell").className = "showHide";
+
+			toolbar.document.getElementById("appName2").style.display = "";
+			toolbar.document.getElementById("appName1").style.display = "none";
+		}
+	}
+
+	function setHelpContext(helpContext) {
+		var toolbar = getToolbarFrame();
+		if (toolbar && toolbar.document.getElementById('helpContext')) {
+			toolbar.document.getElementById('helpContext').value = helpContext;
+		} else {
+			setTimeout("setHelpContext('"+helpContext+"')",300);
+		}
+		setDetailHelpContext("");
+	}
+	function setDetailHelpContext(detailHelpContext) {
+		var toolbar = getToolbarFrame();
+		if (toolbar && toolbar.document.getElementById('detailHelpContext')) {
+			toolbar.document.getElementById('detailHelpContext').value = detailHelpContext;
+		}
+	}
+
+	function setFormSubmitted() {
+		formSubmitted = true;
+		var toolbar = getToolbarFrame();
+		if (toolbar && toolbar.document.getElementById('hourGlass')) {
+			if(systemTimeoutInterval != null){
+				toolbar.hideTimeout();
+			}
+			toolbar.showHourGlass();
+		}
+	}
+
+	function clearFormSubmitted() {
+		formSubmitted = false;
+		var toolbar = getToolbarFrame();
+		if (toolbar && toolbar.document.getElementById('hourGlass')) {
+			toolbar.hideHourGlass();
+		}
+		if(systemTimeoutInterval != null){
+			systemTimeoutCounter = systemTimeoutLength;
+		}
+		removeTabIndex();
+		//setFocusToFirst();
+	}
+
+	function removeTabIndex(winObj){
+		var unitFrame = getUnitFrame();
+		var doc;
+		try{
+			if(winObj != null){
+				doc = winObj.document;
+			} else if (unitFrame.frames['modalFrame'] && unitFrame.document.getElementById('modalFrame').style.visibility == 'visible') {
+				doc = unitFrame.frames['modalFrame'].document;
+			} else if (unitFrame.frames['wizardFrame'] && unitFrame.document.getElementById('wizardFrame').style.visibility == 'visible') {
+				doc = unitFrame.frames['wizardFrame'].document;
+			} else {
+				doc = unitFrame.document;
+			}
+			var elems = doc.getElementsByTagName("input");
+			for(var i = 0; i < elems.length; i++){
+				if(elems[i].readOnly){
+					if(is_safari){
+						elems[i].tabIndex = 1000+i;
+					} else {
+						elems[i].originalTabIndex = elems[i].tabIndex;
+						elems[i].tabIndex = -1;
+					}
+				} else if(winObj != null && elems[i].tabIndex == -1 && elems[i].originalTabIndex != null){
+					elems[i].tabIndex = elems[i].originalTabIndex;
+				}
+			}
+		}catch(e){}
+	}
+
+
+	function setFocusToFirst(winObj){
+		var unitFrame = getUnitFrame();
+		var doc;
+		try{
+			if(winObj != null){
+				doc = winObj.document;
+			} else if (unitFrame.frames['modalFrame'] && unitFrame.document.getElementById('modalFrame').style.visibility == 'visible') {
+				doc = unitFrame.frames['modalFrame'].document;
+			} else if (unitFrame.frames['wizardFrame'] && unitFrame.document.getElementById('wizardFrame').style.visibility == 'visible') {
+				doc = unitFrame.frames['wizardFrame'].document;
+			} else {
+				doc = unitFrame.document;
+			}
+			if(doc.forms[0] == null) return;
+			for(var i = 0; i < doc.forms[0].elements.length; i++){
+				var elem = doc.forms[0].elements[i];
+				if(!(elem.type == 'hidden') && !elem.disabled && !elem.readOnly){
+					elem.focus();
+					return;
+				}
+			}
+		}catch(e){}
+	}
+
+	function isFormSubmitted(){
+		return formSubmitted;
+	}
+
+	function getUnitFrameWidth(){
+		var width = null;
+		width = document.body.offsetWidth;
+		if (width == null || width == 0) {
+			width = window.innerWidth;
+		}
+		if (width == null || width == 0) {
+			width = screen.width;
+		}
+		if (showMenu) {
+			width -= 100;
+		}
+		return width;
+	}
+
+	function getUnitFrameHeight(){
+		var height = null;
+		height = document.body.offsetHeight;
+		if (height == null || height == 0){
+			height = window.innerHeight;
+		}
+		if (height == null || height == 0){
+			height = screen.height;
+		}
+		return height - 50;
+	}
+
+	function getFullUnitFrameHeight(){
+		var height = null;
+		var unitFrame = getUnitFrame();
+		if(unitFrame){
+			height = unitFrame.document.body.offsetHeight;
+		}
+		if ((height == null || height == 0) && unitFrame){
+			height = unitFrame.window.innerHeight;
+		}
+		if (height == null || height == 0){
+			height = screen.height - 50;
+		}
+		return Math.max(height, getUnitFrameHeight());
+	}
+
+	function beforeUnload(){
+		if(systemTimeoutInterval != null){
+			clearInterval(systemTimeoutInterval);
+		}
+		if (!loggingOff && typeof getUnitFrame().isOkToClose == "function"){
+				if(!getUnitFrame().isOkToClose("top.clearFormSubmitted()", true))
+						return "You have unsaved changes. Please click Cancel and save your entries.";
+		}
+
+		if (!loggingOff){
+			document.location.href = "/DeltekTC/welcome.msv?onUnload=true";
+		}
+	}
+	window.onbeforeunload = beforeUnload;
+
+	var systemTimeoutCounter = 0;
+	var systemTimeoutInterval = null;
+	var systemTimeoutLength = 0;
+	function startSystemTimeout(minutes){
+		systemTimeoutLength = minutes * 60;
+		systemTimeoutCounter = systemTimeoutLength;
+		if(systemTimeoutInterval != null){
+			clearInterval(systemTimeoutInterval);
+		}
+		systemTimeoutInterval = setInterval(updateSystemTimeout, 1000);
+	}
+
+	function stopSystemTimeout(){
+		clearInterval(systemTimeoutInterval);
+		systemTimeoutInterval = null;
+		var toolbar = getToolbarFrame();
+		if (toolbar && toolbar.document.getElementById('timeout')) {
+			toolbar.hideTimeout();
+		}
+	}
+
+	function updateSystemTimeout(){
+		if(formSubmitted) return;
+		systemTimeoutCounter--;
+		var mins = Math.floor(systemTimeoutCounter / 60);
+		var secs = Math.round(systemTimeoutCounter % 60);
+		var toolbar = getToolbarFrame();
+		if (toolbar && toolbar.document.getElementById('timeout')) {
+			if(systemTimeoutCounter < 0){
+				stopSystemTimeout();
+				toolbar.doLogoff();
+			}
+			toolbar.showTimeout(mins, secs);
+		}
+	}
+
+</script>
+
+</head>
+<frameset framespacing="0" frameborder="no" rows="50, *">
+	<frame src="./Deltek Time &amp; Expense - Timesheet_files/toolbar2.html" id="toolbarFrame" name="toolbarFrame" noresize="true" scrolling="auto">
+
+	<frameset cols="100,*" id="mainFrame" name="mainFrame" frameborder="no" framespacing="0">
+
+		<frame src="./Deltek Time &amp; Expense - Timesheet_files/navigation2.html" id="navigationFrame" name="navigationFrame" noresize="true" scrolling="auto">
+
+		<frame src="./Deltek Time &amp; Expense - Timesheet_files/splashscreen.html" id="unitFrame" name="unitFrame" noresize="true" scrolling="auto">
+
+	</frameset>
+
+</frameset>
+
+
+</html>

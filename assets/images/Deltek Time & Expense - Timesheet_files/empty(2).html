@@ -1,0 +1,261 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!-- saved from url=(0050)https://te.sysplus.com/DeltekTC/TimeCollection.msv -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta http-equiv="Content-Type" content="text/html">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<link rel="stylesheet" type="text/css" href="./te6.css">
+<link rel="stylesheet" type="text/css" href="./modalWindow2.css">
+
+
+<script type="text/javascript" src="./ErrMessageDisplay.js.download"></script>
+<script type="text/javascript" src="./CommonXB.js.download"></script>
+<script type="text/javascript" src="./TimeAndNumberValidationXB.js.download"></script>
+<script type="text/javascript" src="./strUtils.js.download"></script>
+
+<script>
+
+var originalComment;
+var showTable = false;
+var canEnableCalcButton = false;
+var rate1HasChanged = false;
+var rate2HasChanged = false;
+top.decimalSymbol = ".";
+var rateMask = getMask(7, 5, top.decimalSymbol);
+
+function changeRate1() {
+	rate1HasChanged = true;
+	enableCalculate(true);
+}
+
+function changeRate2() {
+	rate2HasChanged = true;
+	enableCalculate(true);
+}
+
+
+window.onload = function() {
+
+
+	top.clearFormSubmitted();
+	var dialogTitle;
+	
+		if(parent.favoritesLaunch){
+			dialogTitle = "Line Comment";
+		}
+		else{
+			dialogTitle = "Cell Comment " + parent.getDisplayLineNo(1) + "&nbsp;-&nbsp;8/16";
+		}
+		comment.focus();
+		
+
+	parent.frames['modalTitle'].document.getElementById('titleText').innerHTML = dialogTitle;
+	comment.value = parent.commentText;
+	originalComment = parent.commentText;
+	
+	if (showTable) {
+		enableCalculate(false);
+	}
+}
+
+
+function closeWindow() {
+	if(!parent.favoritesLaunch){
+
+		if (document.getElementById('rate1')) {
+			if (!validateNumberXB(document.getElementById('rate1'), rateMask)) return;
+		}
+		if (document.getElementById('rate2')) {
+			if (!validateNumberXB(document.getElementById('rate2'), rateMask)) return;
+		}
+
+		var currentCell = parent.editor.currentCell;
+		if ((rate1HasChanged && !isNaN(parseFloat(document.getElementById("rate1").value))) || (false)) {
+			currentCell.rate1 = document.getElementById("rate1").value;
+			currentCell.rate1Cd = "M";
+			parent.setUnsavedChanges();
+		}
+		if ((rate2HasChanged && !isNaN(parseFloat(document.getElementById("rate1").value))) || (false)) {
+			currentCell.rate2 = document.getElementById("rate2").value;
+			currentCell.rate2Cd = "M";
+			parent.setUnsavedChanges();
+		}
+		var text = truncateString(comment.value,4000);
+		if (parent.commentType == "hour") {
+			if (! parent.alreadyHasIcon) {
+				if (text.length > 0) {
+					parent.createHourComment(parent.hourCommentObject, text);
+					parent.setUnsavedChanges();
+				}
+			}
+			else {
+				parent.hourCommentObject.txt = text;
+				if (text != originalComment) {
+					parent.setUnsavedChanges();
+				}
+			}
+		}
+		else if (parent.commentType == "row") {
+			if (text.length > 0) {
+				parent.rowCommentObject.hasComment = true;
+				parent.rowCommentObject.short_line_text = text;
+				parent.rowCommentIcon.style.visibility = "visible";
+			}
+			else {
+				parent.rowCommentObject.hasComment = false;
+				parent.rowCommentObject.short_line_text = text;
+			}
+			if (text != originalComment) {
+				parent.setUnsavedChanges();
+			}
+		}
+	}
+	else{
+		var text = truncateString(comment.value,4000);
+		parent.setNewComment(text);
+	}
+	parent.closeModalFrame();
+}
+
+function calculateWithNewRate() {
+	if (document.getElementById('rate1')) {
+		if (!validateNumberXB(document.getElementById('rate1'), rateMask)) return;
+	}
+	if (document.getElementById('rate2')) {
+		if (!validateNumberXB(document.getElementById('rate2'), rateMask)) return;
+	}
+	if (rate1HasChanged && (! rate2HasChanged)) {
+		document.getElementById('rateType').value = "RATE1";
+	}
+	else if (rate2HasChanged && (! rate1HasChanged)) {
+		document.getElementById('rateType').value = "RATE2";
+	}
+	else {
+		document.getElementById('rateType').value = "BOTH";
+	}
+	var rowNum = parent.editor.currentCell.row;
+	document.getElementById('manualRate1').value = document.getElementById("rate1").value;
+	document.getElementById('manualRate2').value = document.getElementById("rate2").value;
+	document.getElementById('udt01').value = norm(parent.ROA[rowNum].typ[1]);
+	document.getElementById('udt02').value = norm(parent.ROA[rowNum].typ[2]);
+	document.getElementById('udt03').value = norm(parent.ROA[rowNum].typ[3]);
+	document.getElementById('udt05').value = norm(parent.ROA[rowNum].typ[5]);
+	document.getElementById('udt07').value = norm(parent.ROA[rowNum].typ[7]);
+	document.getElementById('udt10').value = norm(parent.ROA[rowNum].typ[10]);
+	document.getElementById('hours').value = norm(parent.editor.value);
+	top.setFormSubmitted();
+	document.getElementById('calculateRateForm').submit();
+}
+
+function norm(value) {
+	if(value == null) return "\u007F";
+	if(value == '') return "\u007F";
+	if(value == ' ') return "\u007F";
+	return value;
+}
+
+
+function onCancel() {
+	parent.closeModalFrame();
+}
+
+
+function enableCalculate(booleanValue) {
+
+	var calcButton =  document.getElementById("calculateButton");
+
+	if (booleanValue && canEnableCalcButton) {
+		calcButton.disabled = false;
+		calcButton.className = "pushButtonEnabled";
+	}
+	else {
+		calcButton.disabled = true;
+		calcButton.className = "pushButtonDisabled";
+	}
+}
+
+</script>
+</head>
+
+
+<body style="margin:0px" marginwidth="0" marginheight="0">
+
+<form id="calculateRateForm" name="calculateRateForm" method="post" action="https://te.sysplus.com/DeltekTC/TimeCollection.msv">
+<input id="unit" name="unit" type="hidden" value="TS">
+<input id="event" name="event" type="hidden" value="calcWithNewRate">
+<input id="rateType" name="rateType" type="hidden" value="">
+<input id="manualRate1" name="manualRate1" type="hidden">
+<input id="manualRate2" name="manualRate2" type="hidden">
+<input id="udt01" name="udt01" type="hidden">
+<input id="udt02" name="udt02" type="hidden">
+<input id="udt03" name="udt03" type="hidden">
+<input id="udt05" name="udt05" type="hidden">
+<input id="udt07" name="udt07" type="hidden">
+<input id="udt10" name="udt10" type="hidden">
+<input id="hours" name="hours" type="hidden">
+<input type="hidden" id="proratedView" name="proratedView" value="N">
+
+
+<table>
+	<tbody><tr>
+		<td class="topBottomText">
+			<div name="topTextDisplay" id="topTextDisplay">
+				These are the comments that were entered for the selected timesheet cell.
+			</div>
+		</td>
+	</tr>
+</tbody></table>
+
+
+
+
+<table class="mainTable" border="0" cellspacing="0" cellpadding="10" width="100%">
+<tbody><tr>
+<td>
+
+
+<table cellpadding="0" cellspacing="0" width="400" align="center">
+	<tbody><tr>
+	<td align="center">
+
+	<textarea id="comment" name="comment" style="width:390px;height:200px;" onkeyup="limitOnKeyUp(this,4000)"></textarea>
+
+	</td>
+	</tr>
+</tbody></table>
+
+
+
+
+
+
+<table cellpadding="0" cellspacing="0" width="100%" style="margin-top:15px;">
+	<tbody><tr>
+	<td align="center">
+	
+		
+		<input type="button" id="closeButton" class="pushButtonEnabled" value="  OK  " onclick="closeWindow()">
+
+			&nbsp; &nbsp;
+
+		
+		<input type="button" class="pushButtonEnabled" value="  Cancel  " onclick="onCancel()">
+		
+	</td>
+	</tr>
+</tbody></table>
+
+</td>
+</tr>
+</tbody></table>
+
+</form>
+
+<script>
+
+var comment = document.getElementById("comment");
+</script>
+
+
+
+</body></html>

@@ -1,0 +1,32 @@
+function jsReplace(inString, find, replace) {
+
+    var outString = "";
+
+    if (!inString) {
+        return "";
+    }
+
+    // REPLACE ALL INSTANCES OF find WITH replace
+    if (inString.indexOf && inString.indexOf(find) != -1) {
+        // SEPARATE THE STRING INTO AN ARRAY OF STRINGS USING THE VALUE IN find
+        t = inString.split(find);
+
+        // JOIN ALL ELEMENTS OF THE ARRAY, SEPARATED BY THE VALUE IN replace
+        return (t.join(replace));
+    }
+    else {
+        return inString;
+    }
+}
+
+function quoteHtml(str){
+	var ret = jsReplace(str,"&","&amp;");
+	ret = jsReplace(ret,"'","&#39;");
+	ret = jsReplace(ret,'"','&quot;');
+	return ret;
+}
+function quoteJavascript(str){
+	var ret = jsReplace(str,"'","\\'");
+	var ret = jsReplace(ret,'"','\\"');
+	return ret;
+}
